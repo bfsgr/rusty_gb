@@ -1,9 +1,10 @@
-[Basic implementation of CPU, RAM and Cartrigbe]
+#### [Basic implementation of CPU, RAM and Cartrigbe]  
 Commit: 2f0aa415f5a61e4cdddae40058cc3b265619a97c
 
 First commit, next one will push this changelog
 
 Current directory structure:
+```'
 ├── src
 │   ├── cartrigbe
 │   │   ├── banks.rs                    => Defines a bank
@@ -29,3 +30,5 @@ Current directory structure:
 ├── Cargo.toml                          => Current
 ├── changelog
 └── DMG_ROM.bin                         => Bootstrap Gameboy ROM
+````
+ 
