@@ -23,7 +23,7 @@ impl Default for GameBoy {
 impl GameBoy {
     pub fn start(&mut self){
         self.cpu.mmu.push_range( &(self.cartrigbe.banks[0].info).to_vec() , 256, 0x4000);
-        for i in 0..0x6050 { self.cpu.run() };
+        loop { self.cpu.run() };
     }
 }
 
@@ -35,6 +35,6 @@ fn main() {
     test.start();
 
     // test.cpu.mmu.dump();
-    // println!("{}", test.cpu.registers);
+    println!("{}", test.cpu.registers);
 }
 

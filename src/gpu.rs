@@ -1,0 +1,17 @@
+struct GPU {
+    LCDC: u8,           //0xFF40     (R/W)
+    STAT: u8,           //0xFF41     (R/W)
+    scroll_y: u8,       //0xFF42     (R/W)
+    scroll_x: u8,       //0xFF43     (R/W)
+    lcd_y: u8,          //0xFF44     (R)
+    lycompare: u8,      //0xFF45     (R/W)
+    window_y: u8,       //0xFF4A     (R/W)   
+    window_x: u8,       //0xFF4B     (R/W)
+    bg_palette: u8,     //0xFF47     (R/W)
+    ob_palette0: u8,    //0xFF48     (R/W)
+    ob_palette1: u8,    //0xFF49     (R/W)
+    bgp_index: u8,      //0xFF68     (R/W) (GB Color only)
+    bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
+    spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
+    spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
+}

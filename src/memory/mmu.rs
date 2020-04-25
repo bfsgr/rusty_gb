@@ -1,19 +1,37 @@
-
-use std::fs::File;
-use std::io::prelude::*;
-
 pub struct MMU {
-    pub memory: [u8; 0xFFFF+1]
+    // memory: [u8; 0xFFFF+1],
     
+    cartrigbe: [u8; 0x8000],
+    vram: [u8; 0x2000],
+    sram: [u8; 0x2000],
+    wram: [u8; 0x2000],
+    echo: [u8; 0x1E00],
+    oam: [u8; 0xA0],
+    io: [u8; 0x4C],
+    hram: [u8; 0x7F], //stack
+    interrupt: u8
+
 }
 
 impl Default for MMU {
     fn default() -> MMU {
-        let mut mem = MMU { memory: [0; 0xFFFF+1] };
+        let mut mem = MMU { 
+            cartrigbe: [0; 0x8000],
+            vram: [0; 0x2000],
+            sram: [0; 0x2000],
+            wram: [0; 0x2000],
+            echo: [0; 0x1E00],
+            oam: [0; 0xA0],
+            io: [0; 0x4C],
+            hram: [0; 0x7F],
+            interrupt: 0
+        };
+
         for i in 0..256 {
-            mem.memory[i] = BOOT_SEQUENCE[i];
+            mem.cartrigbe[i] = BOOT_SEQUENCE[i];
         }
-        mem
+
+        return mem;
         // MMU { memory: [0; 0xFFFF] }
     }
 }
@@ -36,7 +54,7 @@ pub enum Region {
 
 
 impl MMU {
-    pub fn classify(address: u16) -> Region{
+    fn classify(address: u16) -> Region{
         match address {
             0..=0x7FFF => Region::Cartrigbe,    //32kb
             0x8000..=0x9FFF => Region::VRAM,    //8kb
@@ -51,34 +69,108 @@ impl MMU {
             0xFFFF => Region::Interrupt         //1 byte
         }
     }
-    fn regular_addr(address: u16, from: Region) -> u16{
+    fn simple_addr(address: u16, from: Region) -> usize{
         match from {
-            Region::Cartrigbe => address,
-            Region::VRAM => address + 0x8000,
-            Region::SRAM => address + 0xA000,
-            Region::WRAM => address + 0xC000,
-            Region::Echo => address + 0xE000,
-            Region::OAM => address + 0xFE00,
-            Region::Unsable => address + 0xFEA0, //there's no reason to use this conversion
-            Region::IO =>  address + 0xFF00,
-            Region::GbcIO => address + 0xFF4C,
-            Region::Stack => address + 0xFF80,
-            Region::Interrupt => 0xFFFF,
+            Region::Cartrigbe => address as usize,
+            Region::VRAM => (address - 0x8000) as usize,
+            Region::SRAM => (address - 0xA000) as usize,
+            Region::WRAM => (address - 0xC000) as usize,
+            Region::Echo => (address - 0xE000) as usize,
+            Region::OAM => (address - 0xFE00)  as usize,
+            Region::Unsable => (address - 0xFEA0)  as usize, //there's no reason to use this conversion
+            Region::IO =>  (address - 0xFF00)  as usize,
+            Region::GbcIO => (address - 0xFF4C)  as usize,
+            Region::Stack => (address - 0xFF80)  as usize,
+            Region::Interrupt => 0xFFFF  as usize,
         }
     }
-    pub fn write_byte(&mut self, address: u16, byte: u8 ){
-        self.memory[address as usize] = byte;
+
+    pub fn convert(address: u16) -> usize{
+        let portion = MMU::classify(address);
+        MMU::simple_addr(address, portion)
     }
-    pub fn write_short(&mut self, address: u16, byte: u16){
-        self.write_byte(address, byte as u8);
-        self.write_byte(address+1, (byte >> 8) as u8);
+
+    pub fn write_byte(&mut self, address: u16, byte: u8 ){
+        match MMU::classify(address) {
+            Region::Cartrigbe => {
+                self.cartrigbe[address as usize] = byte;
+            },
+            Region::VRAM => {
+                self.vram[MMU::convert(address)] = byte;
+            },
+            Region::SRAM => {
+                self.sram[MMU::convert(address)] = byte;
+            },
+            Region::WRAM => {
+                self.wram[MMU::convert(address)] = byte;
+            },
+            Region::Echo => {
+                self.echo[MMU::convert(address)] = byte;
+            },
+            Region::OAM => {
+                self.oam[MMU::convert(address)] = byte;
+            },
+            Region::Unsable => {},
+            Region::IO =>  {
+                self.io[MMU::convert(address)] = byte;
+            },
+            Region::GbcIO => {},
+            Region::Stack => {
+                self.hram[MMU::convert(address)] = byte;
+            },
+            Region::Interrupt => {0xFFFF;}
+        }
+    }
+
+    fn validade_short(address: u16) -> bool{
+        match MMU::classify(address) {
+            Region::Cartrigbe => address < 0x7FFF,
+            Region::VRAM => address < 0x9FFF,
+            Region::SRAM => address < 0xBFFF,
+            Region::WRAM => address < 0xDFFF,
+            Region::Echo => address < 0xFDFF,
+            Region::OAM => address < 0xFE9F,
+            Region::Unsable => false,
+            Region::IO => address < 0xFF4B,
+            Region::GbcIO => false,
+            Region::Stack => address < 0xFFFE,
+            Region::Interrupt => false
+        }
 
     }
-    pub fn read_byte(&self, addresses: u16) -> u8 {
-        self.memory[addresses as usize]
+
+    pub fn write_short(&mut self, address: u16, short: u16){
+        if MMU::validade_short(address){
+            self.write_byte(address, short as u8);
+            self.write_byte(address+1, (short >> 8) as u8);
+        } else {
+            println!("ILLEGAL ATTEMPT TO WRITE SHORT\n");
+            std::process::exit(1);
+        }
+
+    }
+    pub fn read_byte(&self, address: u16) -> u8 {
+        match MMU::classify(address) {
+            Region::Cartrigbe => self.cartrigbe[address as usize],
+            Region::VRAM => self.vram[MMU::convert(address)],
+            Region::SRAM => self.sram[MMU::convert(address)],
+            Region::WRAM => self.wram[MMU::convert(address)],
+            Region::Echo => self.echo[MMU::convert(address)],
+            Region::OAM => self.oam[MMU::convert(address)],
+            Region::Unsable => {return 0xFF},
+            Region::IO => self.io[MMU::convert(address)],
+            Region::GbcIO => {return 0xFF},
+            Region::Stack => self.hram[MMU::convert(address)],
+            Region::Interrupt => self.interrupt
+        }
     }
     pub fn read_short(&self, address: u16) -> u16{
-        self.read_byte(address) as u16 | (self.read_byte(address) as u16) << 8 //>
+        if MMU::validade_short(address){
+            self.read_byte(address) as u16 | (self.read_byte(address) as u16) << 8 //>
+        } else {
+            println!("ILLEGAL ATTEMPT TO READ SHORT\n");
+            std::process::exit(1);
+        }
     }
     pub fn copy(&mut self, dest: u16, source: u16, lenght: u16){
         for i in 0..lenght {
@@ -91,17 +183,26 @@ impl MMU {
         x[0] as u16 | (x[1] as u16) << 8 //>
     }
 
-    pub fn dump(&self){
-        let mut file = File::create("memorydump.bin").unwrap();
-        let mut i = 0;
-        for address in self.memory.iter() {
-            write!(file, "{:#06x}: [{:#06x}]\n", i, address);
-            i += 1;
+
+    pub fn push_range(&mut self, data: &Vec<u8>, start: usize, lenght: usize ){
+
+        for i in start..lenght {
+            self.write_byte(i as u16, data[i]);
         }
     }
+
 }
 
-pub const BOOT_SEQUENCE: [u8; 256]= [0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 
+
+
+
+
+
+
+
+
+
+const BOOT_SEQUENCE: [u8; 256]= [0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 
 0xFB,0x21, 0x26, 0xFF, 0x0E, 0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77,
 0x77, 0x3E, 0xFC, 0xE0, 0x47, 0x11, 0x04, 0x01, 0x21, 0x10, 0x80, 0x1A, 0xCD, 0x95, 0x00, 0xCD,
 0x96, 0x00, 0x13, 0x7B, 0xFE, 0x34, 0x20, 0xF3, 0x11, 0xD8, 0x00, 0x06, 0x08, 0x1A, 0x13, 0x22,

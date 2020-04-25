@@ -69,12 +69,12 @@ pub struct Registers {
 
 impl fmt::Display for Registers{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "A: {:#04x}\nB: {:#04x}\nC: {:#04x}\nD: {:#04x}\nE: {:#04x}\nF: {:#04x}\nH: {:#04x}\nL: {:#04x}\nAF: {:#04x}\nBC: {:#04x}\nDE: {:#04x}\nHL: {:#04x}\nSP: {:#04x}\nPC: {:#04x}\nFLAGS: {:#04x}", self.AF.T, self.BC.T, self.BC.L, self.DE.T, self.DE.L, self.AF.L, self.HL.T, self.HL.L, self.AF.r16b(), self.BC.r16b(), self.DE.r16b(), self.HL.r16b(), self.SP, self.PC, self.AF.L)
+        write!(f, "A: {:#04x}\nB: {:#04x}\nC: {:#04x}\nD: {:#04x}\nE: {:#04x}\nF: {:#04x}\nH: {:#04x}\nL: {:#04x}\nAF: {:#04x}\nBC: {:#04x}\nDE: {:#04x}\nHL: {:#04x}\nSP: {:#04x}\nPC: {:#04x}\n", self.AF.T, self.BC.T, self.BC.L, self.DE.T, self.DE.L, self.AF.L, self.HL.T, self.HL.L, self.AF.r16b(), self.BC.r16b(), self.DE.r16b(), self.HL.r16b(), self.SP, self.PC)
     }
 }
 impl fmt::Debug for Registers{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "A: {:#010b}\nB: {:#010b}\nC: {:#010b}\nD: {:#010b}\nE: {:#010b}\nF: {:#010b}\nH: {:#010b}\nL: {:#010b}\nAF: {:#018b}\nBC: {:#018b}\nDE: {:#018b}\nHL: {:#018b}\nSP: {:#018b}\nPC: {:#018b}\nFLAGS: {:#010b}", self.AF.T, self.BC.T, self.BC.L, self.DE.T, self.DE.L, self.AF.L, self.HL.T, self.HL.L, self.AF.r16b(), self.BC.r16b(), self.DE.r16b(), self.HL.r16b(), self.SP, self.PC, self.AF.L)
+        write!(f, "A: {:#010b}\nB: {:#010b}\nC: {:#010b}\nD: {:#010b}\nE: {:#010b}\nF: {:#010b}\nH: {:#010b}\nL: {:#010b}\nAF: {:#018b}\nBC: {:#018b}\nDE: {:#018b}\nHL: {:#018b}\nSP: {:#018b}\nPC: {:#018b}\n", self.AF.T, self.BC.T, self.BC.L, self.DE.T, self.DE.L, self.AF.L, self.HL.T, self.HL.L, self.AF.r16b(), self.BC.r16b(), self.DE.r16b(), self.HL.r16b(), self.SP, self.PC)
     }
 }
 
@@ -112,6 +112,16 @@ impl Registers {
             _ => return false
         }
         return true;
+    }
+
+    pub fn is_set_flag(&self, bit: u8) -> bool{
+        match bit {
+            1 => (self.AF.L & ZERO_FLAG) == ZERO_FLAG, //Zero Flag
+            2 => (self.AF.L & NEGATIVE_FLAG) == NEGATIVE_FLAG, //Negative Flag
+            3 => (self.AF.L & HALFCARRY_FLAG) == HALFCARRY_FLAG, //Halfcarry Flag
+            4 => (self.AF.L & CARRY_FLAG) == CARRY_FLAG, //Carry Flag
+            _ => return false
+        }
     }
 
 

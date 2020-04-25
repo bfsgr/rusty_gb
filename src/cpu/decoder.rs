@@ -64,7 +64,7 @@ impl Default for Decoder {
                 //0x5
                 Instruction{ 
                     disassembly: "DEC B",
-                    inst: CPU::nop,
+                    inst: CPU::dec_B,
                     
                     osize: 0,
                     ticks: 4
@@ -72,7 +72,7 @@ impl Default for Decoder {
                 //0x6
                 Instruction{ 
                     disassembly: "LD B,n",
-                    inst: CPU::nop,
+                    inst: CPU::ld_B_n,
                     
                     osize: 1,
                     ticks: 8
@@ -120,7 +120,7 @@ impl Default for Decoder {
                 //0xC
                 Instruction{ 
                     disassembly: "INC C",
-                    inst: CPU::nop,
+                    inst: CPU::inc_C,
                     
                     osize: 0,
                     ticks: 4
@@ -136,7 +136,7 @@ impl Default for Decoder {
                 //0xE
                 Instruction{ 
                     disassembly: "LD C,n",
-                    inst: CPU::nop,
+                    inst: CPU::ld_C_n,
                     
                     osize: 1,
                     ticks: 8
@@ -160,7 +160,7 @@ impl Default for Decoder {
                 //0x11
                 Instruction{ 
                     disassembly: "LD DE,nn",
-                    inst: CPU::nop,
+                    inst: CPU::ld_DE_nn,
                     
                     osize: 2,
                     ticks: 12
@@ -208,7 +208,7 @@ impl Default for Decoder {
                 //0x17
                 Instruction{ 
                     disassembly: "RL A",
-                    inst: CPU::nop,
+                    inst: CPU::rla,
                     
                     osize: 0,
                     ticks: 4
@@ -232,7 +232,7 @@ impl Default for Decoder {
                 //0x1A
                 Instruction{ 
                     disassembly: "LD A,(DE)",
-                    inst: CPU::nop,
+                    inst: CPU::ld_A_dDE,
                     
                     osize: 0,
                     ticks: 8
@@ -520,7 +520,7 @@ impl Default for Decoder {
                 //0x3E
                 Instruction{ 
                     disassembly: "LD A,n",
-                    inst: CPU::nop,
+                    inst: CPU::ld_A_n,
                     
                     osize: 1,
                     ticks: 8
@@ -656,7 +656,7 @@ impl Default for Decoder {
                 //0x4F
                 Instruction{ 
                     disassembly: "LD C,A",
-                    inst: CPU::nop,
+                    inst: CPU::ld_C_A,
                     
                     osize: 0,
                     ticks: 4
@@ -976,10 +976,10 @@ impl Default for Decoder {
                 //0x77
                 Instruction{ 
                     disassembly: "LD (HL),A",
-                    inst: CPU::nop,
+                    inst: CPU::ld_dHL_A,
                     
                     osize: 0,
-                    ticks: 0
+                    ticks: 8
                 }, 
                 //0x78
                 Instruction{ 
@@ -1567,8 +1567,8 @@ impl Default for Decoder {
                 },
                 //0xC1
                 Instruction{ 
-                    disassembly: "POP BC{}",
-                    inst: CPU::nop,
+                    disassembly: "POP BC",
+                    inst: CPU::pop_BC,
                     
                     osize: 0,
                     ticks: 12
@@ -1600,7 +1600,7 @@ impl Default for Decoder {
                 //0xC5
                 Instruction{ 
                     disassembly: "PUSH BC",
-                    inst: CPU::nop,
+                    inst: CPU::push_BC,
                     
                     osize: 0,
                     ticks: 16
@@ -1664,9 +1664,9 @@ impl Default for Decoder {
                 //0xCD
                 Instruction{ 
                     disassembly: "CALL nn",
-                    inst: CPU::nop,
+                    inst: CPU::call_nn,
                     
-                    osize: 0,
+                    osize: 2,
                     ticks: 12
                 }, 
                 //0xCE
@@ -1816,7 +1816,7 @@ impl Default for Decoder {
                 //0xE0
                 Instruction{ 
                     disassembly: "LDH (n),A",
-                    inst: CPU::nop,
+                    inst: CPU::ldh_dn_A,
                     
                     osize: 1,
                     ticks: 12
@@ -1832,7 +1832,7 @@ impl Default for Decoder {
                 //0xE2
                 Instruction{ 
                     disassembly: "LDH (C),A",
-                    inst: CPU::nop,
+                    inst: CPU::ldh_dC,
                     
                     osize: 0,
                     ticks: 8
@@ -2212,8 +2212,8 @@ impl Default for Decoder {
                 },
                 //0x11
                 Instruction{ 
-                    disassembly: "NOP",
-                    inst: CPU::nop,
+                    disassembly: "RL C",
+                    inst: CPU::rlc,
                     
                     osize: 0,
                     ticks: 4
