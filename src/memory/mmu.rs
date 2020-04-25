@@ -1,3 +1,5 @@
+use yansi::Paint;
+
 pub struct MMU {
     // memory: [u8; 0xFFFF+1],
     
@@ -26,6 +28,11 @@ impl Default for MMU {
             hram: [0; 0x7F],
             interrupt: 0
         };
+
+        mem.io = [0x0F, 0x00, 0x7C, 0xFF, 0x00, 0x00, 0x00, 0xF8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0x80, 0xBF, 0xF3, 0xFF, 0xBF, 0xFF, 0x3F, 0x00, 0xFF, 0xBF, 0x7F, 0xFF, 0x9F, 0xFF, 0xBF, 0xFF,
+        0xFF, 0x00, 0x00, 0xBF, 0x77, 0xF3, 0xF1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF,
+        0x91, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x00, 0x00, 0x00];
 
         for i in 0..256 {
             mem.cartrigbe[i] = BOOT_SEQUENCE[i];
@@ -85,7 +92,7 @@ impl MMU {
         }
     }
 
-    pub fn convert(address: u16) -> usize{
+    fn convert(address: u16) -> usize{
         let portion = MMU::classify(address);
         MMU::simple_addr(address, portion)
     }
@@ -112,7 +119,8 @@ impl MMU {
             },
             Region::Unsable => {},
             Region::IO =>  {
-                self.io[MMU::convert(address)] = byte;
+                // self.io[MMU::convert(address)] = byte;
+                MMU::cat_write_io(address, byte);
             },
             Region::GbcIO => {},
             Region::Stack => {
@@ -144,7 +152,7 @@ impl MMU {
             self.write_byte(address, short as u8);
             self.write_byte(address+1, (short >> 8) as u8);
         } else {
-            println!("ILLEGAL ATTEMPT TO WRITE SHORT\n");
+            println!("ILLEGAL ATTEMPT TO WRITE SHORT");
             std::process::exit(1);
         }
 
@@ -158,7 +166,7 @@ impl MMU {
             Region::Echo => self.echo[MMU::convert(address)],
             Region::OAM => self.oam[MMU::convert(address)],
             Region::Unsable => {return 0xFF},
-            Region::IO => self.io[MMU::convert(address)],
+            Region::IO => MMU::cat_read_io(address),
             Region::GbcIO => {return 0xFF},
             Region::Stack => self.hram[MMU::convert(address)],
             Region::Interrupt => self.interrupt
@@ -166,9 +174,9 @@ impl MMU {
     }
     pub fn read_short(&self, address: u16) -> u16{
         if MMU::validade_short(address){
-            self.read_byte(address) as u16 | (self.read_byte(address) as u16) << 8 //>
+            (self.read_byte(address) as u16) << 8 | self.read_byte(address) as u16  //>
         } else {
-            println!("ILLEGAL ATTEMPT TO READ SHORT\n");
+            println!("ILLEGAL ATTEMPT TO READ SHORT");
             std::process::exit(1);
         }
     }
@@ -189,6 +197,15 @@ impl MMU {
         for i in start..lenght {
             self.write_byte(i as u16, data[i]);
         }
+    }
+
+    fn cat_write_io(address: u16, byte: u8){
+        println!("{} {:#04x}\t\t{:#12b}", Paint::red("IO WRITE TO:"), address, byte);
+    }
+
+    fn cat_read_io(address: u16) -> u8{
+        println!("{} {:#04x}", Paint::red("IO READ TO:"), address);
+        0xFF
     }
 
 }

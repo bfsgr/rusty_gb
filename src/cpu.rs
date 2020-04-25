@@ -117,14 +117,17 @@ impl CPU {
 
     //Stack management functions
     fn push_to_stack(&mut self, short: u16){
+        self.mmu.write_byte(self.registers.SP, short as u8);
+        self.mmu.write_byte(self.registers.SP-1, (short >> 8) as u8); 
         self.registers.SP = self.registers.SP - 2;
-        self.mmu.write_short(self.registers.SP, short);
     }
 
     fn pop_from_stack(&mut self) -> u16 {
-        let capture = self.mmu.read_short(self.registers.SP);
         self.registers.SP = self.registers.SP + 2;
-        capture
+        let b1 = self.mmu.read_byte(self.registers.SP);
+        let b2 = self.mmu.read_byte(self.registers.SP-1);
+        
+        b1 as u16 | (b2 as u16) << 8 //>
     }
 
     //generic increment function
@@ -254,8 +257,7 @@ impl CPU {
 
     //0x05
     fn dec_B(op: Instruction, opcode: u8, operand: [u8; 2], state: &mut CPU){
-        state.registers.BC.T = CPU::dec(state.registers.BC.T, &mut state.registers)
-
+        state.registers.BC.T = CPU::dec(state.registers.BC.T, &mut state.registers);
     }
 
     //0x77
@@ -302,7 +304,8 @@ impl CPU {
 
     //0xC5
     fn push_BC(op: Instruction, opcode: u8, operand: [u8; 2], state: &mut CPU){
-        state.push_to_stack(state.registers.BC.r16b());
+        let bc = state.registers.BC.r16b();
+        state.push_to_stack(bc);
 
     } 
 
