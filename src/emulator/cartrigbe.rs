@@ -1,7 +1,7 @@
 mod header;
-mod banks;
+mod bank;
 
-use banks::Bank;
+use bank::Bank;
 use header::Header;
 use std::fs::File;
 use std::io::Read;
@@ -39,14 +39,13 @@ impl Cartrigbe {
         match file {
             Ok(file) => {
                 for byte in file.bytes() {
-                    // println!("{:x}", byte.unwrap());
                     self.content.push(byte.unwrap());
                 }
                 self.content_size = self.content.len();
                 self.process();
             }
             Err(file) => {
-                println!("Could not open file. Exiting\n");
+                println!("{}. Exiting", file);
                 std::process::exit(1);
             }
         }

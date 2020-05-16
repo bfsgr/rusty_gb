@@ -1,40 +1,11 @@
-#![allow(warnings)]
+mod emulator;
+use emulator::Gameboy;
 
-mod cpu;
-mod memory;
-mod cartrigbe;
-use cpu::CPU;
-use cartrigbe::Cartrigbe;
 
-struct GameBoy {
-    cpu: CPU,
-    cartrigbe: Cartrigbe
+fn main(){
+    let mut system = Gameboy::default();
+
+    system.insert("Tetris2.gb".to_string());
+    
+    system.start();
 }
-
-impl Default for GameBoy {
-    fn default() -> Self {
-        GameBoy {
-            cpu: CPU::default(),
-            cartrigbe: Cartrigbe::default()
-        }
-    }
-}
-
-impl GameBoy {
-    pub fn start(&mut self){
-        self.cpu.mmu.push_range( &(self.cartrigbe.banks[0].info).to_vec() , 256, 0x4000);
-        loop { self.cpu.run() };
-    }
-}
-
-
-fn main() {
-    let mut test = GameBoy::default();
-    test.cartrigbe.insert("Tetris2.gb".to_string());
-    // println!("{}", test.cartrigbe.info);
-    test.start();
-
-    // test.cpu.mmu.dump();
-    println!("{}", test.cpu.registers);
-}
-
