@@ -1,6 +1,6 @@
 pub struct Map {
     pub cartrigbe: [u8; 0x8000],
-    vram: [u8; 0x2000],
+    pub vram: [u8; 0x2000],
     sram: [u8; 0x2000],
     wram: [u8; 0x2000],
     echo: [u8; 0x1E00],
@@ -111,7 +111,7 @@ impl Default for Map {
             io: [0; 0x4C],
             hram: [0; 0x7F],
             interrupt_enable: 0,
-            interrupt_switch: true
+            interrupt_switch: false
         };
         
         for i in 0..256 {

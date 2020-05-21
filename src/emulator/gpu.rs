@@ -1,15 +1,8 @@
 #![allow(non_snake_case)]
 
 use super::interrupt::{*};
-
-const BIT7: u8 = 0b10000000;
-const BIT6: u8 = 0b01000000;
-const BIT5: u8 = 0b00100000;
-const BIT4: u8 = 0b00010000;
-const BIT3: u8 = 0b00001000;
-const BIT2: u8 = 0b00000100;
-const BIT1: u8 = 0b00000010;
-const BIT0: u8 = 0b00000001;
+use super::memory::{*};
+use super::bit_utils::{*};
 
 const OAM_CYCLES: usize = 79;
 const TRANSFER_CYCLES: usize = OAM_CYCLES + 172;
@@ -79,7 +72,7 @@ impl Default for GPU {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler){
+    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler, memory: &Memory){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -97,15 +90,15 @@ impl GPU {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     //set STAT bits
-                    self.STAT = self.STAT | BIT4;
-                    self.STAT = self.STAT | BIT0;
-                    self.STAT = self.STAT & !BIT1;
+                    self.STAT.set_bit(4);
+                    self.STAT.set_bit(0);
+                    self.STAT.reset_bit(1);
                     //update interrupt flag
                     interrupt_status = true;
                 }
                 //frame_cycles are bigger than the Vblank period, reset everything
                 if self.frame_cycles > VBLANK_CYCLES {
-                    self.frame_cycles = self.frame_cycles - VBLANK_CYCLES;
+                    self.frame_cycles = 0;
                     self.scanline_cycles = 0;
                     self.lcd_y = 0;
                     //compare LY to LYC
@@ -120,9 +113,9 @@ impl GPU {
                         //OAM period
                         if cur_mode != Mode::Oam {
                             self.mode = Mode::Oam;
-                            self.STAT = self.STAT | BIT5;
-                            self.STAT = self.STAT | BIT1;
-                            self.STAT = self.STAT & !BIT0;
+                            self.STAT.set_bit(5);
+                            self.STAT.set_bit(1);
+                            self.STAT.reset_bit(0);
                             interrupt_status = true;
                         }
                     },
@@ -130,18 +123,18 @@ impl GPU {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
                             self.mode = Mode::Transfer;
-                            self.STAT = self.STAT | BIT0;
-                            self.STAT = self.STAT | BIT1;
+                            self.STAT.set_bit(0);
+                            self.STAT.set_bit(1);
 
-                            self.transfer();
+                            self.transfer(memory);
                         }
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
                             self.mode = Mode::HBlank;
-                            self.STAT = self.STAT | BIT3;
-                            self.STAT = self.STAT & !BIT0;
-                            self.STAT = self.STAT & !BIT1;
+                            self.STAT.set_bit(3);
+                            self.STAT.reset_bit(1);
+                            self.STAT.reset_bit(0);
                             interrupt_status = true;
                         }
                     },
@@ -165,22 +158,28 @@ impl GPU {
 
     fn line_compare(&mut self, interrupt: &mut InterruptHandler){
         if self.lycompare == self.lcd_y {
-            self.STAT = self.STAT | BIT2;
+            self.STAT.set_bit(2);
             interrupt.request(Interrupt::LCDC)
         } else {
-            self.STAT = self.STAT & !BIT2;
+            self.STAT.reset_bit(2);
         }
 
     }
 
     pub fn enabled(&self) -> bool{
-        (self.LCDC & BIT7) == BIT7
+        self.LCDC.test_bit(7)
     }
 
-    fn transfer(&mut self){
-        
+    fn transfer(&mut self, memory: &Memory){
+        if self.LCDC.test_bit(0) {
+            //draw bg
+        }
+        if self.LCDC.test_bit(5) {
+            //draw window
+        }
+        if self.LCDC.test_bit(1) {
+            //draw sprite
+        }
     }
-
-    fn set_bit(){}
 
 }

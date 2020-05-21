@@ -6,7 +6,7 @@ use map::{*};
 pub mod io;
 
 pub struct Memory {
-    map: Map,
+    pub map: Map,
     boot_rom_enable: bool
 }
 

@@ -5,6 +5,8 @@ mod gpu;
 mod memory;
 mod cartrigbe;
 mod interrupt;
+mod bit_utils;
+mod bus;
 
 use cpu::{*};
 use gpu::{*};
@@ -30,13 +32,12 @@ pub struct Gameboy {
     cartrigbe: Cartrigbe,
     gpu: GPU,
     interrupt: InterruptHandler,
-    //gpu
     //cartrigbe
     //sound
     //timers
     //joypad
-    //interrupt?
-    //dma?
+    //interrupt
+    //dma
 }
 
 impl Gameboy {
@@ -59,7 +60,7 @@ impl Gameboy {
                 if state.1 { self.sync(); }
 
 
-                self.gpu.step(state.0, &mut self.interrupt);
+                self.gpu.step(state.0, &mut self.interrupt, &self.memory);
 
                 //update pc to execute interrupt vector if any
                 self.interrupt.execute(&mut self.cpu);

@@ -419,6 +419,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rusty_gb"
+version = "0.1.0"
+dependencies = [
+ "minifb",
+ "yansi",
+]
+
+[[package]]
 name = "scoped-tls"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -481,14 +489,6 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi",
-]
-
-[[package]]
-name = "testing"
-version = "0.1.0"
-dependencies = [
- "minifb",
- "yansi",
 ]
 
 [[package]]

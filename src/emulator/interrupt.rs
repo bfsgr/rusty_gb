@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::cpu::CPU;
+use super::bit_utils::BitUtils;
 
 pub enum Interrupt {
     VBlank,
@@ -10,15 +11,7 @@ pub enum Interrupt {
     Joypad,
 }
 
-enum InterruptBit {
-    VBlank =    0b00000001,
-    LCDC =      0b00000010,
-    Timer =     0b00000100,
-    Serial =    0b00001000,
-    Joypad =    0b00010000
-}
-
-pub enum InterruptVector {
+enum InterruptVector {
     VBlank = 0x40,
     LCDC = 0x48,
     Timer = 0x50,
@@ -59,7 +52,7 @@ impl InterruptHandler {
         self.saved_state[0] = state.PC();
         self.saved_state[1] = state.SP();
 
-        state.set_PC(40);
+        state.set_PC(InterruptVector::VBlank as u16);
     }
     fn LCDC(&mut self, state: &mut CPU){
         self.master = false;
@@ -67,7 +60,7 @@ impl InterruptHandler {
         self.saved_state[0] = state.PC();
         self.saved_state[1] = state.SP();
 
-        state.set_PC(48);
+        state.set_PC(InterruptVector::LCDC as u16);
     }
     fn Timer(&mut self, state: &mut CPU){
         self.master = false;
@@ -75,7 +68,7 @@ impl InterruptHandler {
         self.saved_state[0] = state.PC();
         self.saved_state[1] = state.SP();
 
-        state.set_PC(50);
+        state.set_PC(InterruptVector::Timer as u16);
     }
     fn Serial(&mut self, state: &mut CPU){
         self.master = false;
@@ -83,7 +76,7 @@ impl InterruptHandler {
         self.saved_state[0] = state.PC();
         self.saved_state[1] = state.SP();
 
-        state.set_PC(58);
+        state.set_PC(InterruptVector::Serial as u16);
     }
     fn Joypad(&mut self, state: &mut CPU){
         self.master = false;
@@ -91,26 +84,26 @@ impl InterruptHandler {
         self.saved_state[0] = state.PC();
         self.saved_state[1] = state.SP();
 
-        state.set_PC(60);
+        state.set_PC(InterruptVector::Joypad as u16);
     }
 
     pub fn request(&mut self, interrupt: Interrupt) {
         if self.master {
             match interrupt {
                 Interrupt::VBlank => {
-                    self.requests = self.requests | InterruptBit::VBlank as u8
+                    self.requests.set_bit(0)
                 },
                 Interrupt::LCDC => {
-                    self.requests = self.requests | InterruptBit::LCDC as u8
+                    self.requests.set_bit(1)
                 },
                 Interrupt::Timer => {
-                    self.requests = self.requests | InterruptBit::Timer as u8
+                    self.requests.set_bit(2)
                 },
                 Interrupt::Serial => {
-                    self.requests = self.requests | InterruptBit::Serial as u8
+                    self.requests.set_bit(3)
                 },
                 Interrupt::Joypad => {
-                    self.requests = self.requests | InterruptBit::Joypad as u8
+                    self.requests.set_bit(4)
                 },
             }
         }
