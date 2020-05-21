@@ -2,7 +2,6 @@
 
 use super::cpu::registers::Response;
 
-pub mod io;
 //TODO, remove echo field, all logic will convert addresses in echo to wram
 pub struct Memory {
     wram: [u8; 0x2000], //Internal RAM
@@ -58,7 +57,7 @@ impl Memory {
                 Response::Byte(self.echo[x])
             },
             Region::HRAM(x) => {
-                Response::Byte(self.echo[x])
+                Response::Byte(self.hram[x])
             }
         }
         

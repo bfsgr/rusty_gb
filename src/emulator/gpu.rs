@@ -22,22 +22,22 @@ pub struct GPU {
     mode: Mode,
     scanline_cycles: usize,
     frame_cycles: usize,
-    LCDC: u8,           //0xFF40     (R/W)
-    STAT: u8,           //0xFF41     (R/W)
-    scroll_y: u8,       //0xFF42     (R/W)
-    scroll_x: u8,       //0xFF43     (R/W)
-    lcd_y: u8,          //0xFF44     (R)
-    lycompare: u8,      //0xFF45     (R/W)
-    OAM_DMA: u8,        //0xFF46     (?)
-    window_y: u8,       //0xFF4A     (R/W)   
-    window_x: u8,       //0xFF4B     (R/W)
-    bg_palette: u8,     //0xFF47     (R/W)
-    ob_palette0: u8,    //0xFF48     (R/W)
-    ob_palette1: u8,    //0xFF49     (R/W)
-    bgp_index: u8,      //0xFF68     (R/W) (GB Color only)
-    bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
-    spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
-    spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
+    pub LCDC: u8,           //0xFF40     (R/W)
+    pub STAT: u8,           //0xFF41     (R/W)
+    pub scroll_y: u8,       //0xFF42     (R/W)
+    pub scroll_x: u8,       //0xFF43     (R/W)
+    pub lcd_y: u8,          //0xFF44     (R)
+    pub lycompare: u8,      //0xFF45     (R/W)
+    pub OAM_DMA: u8,        //0xFF46     (?)
+    pub window_y: u8,       //0xFF4A     (R/W)   
+    pub window_x: u8,       //0xFF4B     (R/W)
+    pub bg_palette: u8,     //0xFF47     (R/W)
+    pub ob_palette0: u8,    //0xFF48     (R/W)
+    pub ob_palette1: u8,    //0xFF49     (R/W)
+    pub bgp_index: u8,      //0xFF68     (R/W) (GB Color only)
+    pub bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
+    pub spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
+    pub spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
     vram: [u32;0x2000],
     oam: [u8; 0xA0],
     pub display: Vec<u32>
@@ -71,6 +71,11 @@ impl Default for GPU {
             display: vec![0; 160*144]
         }
     }
+}
+
+enum Region {
+    OAM(usize),
+    VRAM(usize),
 }
 
 impl GPU {
@@ -185,6 +190,31 @@ impl GPU {
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
+
+        let into = GPU::translate(addr);
+
+        match into {
+            Region::VRAM(x) => self.vram[x] = byte as u32,
+            Region::OAM(x) => self.oam[x] = byte
+        }
+
         Response::None
+    }
+
+    pub fn read_byte(&self, addr: u16) -> Response {
+        let from = GPU::translate(addr);
+
+        match from {
+            Region::VRAM(x) => Response::Byte( self.vram[x] as u8 ),
+            Region::OAM(x) => Response::Byte( self.oam[x] as u8 ),
+        }
+    }
+
+    fn translate(addr: u16) -> Region {
+        match addr {
+            0x8000 ..= 0x9FFF => Region::VRAM( addr as usize - 0x8000 ),
+            0xFE00 ..= 0xFE9F => Region::OAM( addr as usize - 0xFE00 ),
+            _ => panic!("Error translating address in GPU module")
+        }
     }
 }

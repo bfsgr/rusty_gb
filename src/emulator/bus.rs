@@ -1,3 +1,5 @@
+use super::io_constants::{*};
+
 use super::gpu::{*};
 use super::memory::{*};
 use super::cartrigbe::{*};
@@ -45,13 +47,17 @@ impl Bus {
         let from = Bus::classify(addr);
 
         match from {
-            Module::Cartrigbe => { self.cartrigbe.read_byte(addr) },
-            Module::GPU => { Response::None },
-            Module::Memory => {
-                self.memory.read_byte(addr)
-            },
+            Module::Cartrigbe => self.cartrigbe.read_byte(addr),
+            Module::GPU => self.gpu.read_byte(addr),
+            Module::Memory => self.memory.read_byte(addr),
             Module::Interrupt => { Response::None },
-            Module::IO => { Response::None },
+            Module::IO => {
+                match addr {
+                    LCDC => { Response::Byte( self.gpu.LCDC ) }
+                    STAT => { Response::Byte( self.gpu.STAT ) }
+                    _ => { Response::Byte(0) }
+                }
+            },
             Module::Unusable => { Response::None },
         }
 
