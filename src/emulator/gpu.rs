@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
 use super::interrupt::{*};
-use super::memory::{*};
 use super::bit_utils::{*};
+use super::cpu::registers::Response;
 
 const OAM_CYCLES: usize = 79;
 const TRANSFER_CYCLES: usize = OAM_CYCLES + 172;
@@ -19,27 +19,27 @@ pub enum Mode {
 }
 
 pub struct GPU {
-    pub mode: Mode,
-    pub scanline_cycles: usize,
-    pub frame_cycles: usize,
-
-    pub LCDC: u8,           //0xFF40     (R/W)
-    pub STAT: u8,           //0xFF41     (R/W)
-    pub scroll_y: u8,       //0xFF42     (R/W)
-    pub scroll_x: u8,       //0xFF43     (R/W)
-    pub lcd_y: u8,          //0xFF44     (R)
-    pub lycompare: u8,      //0xFF45     (R/W)
-    pub OAM_DMA: u8,        //0xFF46     (?)
-    pub window_y: u8,       //0xFF4A     (R/W)   
-    pub window_x: u8,       //0xFF4B     (R/W)
-    pub bg_palette: u8,     //0xFF47     (R/W)
-    pub ob_palette0: u8,    //0xFF48     (R/W)
-    pub ob_palette1: u8,    //0xFF49     (R/W)
-    pub bgp_index: u8,      //0xFF68     (R/W) (GB Color only)
-    pub bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
-    pub spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
-    pub spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
-
+    mode: Mode,
+    scanline_cycles: usize,
+    frame_cycles: usize,
+    LCDC: u8,           //0xFF40     (R/W)
+    STAT: u8,           //0xFF41     (R/W)
+    scroll_y: u8,       //0xFF42     (R/W)
+    scroll_x: u8,       //0xFF43     (R/W)
+    lcd_y: u8,          //0xFF44     (R)
+    lycompare: u8,      //0xFF45     (R/W)
+    OAM_DMA: u8,        //0xFF46     (?)
+    window_y: u8,       //0xFF4A     (R/W)   
+    window_x: u8,       //0xFF4B     (R/W)
+    bg_palette: u8,     //0xFF47     (R/W)
+    ob_palette0: u8,    //0xFF48     (R/W)
+    ob_palette1: u8,    //0xFF49     (R/W)
+    bgp_index: u8,      //0xFF68     (R/W) (GB Color only)
+    bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
+    spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
+    spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
+    vram: [u32;0x2000],
+    oam: [u8; 0xA0],
     pub display: Vec<u32>
 }
 
@@ -66,13 +66,15 @@ impl Default for GPU {
             bgp_data: 0,       //0xFF69     (R/W) (GB Color only)
             spt_index: 0,      //0xFF6A     (R/W) (GB Color only)   
             spt_data: 0,       //0xFF6B     (R/W) (GB Color only)
+            vram: [0; 0x2000],
+            oam: [0; 0xA0],
             display: vec![0; 160*144]
         }
     }
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler, memory: &Memory){
+    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -126,7 +128,7 @@ impl GPU {
                             self.STAT.set_bit(0);
                             self.STAT.set_bit(1);
 
-                            self.transfer(memory);
+                            self.transfer();
                         }
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
@@ -170,7 +172,7 @@ impl GPU {
         self.LCDC.test_bit(7)
     }
 
-    fn transfer(&mut self, memory: &Memory){
+    fn transfer(&mut self){
         if self.LCDC.test_bit(0) {
             //draw bg
         }
@@ -182,4 +184,7 @@ impl GPU {
         }
     }
 
+    pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
+        Response::None
+    }
 }

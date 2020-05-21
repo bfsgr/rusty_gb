@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::emulator::cpu::{*};
-use crate::emulator::memory::{*};
+use crate::emulator::bus::{*};
 use std::fmt;
 use yansi::Paint;
 
@@ -13,7 +13,7 @@ const CARRY_FLAG: u8 = 3;
 #[derive(Clone, Copy)]
 pub struct Instruction {
     pub disassembly: &'static str,
-    pub function: fn([u8;2], &mut Registers, &mut Memory, Self)->bool, 
+    pub function: fn([u8;2], &mut Registers, &mut Bus, Self), 
     pub args: u8,
     pub cycles: u16
 }
@@ -28,16 +28,18 @@ impl fmt::Display for Instruction {
 
 impl Instruction {
 
-    pub fn execute(self, params: [u8; 2], cpu: &mut Registers, mem: &mut Memory, inst: Instruction) -> (u16, bool) {
+    pub fn execute(self, params: [u8; 2], cpu: &mut Registers, mem: &mut Bus, inst: Instruction) -> u16 {
         let f = self.function;
 
-        
-        ( self.cycles , f(params, cpu, mem, inst) )
+        f(params, cpu, mem, inst);
+    
+        self.cycles
     }
+
 
     fn debug(x: &Instruction, operands: [u8; 2]) {
         if x.args != 0 {
-            println!("{}\r\t\t\t{:#04x}", Paint::green(x), Memory::to_short(operands));
+            println!("{}\r\t\t\t{:#04x}", Paint::green(x), Bus::to_short(operands));
         } else {
             println!("{}\r\t\t\t-", Paint::green(x));
         }
@@ -46,24 +48,22 @@ impl Instruction {
     //Generic functions appear first 
 
     //Stack management functions
-    fn push_to_stack(registers: &mut Registers, mem: &mut Memory, short: u16){
+    fn push_to_stack(registers: &mut Registers, mem: &mut Bus, short: u16){
         let sp: u16 = registers.SP(Action::Read).value();
 
-        let op1 = mem.write_byte(sp, short as u8);
-        let op2 = mem.write_byte(sp-1, (short >> 8) as u8); 
-
-        if op1 || op2 { panic!("Illegal IO Write"); } //this kind of validation should happend in memory module
+        mem.write_byte(sp, short as u8);
+        mem.write_byte(sp-1, (short >> 8) as u8); 
 
         registers.SP(Action::Write(sp-2));
     }
 
-    fn pop_from_stack(registers: &mut Registers, mem: &mut Memory) -> u16 {
+    fn pop_from_stack(registers: &mut Registers, mem: &mut Bus) -> u16 {
         let sp: u16 = registers.SP(Action::Read).value();
         registers.SP(Action::Write(sp+2));
 
 
-        let b1 = mem.read_byte(sp+2).unwrap();
-        let b2 = mem.read_byte(sp+1).unwrap();
+        let b1: u8 = mem.read_byte(sp+2).value();
+        let b2: u8 = mem.read_byte(sp+1).value();
         
         b1 as u16 | (b2 as u16) << 8 //>
     }
@@ -358,10 +358,10 @@ impl Instruction {
 
 
     //0x00
-    pub fn NOP(operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, inst: Instruction )->bool{
+    pub fn NOP(operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, inst: Instruction ){
         if inst.disassembly != "NOP" {
             if inst.args != 0 {
-                println!("{}\r\t\t\t{:#04x}", Paint::red(inst), Memory::to_short(operands));
+                println!("{}\r\t\t\t{:#04x}", Paint::red(inst), Bus::to_short(operands));
             } else {
                 println!("{}\r\t\t\t-", Paint::red(inst));
             }
@@ -369,39 +369,36 @@ impl Instruction {
             println!("{}\r\t\t\t-", Paint::green(inst));
         }
 
-        return false;
+        ;
     }
 
     //0x01
-    pub fn LD_BC_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
-        let ops = Memory::to_short(operands);
+    pub fn LD_BC_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
+        let ops = Bus::to_short(operands);
         registers.BC(Action::Write(ops));
         
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
-
-        return false;
     }
 
     //0x02
-    pub fn LD_dBC_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn LD_dBC_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction)  {
         let BC = registers.BC(Action::Read).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(BC, registers.A(Action::Read).value() )
+        mem.write_byte(BC, registers.A(Action::Read).value() );
     }
 
     //0x03
-    pub fn INC_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{ 
+    pub fn INC_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) { 
         registers.BC( Action::Increment(1) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x04
-    pub fn INC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn INC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut val: u8 = registers.B(Action::Read).value();
 
         val = Instruction::INC(registers, val);
@@ -410,11 +407,10 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x05
-    pub fn DEC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut val: u8 = registers.B(Action::Read).value();
 
         val = Instruction::DEC(registers, val);
@@ -423,21 +419,19 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x06
-    pub fn LD_B_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         registers.B( Action::Write(operands[0] as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
     }
 
     //0x07
-    pub fn RLC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn RLC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let mut A: u8 = registers.A(Action::Read).value();
 
@@ -447,21 +441,20 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x08
-    pub fn LD_dnn_SP(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
-        let pointer = Memory::to_short(operands);
+    pub fn LD_dnn_SP(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
+        let pointer = Bus::to_short(operands);
         let SP: u16 = registers.SP( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        mem.write_short(pointer, SP)
+        mem.write_short(pointer, SP);
     }
 
     //0x09
-    pub fn ADD_HL_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn ADD_HL_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
         let BC: u16 = registers.BC(Action::Read).value();
 
@@ -471,33 +464,30 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x0A
-    pub fn LD_A_dBC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn LD_A_dBC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
-        let dBC = mem.read_byte( registers.BC(Action::Read).value() ).unwrap();
+        let dBC: u8 = mem.read_byte( registers.BC(Action::Read).value() ).value();
 
         registers.A(Action::Write(dBC as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x0B
-    pub fn DEC_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn DEC_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
 
         registers.BC(Action::Decrement(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x0C
-    pub fn INC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn INC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut val: u8 = registers.C(Action::Read).value();
 
         val = Instruction::INC(registers, val);
@@ -506,11 +496,10 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
     }
 
     //0x0D
-    pub fn DEC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut val: u8 = registers.C(Action::Read).value();
 
         val = Instruction::DEC(registers, val);
@@ -519,20 +508,20 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x0E
-    pub fn LD_C_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.C(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x0F
-    pub fn RRC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn RRC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut A: u8 = registers.A( Action::Read ).value();
 
         A = Instruction::RRC(registers, A);
@@ -541,48 +530,48 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x10
-    pub fn STOP(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn STOP(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x11
-    pub fn LD_DE_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
-        let value = Memory::to_short(operands);
+    pub fn LD_DE_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
+        let value = Bus::to_short(operands);
 
         registers.DE( Action::Write(value) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x12
-    pub fn LD_dDE_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn LD_dDE_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         let DE: u16 = registers.DE( Action::Read ).value();
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
         
-        mem.write_byte(DE, registers.A( Action::Read ).value())
+        mem.write_byte(DE, registers.A( Action::Read ).value());
     }
 
     //0x13
-    pub fn INC_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         registers.DE(Action::Increment(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
     
     //0x14
-    pub fn INC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut D: u8 = registers.D(Action::Read).value();
         
         D = Instruction::INC(registers, D);
@@ -591,11 +580,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x15
-    pub fn DEC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut val: u8 = registers.D(Action::Read).value();
 
         val = Instruction::DEC(registers, val);
@@ -604,20 +593,20 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }   
 
     //0x16
-    pub fn LD_D_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.D(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x17
-    pub fn RL_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn RL_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut A: u8 = registers.A( Action::Read ).value();
 
         A = Instruction::RL(registers, A);
@@ -626,11 +615,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x18
-    pub fn JR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn JR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         let jump = operands[0] as i8;
         if jump >= 0 {
             registers.PC(Action::Increment(jump as u16));
@@ -640,11 +629,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false; 
+         
     }
 
     //0x19
-    pub fn ADD_HL_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn ADD_HL_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
         let DE: u16 = registers.DE(Action::Read).value();
 
@@ -654,32 +643,32 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x1A
-    pub fn LD_A_dDE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn LD_A_dDE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
-        let dDE = mem.read_byte( registers.DE(Action::Read).value() ).unwrap();
+        let dDE: u8 = mem.read_byte( registers.DE(Action::Read).value() ).value();
 
         registers.A(Action::Write(dDE as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x1B
-    pub fn DEC_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn DEC_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         registers.DE(Action::Decrement(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x1C
-    pub fn INC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut E: u8 = registers.E(Action::Read).value();
         
         E = Instruction::INC(registers, E);
@@ -688,11 +677,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x1D
-    pub fn DEC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut E: u8 = registers.E(Action::Read).value();
 
         E = Instruction::DEC(registers, E);
@@ -701,20 +690,20 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     } 
 
     //0x1E
-    pub fn LD_E_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.E(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x1F
-    pub fn RR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn RR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut A: u8 = registers.A( Action::Read ).value();
 
         A = Instruction::RR(registers, A);
@@ -723,11 +712,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x20
-    pub fn JR_NZ_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn JR_NZ_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         if !registers.test_flag(ZERO_FLAG) {
             let jump = operands[0] as i8;
             if jump >= 0 {
@@ -739,42 +728,42 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x21
-    pub fn LD_HL_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
-        let short = Memory::to_short(operands);
+    pub fn LD_HL_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
+        let short = Bus::to_short(operands);
         registers.HL(Action::Write(short));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x22
-    pub fn LDI_HL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LDI_HL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         let hlad = registers.HL(Action::Read).value();
         registers.HL(Action::Increment(1));
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(hlad, registers.A(Action::Read).value() )
+        mem.write_byte(hlad, registers.A(Action::Read).value() );
 
 
     }
 
     //0x23
-    pub fn INC_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         registers.HL(Action::Increment(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
     
     //0x24
-    pub fn INC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut H: u8 = registers.H(Action::Read).value();
         
         H = Instruction::INC(registers, H);
@@ -783,11 +772,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x25
-    pub fn DEC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut H: u8 = registers.H(Action::Read).value();
 
         H = Instruction::DEC(registers, H);
@@ -796,20 +785,20 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     } 
 
     //0x26 
-    pub fn LD_H_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.H(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x27
-    pub fn DAA(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DAA(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let mut A: u8 = registers.A( Action::Read ).value();
 
@@ -843,11 +832,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
         
-        return false;
+        
     }
 
     //0x28
-    pub fn JR_Z_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn JR_Z_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         if registers.test_flag(ZERO_FLAG){
             let jump = operands[0] as i8;
             if jump >= 0 {
@@ -859,11 +848,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x29
-    pub fn ADD_HL_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn ADD_HL_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
 
         let added = Instruction::ADD_u16(registers, HL, HL);
@@ -872,13 +861,13 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x2A 
-    pub fn LDI_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn LDI_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
-        let dHL = mem.read_byte( registers.HL(Action::Read).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL(Action::Read).value() ).value();
 
         registers.A( Action::Write(dHL as u16) );
 
@@ -886,21 +875,21 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x2B
-    pub fn DEC_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn DEC_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
 
         registers.HL(Action::Decrement(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x2C
-    pub fn INC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut L: u8 = registers.L(Action::Read).value();
         
         L = Instruction::INC(registers, L);
@@ -909,11 +898,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x2D
-    pub fn DEC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut L: u8 = registers.L(Action::Read).value();
 
         L = Instruction::DEC(registers, L);
@@ -922,31 +911,31 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     } 
 
     //0x2E
-    pub fn LD_L_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.L(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
   
     //0x2F
-    pub fn NOT_A(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn NOT_A(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let A: u8 = registers.A(Action::Read).value();
 
         registers.A( Action::Write(!A as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x30 
-    pub fn JR_NC_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn JR_NC_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         if !registers.test_flag(CARRY_FLAG) {
             let jump = operands[0] as i8;
             if jump >= 0 {
@@ -958,87 +947,87 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x31
-    pub fn LD_SP_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
-        let short = Memory::to_short(operands);
+    pub fn LD_SP_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
+        let short = Bus::to_short(operands);
         registers.SP(Action::Write(short));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x32
-    pub fn LDD_HL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LDD_HL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         let hlad = registers.HL(Action::Read).value();
         registers.HL(Action::Decrement(1));
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(hlad, registers.A(Action::Read).value() )
+        mem.write_byte(hlad, registers.A(Action::Read).value() );
 
 
     }
 
     //0x33
-    pub fn INC_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         registers.SP(Action::Increment(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x34
-    pub fn INC_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
         
-        let mut byte = mem.read_byte(HL).unwrap();
+        let mut byte = mem.read_byte(HL).value();
 
         byte = Instruction::INC(registers, byte);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, byte)
+        mem.write_byte(HL, byte);
     }
 
     //0x35
-    pub fn DEC_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn DEC_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
         
-        let mut byte = mem.read_byte(HL).unwrap();
+        let mut byte = mem.read_byte(HL).value();
 
         byte = Instruction::DEC(registers, byte);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, byte)
+        mem.write_byte(HL, byte);
     }
 
     //0x36 
-    pub fn LD_dHL_n(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_n(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         let HL: u16 = registers.HL( Action::Read).value();
         
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        mem.write_byte(HL, operands[0])
+        mem.write_byte(HL, operands[0]);
     }
 
     //0x37
-    pub fn SCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         registers.set_flag(CARRY_FLAG);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x38
-    pub fn JR_C_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn JR_C_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         if registers.test_flag(CARRY_FLAG) {
             let jump = operands[0] as i8;
             if jump >= 0 {
@@ -1050,11 +1039,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0x39
-    pub fn ADD_HL_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn ADD_HL_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let HL: u16 = registers.HL(Action::Read).value();
         let SP: u16 = registers.SP(Action::Read).value();
 
@@ -1064,13 +1053,13 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x3A 
-    pub fn LDD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn LDD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
-        let dHL = mem.read_byte( registers.HL(Action::Read).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL(Action::Read).value() ).value();
 
         registers.A( Action::Write(dHL as u16) );
 
@@ -1078,21 +1067,21 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x3B
-    pub fn DEC_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn DEC_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
 
         registers.SP(Action::Decrement(1));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x3C
-    pub fn INC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn INC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let mut A: u8 = registers.A(Action::Read).value();
         
         A = Instruction::INC(registers, A);
@@ -1101,11 +1090,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x3D
-    pub fn DEC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn DEC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut A: u8 = registers.A(Action::Read).value();
 
         A = Instruction::DEC(registers, A);
@@ -1114,38 +1103,38 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     } 
 
     //0x3E
-    pub fn LD_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         registers.A(Action::Write(operands[0] as u16));
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0x3F
-    pub fn CCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn CCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         registers.clear_flag(CARRY_FLAG);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x40
-    pub fn LD_B_B(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_B(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x41
-    pub fn LD_B_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1153,11 +1142,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x42
-    pub fn LD_B_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1165,11 +1154,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x43
-    pub fn LD_B_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1177,11 +1166,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x44
-    pub fn LD_B_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1189,11 +1178,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x45
-    pub fn LD_B_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1201,23 +1190,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x46
-    pub fn LD_B_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.B( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x47
-    pub fn LD_B_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_B_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1225,11 +1214,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x48
-    pub fn LD_C_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1237,19 +1226,19 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x49
-    pub fn LD_C_C(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_C(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4A
-    pub fn LD_C_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1257,11 +1246,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4B
-    pub fn LD_C_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1269,11 +1258,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4C
-    pub fn LD_C_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1281,11 +1270,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4D
-    pub fn LD_C_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1293,23 +1282,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4E
-    pub fn LD_C_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.C( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x4F
-    pub fn LD_C_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_C_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1317,11 +1306,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x50
-    pub fn LD_D_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1329,11 +1318,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x51
-    pub fn LD_D_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1341,19 +1330,19 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x52
-    pub fn LD_D_D(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_D(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x53
-    pub fn LD_D_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1361,11 +1350,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x54
-    pub fn LD_D_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1373,11 +1362,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x55
-    pub fn LD_D_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1385,23 +1374,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x56
-    pub fn LD_D_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.D( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x57
-    pub fn LD_D_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_D_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1409,11 +1398,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x58
-    pub fn LD_E_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1421,11 +1410,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x59
-    pub fn LD_E_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1433,11 +1422,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5A
-    pub fn LD_E_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1445,19 +1434,19 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5B
-    pub fn LD_E_E(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_E(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5C
-    pub fn LD_E_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1465,11 +1454,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5D
-    pub fn LD_E_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1477,23 +1466,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5E
-    pub fn LD_E_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.E( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x5F
-    pub fn LD_E_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_E_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1501,11 +1490,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x60
-    pub fn LD_H_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1513,11 +1502,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x61
-    pub fn LD_H_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1525,11 +1514,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x62
-    pub fn LD_H_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1537,11 +1526,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x63
-    pub fn LD_H_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1549,19 +1538,19 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x64
-    pub fn LD_H_H(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_H(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x65
-    pub fn LD_H_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1569,23 +1558,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x66
-    pub fn LD_H_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.H( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x67
-    pub fn LD_H_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_H_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1593,11 +1582,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x68
-    pub fn LD_L_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1605,11 +1594,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x69
-    pub fn LD_L_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1617,11 +1606,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6A
-    pub fn LD_L_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1629,11 +1618,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6B
-    pub fn LD_L_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1641,11 +1630,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6C
-    pub fn LD_L_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1653,31 +1642,31 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6D
-    pub fn LD_L_L(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_L(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6E
-    pub fn LD_L_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.L( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x6F
-    pub fn LD_L_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_L_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1685,96 +1674,96 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x70
-    pub fn LD_dHL_B(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_B(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let B: u8 = registers.B( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, B)
+        mem.write_byte(HL, B);
     }
 
     //0x71
-    pub fn LD_dHL_C(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_C(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let C: u8 = registers.C( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, C)
+        mem.write_byte(HL, C);
     }
 
     //0x72
-    pub fn LD_dHL_D(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_D(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let D: u8 = registers.D( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, D)
+        mem.write_byte(HL, D);
     }
 
     //0x73
-    pub fn LD_dHL_E(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_E(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let E: u8 = registers.E( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, E)
+        mem.write_byte(HL, E);
     }
 
     //0x74
-    pub fn LD_dHL_H(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_H(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let H: u8 = registers.H( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, H)
+        mem.write_byte(HL, H);
     }
 
     //0x75
-    pub fn LD_dHL_L(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_L(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let L: u8 = registers.L( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, L)
+        mem.write_byte(HL, L);
     }
 
     //0x76 
-    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x77
-    pub fn LD_dHL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_dHL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
         let A: u8 = registers.A( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        mem.write_byte(HL, A)
+        mem.write_byte(HL, A);
     }
 
     //0x78
-    pub fn LD_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1782,11 +1771,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x79
-    pub fn LD_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1794,11 +1783,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7A
-    pub fn LD_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1806,11 +1795,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7B
-    pub fn LD_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1818,11 +1807,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7C
-    pub fn LD_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1830,11 +1819,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7D
-    pub fn LD_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1842,31 +1831,31 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7E
-    pub fn LD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).unwrap();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         registers.A( Action::Write(dHL as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x7F
-    pub fn LD_A_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x80
-    pub fn ADD_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1874,11 +1863,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x81
-    pub fn ADD_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1886,11 +1875,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x82
-    pub fn ADD_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1898,11 +1887,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x83
-    pub fn ADD_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -1910,11 +1899,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x84
-    pub fn ADD_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -1922,11 +1911,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x85
-    pub fn ADD_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -1934,23 +1923,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x86
-    pub fn ADD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
 
         Instruction::ADD_u8(registers, dHL, false);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x87
-    pub fn ADD_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -1958,11 +1947,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x88
-    pub fn ADC_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -1970,11 +1959,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x89
-    pub fn ADC_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -1982,11 +1971,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8A
-    pub fn ADC_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -1994,11 +1983,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8B
-    pub fn ADC_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2006,11 +1995,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8C
-    pub fn ADC_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2018,11 +2007,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8D
-    pub fn ADC_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2030,23 +2019,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8E
-    pub fn ADC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
 
         Instruction::ADD_u8(registers, dHL, true);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x8F
-    pub fn ADC_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -2054,11 +2043,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x90
-    pub fn SUB_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2066,11 +2055,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x91
-    pub fn SUB_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2078,11 +2067,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x92
-    pub fn SUB_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2090,11 +2079,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x93
-    pub fn SUB_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2102,11 +2091,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x94
-    pub fn SUB_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2114,11 +2103,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x95
-    pub fn SUB_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2126,23 +2115,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x96
-    pub fn SUB_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
 
         Instruction::SUB_u8(registers, dHL, false);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x97
-    pub fn SUB_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -2150,11 +2139,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x98
-    pub fn SBC_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2162,11 +2151,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x99
-    pub fn SBC_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2174,11 +2163,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9A
-    pub fn SBC_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2186,11 +2175,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9B
-    pub fn SBC_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2198,11 +2187,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9C
-    pub fn SBC_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2210,11 +2199,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9D
-    pub fn SBC_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2222,23 +2211,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9E
-    pub fn SBC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
 
         Instruction::SUB_u8(registers, dHL, true);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0x9F
-    pub fn SBC_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -2246,11 +2235,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA0
-    pub fn AND_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2258,11 +2247,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA1
-    pub fn AND_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2270,11 +2259,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA2
-    pub fn AND_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2282,11 +2271,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA3
-    pub fn AND_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2294,11 +2283,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA4
-    pub fn AND_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2306,11 +2295,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA5
-    pub fn AND_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2318,31 +2307,31 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA6
-    pub fn AND_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
 
         Instruction::AND_u8(registers, dHL);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA7
-    pub fn AND_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA8
-    pub fn XOR_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2350,11 +2339,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xA9
-    pub fn XOR_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2362,11 +2351,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAA
-    pub fn XOR_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2374,11 +2363,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAB
-    pub fn XOR_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2386,11 +2375,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAC
-    pub fn XOR_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2398,11 +2387,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAD
-    pub fn XOR_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2410,32 +2399,32 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAE
-    pub fn XOR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn XOR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
 
         Instruction::XOR_u8(registers, dHL);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xAF
-    pub fn XOR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn XOR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         registers.A( Action::Write(0) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB0
-    pub fn OR_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2443,11 +2432,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB1
-    pub fn OR_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2455,11 +2444,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB2
-    pub fn OR_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2467,11 +2456,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB3
-    pub fn OR_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2479,11 +2468,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB4
-    pub fn OR_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2491,11 +2480,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB5
-    pub fn OR_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2503,31 +2492,31 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB6
-    pub fn OR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn OR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
 
         Instruction::OR_u8(registers, dHL);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xB7
-    pub fn OR_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB8
-    pub fn CP_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let B: u8 = registers.B( Action::Read ).value();
 
@@ -2535,11 +2524,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xB9
-    pub fn CP_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let C: u8 = registers.C( Action::Read ).value();
 
@@ -2547,11 +2536,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBA
-    pub fn CP_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let D: u8 = registers.D( Action::Read ).value();
 
@@ -2559,11 +2548,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBB
-    pub fn CP_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let E: u8 = registers.E( Action::Read ).value();
 
@@ -2571,11 +2560,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBC
-    pub fn CP_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let H: u8 = registers.H( Action::Read ).value();
 
@@ -2583,11 +2572,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBD
-    pub fn CP_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let L: u8 = registers.L( Action::Read ).value();
 
@@ -2595,23 +2584,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBE
-    pub fn CP_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
 
         Instruction::CP_u8(registers, dHL);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xBF
-    pub fn CP_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         let A: u8 = registers.A( Action::Read ).value();
 
@@ -2619,11 +2608,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xC0
-    pub fn RET_NZ(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RET_NZ(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         if !registers.test_flag(ZERO_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
@@ -2631,11 +2620,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xC1
-    pub fn POP_BC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn POP_BC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let popped = Instruction::pop_from_stack(registers, mem);
         registers.BC( Action::Write(popped) );
@@ -2643,72 +2632,72 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xC2
-    pub fn JP_NZ_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_NZ_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         if !registers.test_flag(ZERO_FLAG) {
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xC3
-    pub fn JP_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
-        let pointer = Memory::to_short(operands);
+        let pointer = Bus::to_short(operands);
         registers.PC( Action::Write(pointer) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xC4
-    pub fn CALL_NZ_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CALL_NZ_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         if !registers.test_flag(ZERO_FLAG) {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xC5
-    pub fn PUSH_BC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn PUSH_BC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let BC: u16 = registers.BC( Action::Read ).value();
         Instruction::push_to_stack(registers, mem, BC);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xC6
-    pub fn ADD_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADD_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         Instruction::ADD_u8(registers, operands[0], false);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xC7
-    pub fn RST_0(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_0(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -2717,11 +2706,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xC8
-    pub fn RET_Z(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RET_Z(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         if registers.test_flag(ZERO_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
@@ -2729,75 +2718,75 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xC9
-    pub fn RET(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RET(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         let pointer = Instruction::pop_from_stack(registers, mem);
         registers.PC( Action::Write(pointer) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xCA
-    pub fn JP_Z_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_Z_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         if registers.test_flag(ZERO_FLAG) { 
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xCB prefix, not a function
 
     //0xCC
-    pub fn CALL_Z_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CALL_Z_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         if registers.test_flag(ZERO_FLAG) {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xCD
-    pub fn CALL_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CALL_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        let pointer = Memory::to_short(operands);
+        let pointer = Bus::to_short(operands);
         registers.PC( Action::Write(pointer) );
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xCE
-    pub fn ADC_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn ADC_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         Instruction::ADD_u8(registers, operands[0], true);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xCF
-    pub fn RST_8(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_8(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -2806,11 +2795,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xD0
-    pub fn RET_NC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RET_NC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         if !registers.test_flag(CARRY_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
@@ -2818,11 +2807,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xD1
-    pub fn POP_DE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn POP_DE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let popped = Instruction::pop_from_stack(registers, mem);
         registers.DE( Action::Write(popped) );
@@ -2830,60 +2819,60 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xD2
-    pub fn JP_NC_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_NC_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         if !registers.test_flag(CARRY_FLAG) { 
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xD4
-    pub fn CALL_NC_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CALL_NC_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         if !registers.test_flag(CARRY_FLAG) {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xD5
-    pub fn PUSH_DE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn PUSH_DE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let DE: u16 = registers.DE( Action::Read ).value();
         Instruction::push_to_stack(registers, mem, DE);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xD6
-    pub fn SUB_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SUB_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         Instruction::SUB_u8(registers, operands[0], false);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xD7
-    pub fn RST_10(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_10(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -2892,11 +2881,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xD8
-    pub fn RET_C(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RET_C(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         if registers.test_flag(CARRY_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
@@ -2904,11 +2893,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xD9
-    pub fn RETI(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RETI(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let pointer = Instruction::pop_from_stack(registers, mem);
         registers.PC( Action::Write(pointer) );
@@ -2916,51 +2905,51 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xDA
-    pub fn JP_C_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_C_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         if registers.test_flag(CARRY_FLAG) { 
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xDC
-    pub fn CALL_C_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CALL_C_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         if registers.test_flag(CARRY_FLAG) {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
-            let pointer = Memory::to_short(operands);
+            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
         }
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
 
 
     //0xDE
-    pub fn SBC_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn SBC_A_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
         Instruction::SUB_u8(registers, operands[0], true);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xDF
-    pub fn RST_18(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_18(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -2969,21 +2958,21 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xE0
-    pub fn LDH_dn_A(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LDH_dn_A(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
         let A: u8 = registers.A( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
         
-        mem.write_byte(0xFF00 + operands[0] as u16, A)
+        mem.write_byte(0xFF00 + operands[0] as u16, A);
     }
 
     //0xE1
-    pub fn POP_HL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn POP_HL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let popped = Instruction::pop_from_stack(registers, mem);
         registers.HL( Action::Write(popped) );
@@ -2991,42 +2980,42 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xE2
-    pub fn LDH_dC(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LDH_dC(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         let C: u8 =  registers.C(Action::Read).value();
         
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
         
-        mem.write_byte(0xFF00 + C as u16, registers.A(Action::Read).value() )
+        mem.write_byte(0xFF00 + C as u16, registers.A(Action::Read).value() );
     }
 
     //0xE5
-    pub fn PUSH_HL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn PUSH_HL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let HL: u16 = registers.HL( Action::Read ).value();
         Instruction::push_to_stack(registers, mem, HL);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xE6
-    pub fn AND_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn AND_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
 
 
         Instruction::AND_u8(registers, operands[0]);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xE7
-    pub fn RST_20(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_20(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -3035,11 +3024,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xE8
-    pub fn ADD_SP_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool {
+    pub fn ADD_SP_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         let SP: u16 = registers.SP(Action::Read).value();
 
         let jump = (operands[0] as i8) as i16;
@@ -3065,45 +3054,45 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xE9
-    pub fn JP_dHL(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn JP_dHL(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).unwrap();
+        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
 
         registers.PC( Action::Write(dHL as u16) );
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xEA
-    pub fn LD_dnn_A(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn LD_dnn_A(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let pointer = Memory::to_short(operands);
+        let pointer = Bus::to_short(operands);
         let A: u8 = registers.A( Action::Read ).value();
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        mem.write_byte(pointer, A)
+        mem.write_byte(pointer, A);
     }
 
     //0xEE
-    pub fn XOR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn XOR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         Instruction::XOR_u8(registers, operands[0]);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xEF
-    pub fn RST_28(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_28(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -3112,23 +3101,23 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xF0
-    pub fn LDH_A_dn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn LDH_A_dn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let result = mem.read_byte( 0xFF00 + operands[0] as u16).unwrap();
+        let result: u8 = mem.read_byte( 0xFF00 + operands[0] as u16).value();
 
         registers.A( Action::Write(result as u16) );
         
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xF1
-    pub fn POP_AF(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn POP_AF(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let popped = Instruction::pop_from_stack(registers, mem);
         registers.AF( Action::Write(popped) );
@@ -3136,43 +3125,43 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xF3
-    pub fn DI(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn DI(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         mem.disable_interrupts();
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xF5
-    pub fn PUSH_AF(_operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn PUSH_AF(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         let AF: u16 = registers.AF( Action::Read ).value();
         Instruction::push_to_stack(registers, mem, AF);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xF6
-    pub fn OR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn OR_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
         
         Instruction::OR_u8(registers, operands[0]);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xF7
-    pub fn RST_30(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_30(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -3181,11 +3170,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xF8
-    pub fn LDHL_SP_d(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool {
+    pub fn LDHL_SP_d(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction)  {
         let SP: u16 = registers.SP(Action::Read).value();
 
         let jump = (operands[0] as i8) as i16;
@@ -3211,11 +3200,11 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xF9
-    pub fn LD_SP_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_SP_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         
         let HL: u16 = registers.HL( Action::Read ).value();
 
@@ -3223,46 +3212,46 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xFA
-    pub fn LD_A_dnn(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn LD_A_dnn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
         
-        let nn: u16 = Memory::to_short(operands);
+        let nn: u16 = Bus::to_short(operands);
 
-        let dnn = mem.read_byte(nn).unwrap();
+        let dnn: u8 = mem.read_byte(nn).value();
 
         registers.A( Action::Write(dnn as u16) );
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)};
 
-        return false;
+        
     }
 
     //0xFB
-    pub fn EI(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn EI(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
         
         mem.enable_interrupts();
 
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)}
 
-        return false;
+        
     }
 
     //0xFF
-    pub fn CP_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn CP_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         Instruction::CP_u8(registers, operands[0]);
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //0xF7
-    pub fn RST_38(operands: [u8; 2], registers: &mut Registers, mem: &mut Memory, _inst: Instruction) -> bool{
+    pub fn RST_38(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
@@ -3271,7 +3260,7 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, operands)}
 
-        return false;
+        
     }
 
     //
@@ -3279,7 +3268,7 @@ impl Instruction {
     //
 
     //0xCB 0x7C
-    pub fn BIT_7H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn BIT_7H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         if registers.H(Action::TestBit(7)).value() {
             registers.clear_flag(ZERO_FLAG);
         } else {
@@ -3290,11 +3279,11 @@ impl Instruction {
  
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
     //0xCB 0xCB
-    pub fn RL_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Memory, _inst: Instruction)-> bool{
+    pub fn RL_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction){
         let mut C: u8 = registers.C( Action::Read ).value();
 
         C = Instruction::RL(registers, C);
@@ -3303,7 +3292,7 @@ impl Instruction {
 
         if DEBUG_FLAG { Instruction::debug(&_inst, _operands)};
 
-        return false;
+        
     }
 
 }
