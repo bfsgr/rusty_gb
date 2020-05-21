@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-mod registers;
+pub mod registers;
 use registers::{*};
 
 pub mod instructions;
