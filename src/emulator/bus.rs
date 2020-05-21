@@ -5,12 +5,14 @@ use super::memory::{*};
 use super::cartrigbe::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
+use super::interrupt::{*};
 
 #[derive(Default)]
 pub struct Bus {
     memory: Memory,
     pub gpu: GPU,
     cartrigbe: Cartrigbe,
+    interrupts: InterruptHandler
     //everything with memory mapped I/O registers goes in here
 }
 
@@ -53,8 +55,20 @@ impl Bus {
             Module::Interrupt => { Response::None },
             Module::IO => {
                 match addr {
-                    LCDC => { Response::Byte( self.gpu.LCDC ) }
-                    STAT => { Response::Byte( self.gpu.STAT ) }
+                    LCDC => { Response::Byte( self.gpu.LCDC ) },
+                    STAT => { Response::Byte( self.gpu.STAT ) },
+                    SCY => { Response::Byte( self.gpu.scroll_y ) },
+                    SCX => { Response::Byte( self.gpu.scroll_x ) },
+                    LY => { Response::Byte( self.gpu.lcd_y ) },
+                    LYC => { Response::Byte( self.gpu.lycompare ) },
+                    OAM_DMA => { Response::Byte( self.gpu.OAM_DMA ) },
+                    BGP => { Response::Byte( self.gpu.bg_palette ) },
+                    OBP0 => { Response::Byte( self.gpu.ob_palette0 ) },
+                    OBP1 => { Response::Byte( self.gpu.ob_palette1 ) },
+                    WY => { Response::Byte( self.gpu.window_y ) },
+                    WX => { Response::Byte( self.gpu.window_x ) },
+                    
+                    IF => { Response::Byte( 0 ) },
                     _ => { Response::Byte(0) }
                 }
             },
@@ -117,10 +131,10 @@ impl Bus {
     }
 
     pub fn enable_interrupts(&mut self){
-        
+        self.interrupts.master = true;
     }
     
     pub fn disable_interrupts(&mut self){
-
+        self.interrupts.master = false;
     }
 }
