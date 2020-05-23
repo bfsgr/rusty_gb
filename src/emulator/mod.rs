@@ -52,12 +52,9 @@ impl Gameboy {
                 //update current cycles
                 cycles_now += cycles as u32;
 
-                // self.gpu.step(state.0, &mut self.interrupt, &self.memory);
+                //run the rest of the system
+                self.bus.run_system(cycles);
 
-                //update pc to execute interrupt vector if any
-                // self.interrupt.execute(&mut self.cpu);
-                //sync harware registers to memory
-                // self.sync_to_mem();
             };
 
 
@@ -69,6 +66,10 @@ impl Gameboy {
                 _  => {},
             }
         }
+    }
+
+    fn interrupt_running(&self) -> bool {
+        self.bus.interrupts.enable & 0x00FF != 0
     }
 
     fn create_window() -> Window {
@@ -107,6 +108,9 @@ impl Gameboy {
     }
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self) -> u16 {
+
+        self.cpu.interrupts(&mut self.bus);
+
         let pc = self.cpu.PC();
         let opcode = self.bus.read_byte(pc).value();
         let instruction = self.decode(opcode, pc);

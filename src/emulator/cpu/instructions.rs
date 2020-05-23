@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::emulator::cpu::{*};
-use crate::emulator::bus::{*};
+use crate::emulator::bus::{Bus};
 use std::fmt;
 use yansi::Paint;
 
@@ -1929,7 +1929,7 @@ impl Instruction {
     //0x86
     pub fn ADD_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
 
         Instruction::ADD_u8(registers, dHL, false);
 
@@ -2025,7 +2025,7 @@ impl Instruction {
     //0x8E
     pub fn ADC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
 
         Instruction::ADD_u8(registers, dHL, true);
 
@@ -2121,7 +2121,7 @@ impl Instruction {
     //0x96
     pub fn SUB_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
 
         Instruction::SUB_u8(registers, dHL, false);
 
@@ -2217,7 +2217,7 @@ impl Instruction {
     //0x9E
     pub fn SBC_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
 
         Instruction::SUB_u8(registers, dHL, true);
 
@@ -2313,7 +2313,7 @@ impl Instruction {
     //0xA6
     pub fn AND_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value()).value();
 
         Instruction::AND_u8(registers, dHL);
 
@@ -2405,7 +2405,7 @@ impl Instruction {
     //0xAE
     pub fn XOR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value()).value();
 
         Instruction::XOR_u8(registers, dHL);
 
@@ -2498,7 +2498,7 @@ impl Instruction {
     //0xB6
     pub fn OR_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction){
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value()).value();
 
         Instruction::OR_u8(registers, dHL);
 
@@ -2590,7 +2590,8 @@ impl Instruction {
     //0xBE
     pub fn CP_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let dHL: u8 = mem.read_byte( registers.L( Action::Read ).value()).value();
+
+        let dHL: u8 = mem.read_byte( registers.HL( Action::Read ).value() ).value();
 
         Instruction::CP_u8(registers, dHL);
 
@@ -3060,7 +3061,7 @@ impl Instruction {
     //0xE9
     pub fn JP_dHL(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus, _inst: Instruction) {
 
-        let dHL: u8 = mem.read_byte(registers.L( Action::Read ).value()).value();
+        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
 
         registers.PC( Action::Write(dHL as u16) );
 
@@ -3240,7 +3241,7 @@ impl Instruction {
         
     }
 
-    //0xFF
+    //0xFE
     pub fn CP_n(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus, _inst: Instruction) {
 
         Instruction::CP_u8(registers, operands[0]);
