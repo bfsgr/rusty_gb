@@ -49,7 +49,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0040, 0x00]; 
 
-                    f( vector , &mut self.registers, bus, call_inst );
+                    f( vector , &mut self.registers, bus );
                 },
                 InterruptVector::LCDC => {
                     bus.interrupts.requests.reset_bit(1);
@@ -57,7 +57,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0048, 0x00]; 
 
-                    f( vector , &mut self.registers, bus, call_inst );
+                    f( vector , &mut self.registers, bus );
                 },
                 InterruptVector::Timer => {
                     bus.interrupts.requests.reset_bit(2);
@@ -65,7 +65,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0050, 0x00]; 
 
-                    f( vector , &mut self.registers, bus, call_inst );
+                    f( vector , &mut self.registers, bus);
                 },
                 InterruptVector::Serial => {
                     bus.interrupts.requests.reset_bit(3);
@@ -73,7 +73,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0058, 0x00]; 
 
-                    f( vector , &mut self.registers, bus, call_inst );
+                    f( vector , &mut self.registers, bus);
                 },
                 InterruptVector::Joypad => {
                     bus.interrupts.requests.reset_bit(4);
@@ -81,7 +81,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0060, 0x00]; 
 
-                    f( vector , &mut self.registers, bus, call_inst );
+                    f( vector , &mut self.registers, bus);
                 },
                 InterruptVector::None => {},
             }

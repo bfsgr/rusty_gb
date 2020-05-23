@@ -8,6 +8,9 @@ mod cartrigbe;
 mod interrupt;
 mod bit_utils;
 mod bus;
+use yansi::Paint;
+
+const DEBUG_FLAG: bool = true;
 
 use cpu::{*};
 use cpu::registers::{*};
@@ -136,9 +139,11 @@ impl Gameboy {
             },
         }
 
-        print!("{:#04x}: ", opcode);
-
-        instruction.execute(operands, &mut self.cpu.registers, &mut self.bus, instruction)
+        if DEBUG_FLAG {
+            let oprnds = Bus::to_short(operands);
+            println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, Paint::green(instruction.disassembly), oprnds);
+        }
+        instruction.execute(operands, &mut self.cpu.registers, &mut self.bus)
     }
 
 
