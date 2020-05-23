@@ -13,7 +13,7 @@ pub struct Cartrigbe {
     total_banks: usize,
     current_bank: usize,
     register: u8,
-    bios_on: bool,
+    pub bios_on: u8,
     has_ram: bool,
     ram_is_on: bool,
     content: Vec<u8>,
@@ -28,7 +28,7 @@ impl Default for Cartrigbe {
             total_banks: 0,
             current_bank: 0,
             register: 0,
-            bios_on: true,
+            bios_on: 0,
             has_ram: false,
             ram_is_on: false,
             content: vec![],
@@ -114,7 +114,7 @@ impl Cartrigbe {
 
     pub fn read_byte(&self, addr: u16) -> Response {
         
-        if self.bios_on && addr < 256 {
+        if self.bios_on == 0 && addr < 256 {
             return Response::Byte( BIOS[addr as usize] );
         } else {
             return Response::Byte( self.banks[self.current_bank].info[addr as usize] ); 

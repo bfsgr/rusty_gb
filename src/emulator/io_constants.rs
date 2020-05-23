@@ -47,5 +47,7 @@ pub const OBP1: u16    = 0xFF49; // Object Palette 1 data
 pub const WY: u16      = 0xFF4A; // Window Y position
 pub const WX: u16      = 0xFF4B; // Window X position
 
+pub const BROM: u16    = 0xFF50; //Boot Rom enable register
+
 pub const IE: u16      = 0xFFFF; // Interrupt Enable
 

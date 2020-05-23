@@ -100,8 +100,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => unsafe { Response::Short(self.AF.all) },
-            Action::Decrement(x) => { unsafe { self.AF.all -= x; }; return Response::None; } ,
-            Action::Increment(x) => { unsafe { self.AF.all += x; }; return Response::None; } ,
+            Action::Decrement(x) => { unsafe { self.AF.all = self.AF.all.wrapping_sub(x); }; return Response::None; } ,
+            Action::Increment(x) => { unsafe { self.AF.all = self.AF.all.wrapping_add(x); }; return Response::None; } ,
             Action::TestBit(x) => {
                 let pos = 1 << x; //>
                 Response::State( (unsafe { self.AF.all } & pos) == pos )
@@ -115,8 +115,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => unsafe { Response::Short(self.BC.all) },
-            Action::Decrement(x) => { unsafe { self.BC.all -= x; }; return Response::None; } ,
-            Action::Increment(x) => { unsafe { self.BC.all += x; }; return Response::None; } ,
+            Action::Decrement(x) => { unsafe { self.BC.all = self.BC.all.wrapping_sub(x); }; return Response::None; } ,
+            Action::Increment(x) => { unsafe { self.BC.all = self.BC.all.wrapping_add(x); }; return Response::None; } ,
             Action::TestBit(x) => {
                 let pos = 1 << x; //>
                 Response::State( (unsafe { self.BC.all } & pos) == pos )
@@ -130,8 +130,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => unsafe { Response::Short(self.DE.all) },
-            Action::Decrement(x) => { unsafe { self.DE.all -= x; }; return Response::None; } ,
-            Action::Increment(x) => { unsafe { self.DE.all += x; }; return Response::None; } ,
+            Action::Decrement(x) => { unsafe { self.DE.all = self.DE.all.wrapping_sub(x); }; return Response::None; } ,
+            Action::Increment(x) => { unsafe { self.DE.all = self.DE.all.wrapping_add(x); }; return Response::None; } ,
             Action::TestBit(x) => {
                 let pos = 1 << x; //>
                 Response::State( (unsafe { self.DE.all } & pos) == pos )
@@ -145,8 +145,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => unsafe { Response::Short(self.HL.all) },
-            Action::Decrement(x) => { unsafe { self.HL.all -= x; }; return Response::None; } ,
-            Action::Increment(x) => { unsafe { self.HL.all += x; }; return Response::None; } ,
+            Action::Decrement(x) => { unsafe { self.HL.all = self.HL.all.wrapping_sub(x); }; return Response::None; } ,
+            Action::Increment(x) => { unsafe { self.HL.all = self.HL.all.wrapping_add(x); }; return Response::None; } ,
             Action::TestBit(x) => {
                 let pos = 1 << x; //>
                 Response::State( (unsafe { self.HL.all } & pos) == pos )
@@ -161,8 +161,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => Response::Short(self.PC),
-            Action::Decrement(x) => { self.PC -= x; Response::None} ,
-            Action::Increment(x) => { self.PC += x; Response::None } ,
+            Action::Decrement(x) => { self.PC = self.PC.wrapping_sub(x); Response::None} ,
+            Action::Increment(x) => { self.PC = self.PC.wrapping_add(x); Response::None } ,
             Action::TestBit(_) => { panic!("Can't test bits from PC")}
         }
     }
@@ -174,8 +174,8 @@ impl Registers {
                 return Response::None;
             },
             Action::Read => Response::Short(self.SP),
-            Action::Decrement(x) => { self.SP -= x; Response::None},
-            Action::Increment(x) => { self.SP += x; Response::None },
+            Action::Decrement(x) => { self.SP = self.SP.wrapping_sub(x); Response::None},
+            Action::Increment(x) => { self.SP = self.SP.wrapping_add(x); Response::None },
             Action::TestBit(_) => { panic!("Can't test bits from PC")}
         }
     }

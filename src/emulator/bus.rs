@@ -54,6 +54,7 @@ impl Bus {
                     OBP1 => self.gpu.ob_palette1 = byte,
                     WY => self.gpu.window_y = byte,
                     WX => self.gpu.window_x = byte,
+                    BROM => self.cartrigbe.bios_on = byte,
                     
                     IF => self.interrupts.requests = byte,
                     _ => {}
