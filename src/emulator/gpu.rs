@@ -29,7 +29,7 @@ struct Sprite{
     priority: bool
 }
 
-//should be easier to just use a Vec
+//should be easier to just use a Vec, but I avoid using heap structures
 #[derive(Default)]
 struct SpriteList{
     sprites: [u8; 10],

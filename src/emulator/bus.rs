@@ -12,7 +12,7 @@ pub struct Bus {
     memory: Memory,
     pub gpu: GPU,
     cartrigbe: Cartrigbe,
-    pub interrupts: InterruptHandler
+    pub interrupts: InterruptHandler,
     //everything with memory mapped I/O registers goes in here
 }
 
@@ -48,7 +48,10 @@ impl Bus {
                     SCX => self.gpu.scroll_x = byte,
                     LY => self.gpu.lcd_y = byte,
                     LYC => self.gpu.lycompare = byte,
-                    OAM_DMA => self.gpu.OAM_DMA = byte,
+                    OAM_DMA => {
+                        self.gpu.OAM_DMA = byte;
+                        self.perform_dma();
+                    }
                     BGP => self.gpu.bg_palette = byte,
                     OBP0 => self.gpu.ob_palette0 = byte,
                     OBP1 => self.gpu.ob_palette1 = byte,
@@ -164,5 +167,28 @@ impl Bus {
         //self.timer.step
         //self.sound.step
         //self.dma
+    }
+    //maybe not an optimal solution, performs the dma all at once. The rom will wait 160 cycles either way
+    fn perform_dma(&mut self) {
+        //Max transfer start is 0xF100
+        if self.gpu.OAM_DMA <= 0xF1 {
+
+            let start = (self.gpu.OAM_DMA as u16) << 8; //>
+            let end = (self.gpu.OAM_DMA as u16) << 8 | 0x9F; //>
+
+            let mut oam_start = 0xFE00;
+
+            //will run 160 times
+            for addr in start ..= end {
+                let byte: u8 = self.read_byte(addr).value();
+
+                self.write_byte(oam_start, byte);
+                oam_start += 1;
+            }
+
+
+        } else {
+            panic!("Wrong OAM_DMA address")
+        }     
     }
 }
