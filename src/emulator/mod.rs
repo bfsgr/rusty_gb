@@ -60,8 +60,6 @@ impl Gameboy {
 
             };
 
-
-
             // render next frame, this is VBLANK
             let up = window.update_with_buffer(&self.bus.gpu.display, WIDTH, HEIGHT);
             match up {
@@ -76,7 +74,7 @@ impl Gameboy {
     }
 
     fn create_window() -> Window {
-        let mut win = Window::new(
+        let win = Window::new(
             "Rusty GB",
             WIDTH,
             HEIGHT,
@@ -93,7 +91,7 @@ impl Gameboy {
             panic!("{}", e);
         });
 
-        win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+        // win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
         return win;
     }

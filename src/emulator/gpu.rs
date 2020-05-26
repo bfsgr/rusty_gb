@@ -4,8 +4,8 @@ use super::interrupt::{*};
 use super::bit_utils::{*};
 use super::cpu::registers::Response;
 
-const OAM_CYCLES: usize = 79;
-const TRANSFER_CYCLES: usize = OAM_CYCLES + 172;
+const OAM_SEARCH: usize = 79;
+const TRANSFER_CYCLES: usize = OAM_SEARCH + 172;
 const HBLANK_CYCLES: usize = 456;
 const FRAME_CYCLES: usize = HBLANK_CYCLES * 144;
 const VBLANK_CYCLES: usize = FRAME_CYCLES + 4560;
@@ -18,10 +18,55 @@ pub enum Mode {
     Transfer = 3
 }
 
+#[derive(Default, Copy, Clone)]
+struct Sprite{
+    id: u8,
+    x: u8,
+    y: u8,
+    palette: bool,
+    x_flip: bool,
+    y_flip: bool,
+    priority: bool
+}
+
+//should be easier to just use a Vec
+#[derive(Default)]
+struct SpriteList{
+    sprites: [u8; 10],
+    size: i8
+}
+
+impl SpriteList {
+    fn empty(&self) -> bool {
+        self.size == -1
+    }
+
+    fn full(&self) -> bool {
+        self.size >= 10
+    }
+
+    fn clear(&mut self) {
+        self.size = -1;
+    }
+    
+    fn push(&mut self, x: u8) {
+        if !self.full() {
+            self.sprites[self.size as usize] = x;
+            self.size += 1;
+        }
+    }
+}
+
 pub struct GPU {
     mode: Mode,
     scanline_cycles: usize,
     frame_cycles: usize,
+    sprites: Vec<Sprite>,
+    visible_sprites: SpriteList,
+
+    lock_vram: bool,
+    lock_oam: bool,
+
     pub LCDC: u8,           //0xFF40     (R/W)
     pub STAT: u8,           //0xFF41     (R/W)
     pub scroll_y: u8,       //0xFF42     (R/W)
@@ -49,7 +94,10 @@ impl Default for GPU {
             mode: Mode::Oam,
             scanline_cycles: 0,
             frame_cycles: 0,
-
+            sprites: vec![Sprite::default(); 40],
+            visible_sprites: SpriteList::default(),
+            lock_vram: false,
+            lock_oam: false,
             LCDC: 0,           //0xFF40     (R/W)
             STAT: 0,           //0xFF41     (R/W)
             scroll_y: 0,       //0xFF42     (R/W)
@@ -100,6 +148,8 @@ impl GPU {
                     self.STAT.set_bit(4);
                     self.STAT.set_bit(0);
                     self.STAT.reset_bit(1);
+                    self.lock_vram = false;
+                    self.lock_oam = false;
                     //update interrupt flag
                     interrupt_status = true;
                 }
@@ -108,6 +158,8 @@ impl GPU {
                     self.frame_cycles = 0;
                     self.scanline_cycles = 0;
                     self.lcd_y = 0;
+                    self.lock_vram = false;
+                    self.lock_oam = false;
                     //compare LY to LYC
                     self.line_compare(interrupt_handler);
                     //reset mode to OAM
@@ -116,7 +168,7 @@ impl GPU {
             } else {
                 //it's not vblank so test scanline cycles
                 match self.scanline_cycles {
-                    0 ..= OAM_CYCLES  => {
+                    0 ..= OAM_SEARCH  => {
                         //OAM period
                         if cur_mode != Mode::Oam {
                             self.mode = Mode::Oam;
@@ -124,14 +176,22 @@ impl GPU {
                             self.STAT.set_bit(1);
                             self.STAT.reset_bit(0);
                             interrupt_status = true;
+
+                            self.lock_oam = true;
+                            self.lock_vram = false;
+
+                            self.search_oam();
                         }
                     },
-                    OAM_CYCLES ..= TRANSFER_CYCLES => {
+                    OAM_SEARCH ..= TRANSFER_CYCLES => {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
                             self.mode = Mode::Transfer;
                             self.STAT.set_bit(0);
                             self.STAT.set_bit(1);
+
+                            self.lock_vram = true;
+                            self.lock_oam = true;
 
                             self.transfer();
                         }
@@ -142,8 +202,13 @@ impl GPU {
                             self.STAT.set_bit(3);
                             self.STAT.reset_bit(1);
                             self.STAT.reset_bit(0);
+
+                            self.lock_vram = false;
+                            self.lock_oam = false;
+
                             interrupt_status = true;
                         }
+
                     },
 
                     _ => {}
@@ -189,13 +254,37 @@ impl GPU {
         }
     }
 
+    fn search_oam(&mut self){ 
+        let sprite_max: u8 = match self.LCDC.test_bit(2) {
+            true => 15,
+            false => 7
+        };
+
+        self.visible_sprites.clear();
+
+        for sprite in self.sprites.iter() {
+            if sprite.x != 0 && self.lcd_y + sprite_max <= sprite.y && sprite.x != 160 && !self.visible_sprites.full() {
+                self.visible_sprites.push(sprite.id);
+            }
+
+        }
+    }
+
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
 
         let into = GPU::translate(addr);
 
         match into {
-            Region::VRAM(x) => self.vram[x] = byte as u32,
-            Region::OAM(x) => self.oam[x] = byte
+            Region::VRAM(x) => {
+                if !self.lock_vram {
+                    self.vram[x] = byte as u32;
+                }
+            }
+            Region::OAM(x) => {
+                if !self.lock_oam {
+                    self.oam[x] = byte
+                }
+            }
         }
 
         Response::None
@@ -205,8 +294,20 @@ impl GPU {
         let from = GPU::translate(addr);
 
         match from {
-            Region::VRAM(x) => Response::Byte( self.vram[x] as u8 ),
-            Region::OAM(x) => Response::Byte( self.oam[x] as u8 ),
+            Region::VRAM(x) => {
+                if !self.lock_vram {
+                    return Response::Byte( self.vram[x] as u8 );
+                } else {
+                    return Response::Byte( 0xFF );
+                }
+            }
+            Region::OAM(x) => {
+                if !self.lock_oam {
+                    return Response::Byte( self.oam[x] as u8 );
+                } else {
+                    return Response::Byte( 0xFF );
+                }
+            }
         }
     }
 
