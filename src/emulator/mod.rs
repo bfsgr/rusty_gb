@@ -82,7 +82,7 @@ impl Gameboy {
                 borderless: false,
                 resize: false,
                 scale: minifb::Scale::X2,
-                scale_mode: minifb::ScaleMode::Center,
+                scale_mode: minifb::ScaleMode::AspectRatioStretch,
                 title: true,
                 topmost: false
             },

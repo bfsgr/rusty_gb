@@ -2,12 +2,12 @@
 
 use super::interrupt::{*};
 use super::bit_utils::{*};
-use super::cpu::registers::Response;
+use super::cpu::registers::{Response};
 
 const OAM_SEARCH: usize = 79;
 const TRANSFER_CYCLES: usize = OAM_SEARCH + 172;
 const HBLANK_CYCLES: usize = 456;
-const FRAME_CYCLES: usize = HBLANK_CYCLES * 144;
+const FRAME_CYCLES: usize = HBLANK_CYCLES * 146;
 const VBLANK_CYCLES: usize = FRAME_CYCLES + 4560;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -18,51 +18,51 @@ pub enum Mode {
     Transfer = 3
 }
 
-#[derive(Default, Copy, Clone)]
-struct Sprite{
-    id: u8,
-    x: u8,
-    y: u8,
-    palette: bool,
-    x_flip: bool,
-    y_flip: bool,
-    priority: bool
-}
+// #[derive(Default, Copy, Clone)]
+// struct Sprite{
+//     id: u8,
+//     x: u8,
+//     y: u8,
+//     palette: bool,
+//     x_flip: bool,
+//     y_flip: bool,
+//     priority: bool
+// }
 
 //should be easier to just use a Vec, but I avoid using heap structures
-#[derive(Default)]
-struct SpriteList{
-    sprites: [u8; 10],
-    size: i8
-}
+// #[derive(Default)]
+// struct SpriteList{
+//     sprites: [u8; 10],
+//     size: i8
+// }
 
-impl SpriteList {
-    fn empty(&self) -> bool {
-        self.size == -1
-    }
+// impl SpriteList {
+//     fn empty(&self) -> bool {
+//         self.size == -1
+//     }
 
-    fn full(&self) -> bool {
-        self.size >= 10
-    }
+//     fn full(&self) -> bool {
+//         self.size >= 10
+//     }
 
-    fn clear(&mut self) {
-        self.size = -1;
-    }
+//     fn clear(&mut self) {
+//         self.size = -1;
+//     }
     
-    fn push(&mut self, x: u8) {
-        if !self.full() {
-            self.sprites[self.size as usize] = x;
-            self.size += 1;
-        }
-    }
-}
+//     fn push(&mut self, x: u8) {
+//         if !self.full() {
+//             self.sprites[self.size as usize] = x;
+//             self.size += 1;
+//         }
+//     }
+// }
 
 pub struct GPU {
     mode: Mode,
     scanline_cycles: usize,
     frame_cycles: usize,
-    sprites: Vec<Sprite>,
-    visible_sprites: SpriteList,
+    // sprites: Vec<Sprite>,
+    // visible_sprites: SpriteList,
 
     lock_vram: bool,
     lock_oam: bool,
@@ -83,7 +83,7 @@ pub struct GPU {
     pub bgp_data: u8,       //0xFF69     (R/W) (GB Color only)
     pub spt_index: u8,      //0xFF6A     (R/W) (GB Color only)   
     pub spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
-    vram: [u32;0x2000],
+    vram: [u8;0x2000],
     oam: [u8; 0xA0],
     pub display: Vec<u32>
 }
@@ -94,8 +94,8 @@ impl Default for GPU {
             mode: Mode::Oam,
             scanline_cycles: 0,
             frame_cycles: 0,
-            sprites: vec![Sprite::default(); 40],
-            visible_sprites: SpriteList::default(),
+            // sprites: vec![Sprite::default(); 40],
+            // visible_sprites: SpriteList::default(),
             lock_vram: false,
             lock_oam: false,
             LCDC: 0,           //0xFF40     (R/W)
@@ -180,7 +180,7 @@ impl GPU {
                             self.lock_oam = true;
                             self.lock_vram = false;
 
-                            self.search_oam();
+                            // self.search_oam();
                         }
                     },
                     OAM_SEARCH ..= TRANSFER_CYCLES => {
@@ -245,7 +245,72 @@ impl GPU {
     fn transfer(&mut self){
         if self.LCDC.test_bit(0) {
             //draw bg
+            let palette = self.bg_palette;
+
+            let tile_map_addr = match self.LCDC.test_bit(3) {
+                true => 0x9C00,
+                false => 0x9800
+            };
+
+            let tile_data_addr = match self.LCDC.test_bit(4) {
+                true => 0x9000,
+                false => 0x8000
+            };
+
+            let dY = self.lcd_y;
+
+            let Y = dY.wrapping_add(self.scroll_y);
+
+            let buffer: u32 = dY as u32 * 160;
+            //title based addresses
+            let row = Y / 8;
+
+            for i in 0..160 {
+                let X = (i as u8).wrapping_add(self.scroll_x);
+
+                let column = X / 8;
+
+                let index = row as u16 * 32 + column as u16;
+
+                let tile_index = tile_map_addr + index;
+
+                let tile_pattern: u8 = self.vram[(tile_index - 0x8000) as usize];
+
+                let vram_address = match self.LCDC.test_bit(4) {
+                    true => {
+                        //8800-97FF (unsigned)
+                        (tile_pattern as u16 * 16) + tile_data_addr - 0x8000
+                    },
+                    false => {
+                        //8800-97FF (signed)
+                        let adjusted = ((tile_pattern as i8) as i16) * 16;
+                        let path = (tile_data_addr as i16) + adjusted;
+                        (path as u16) - 0x8000
+                    },
+                };
+                
+                let py = ((Y % 8) * 2) as u16;
+
+
+                let t1 = self.vram[ (vram_address + py as u16) as usize ];
+                let t2 = self.vram[ (vram_address + py + 1 as u16) as usize ];
+
+
+                let px = i % 8;
+
+                // let line = (t1 as u16) << 8 | t2 as u16; //>
+
+                let b1 = t1.test_bit(px);
+                let b0 = t2.test_bit(px);
+
+                let pixel = (b1 as u8) << 1 | b0 as u8; //>
+
+                let drawn = self.to_rgb(pixel, palette);
+
+                self.display[(buffer + i as u32) as usize] = drawn;
+            }
         }
+
         if self.LCDC.test_bit(5) {
             //draw window
         }
@@ -254,21 +319,39 @@ impl GPU {
         }
     }
 
-    fn search_oam(&mut self){ 
-        let sprite_max: u8 = match self.LCDC.test_bit(2) {
-            true => 15,
-            false => 7
-        };
+    fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
+        let colors = [
+			0xEEEEEE, // 0 White
+			0x999999, // 1 Light Gray
+			0x666666, // 2 Dark Gray
+			0x222222, // 3 Black
+        ];
 
-        self.visible_sprites.clear();
-
-        for sprite in self.sprites.iter() {
-            if sprite.x != 0 && self.lcd_y + sprite_max <= sprite.y && sprite.x != 160 && !self.visible_sprites.full() {
-                self.visible_sprites.push(sprite.id);
-            }
-
-        }
+		let shade = match pixel {
+			0 =>  palette & 0b00000011,
+			1 => (palette & 0b00001100) >> 2,
+			2 => (palette & 0b00110000) >> 4,
+			3 => (palette & 0b11000000) >> 6,
+			_ => panic!("Invalid Palette Shade!")
+		};
+		colors[shade as usize]
     }
+
+    // fn search_oam(&mut self){ 
+    //     let sprite_max: u8 = match self.LCDC.test_bit(2) {
+    //         true => 15,
+    //         false => 7
+    //     };
+
+    //     self.visible_sprites.clear();
+
+    //     for sprite in self.sprites.iter() {
+    //         if sprite.x != 0 && self.lcd_y + sprite_max <= sprite.y && sprite.x != 160 && !self.visible_sprites.full() {
+    //             self.visible_sprites.push(sprite.id);
+    //         }
+
+    //     }
+    // }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
 
@@ -277,7 +360,7 @@ impl GPU {
         match into {
             Region::VRAM(x) => {
                 if !self.lock_vram {
-                    self.vram[x] = byte as u32;
+                    self.vram[x] = byte;
                 }
             }
             Region::OAM(x) => {
