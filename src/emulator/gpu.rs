@@ -368,7 +368,9 @@ impl GPU {
     
     fn paint_window(&mut self){
 
-        
+        let palette = self.bg_palette;
+
+
 
     }
     
@@ -464,6 +466,10 @@ impl GPU {
             Region::VRAM(x) => {
                 if !self.lock_vram {
                     self.vram[x] = byte;
+
+                    if x < 0x1800 {
+                        self.tile_cache[ (x/16) as usize].dirty = true;
+                    }
                 }
             }
             Region::OAM(x) => {
