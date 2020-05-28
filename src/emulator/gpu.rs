@@ -83,7 +83,6 @@ pub struct GPU {
     frame_cycles: usize,
 
     sprites: [Sprite; 40],
-    visible_sprites: SpriteList,
 
     tile_cache: [Tile; 384],
 
@@ -120,7 +119,6 @@ impl Default for GPU {
             lock_vram: false,
             lock_oam: false,
             sprites: [Sprite::default(); 40],
-            visible_sprites: SpriteList::default(),
             tile_cache: [Tile::default(); 384],
             LCDC: 0,           //0xFF40     (R/W)
             STAT: 0,           //0xFF41     (R/W)
@@ -274,7 +272,7 @@ impl GPU {
         }
         if self.LCDC.test_bit(1) {
             //search the visible sprites
-            self.search_oam();
+            let _visible = self.search_oam();
             //draw sprite
         }
     }
@@ -337,11 +335,20 @@ impl GPU {
                     (path as u16) - 0x8000
                 },
             };
+
+            let id = (raw_address / 16) as usize;
+
+            if self.tile_cache[id].dirty {
+                self.update_tile(id, raw_address);
+            }
+
+            let cache = self.tile_cache[ id ];
+
             let py = ((Y % 8) * 2) as u16;
             let px = i % 8;
 
-            let mut t1 = self.vram[ (raw_address + py) as usize];    
-            let mut t2 = self.vram[(raw_address + py + 1) as usize]; 
+            let mut t1 = cache.data[py as usize];    
+            let mut t2 = cache.data[(py+1) as usize];
 
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
@@ -358,18 +365,22 @@ impl GPU {
         }
     }
 
+    
+    fn paint_window(&mut self){
+
+        
+
+    }
+    
+    fn paint_sprites(&mut self){
+        
+    }
+
     fn reverse_order(mut b: u8) -> u8{
         b = (b & 0xF0) >> 4 | (b & 0x0F) << 4; //>
         b = (b & 0xCC) >> 2 | (b & 0x33) << 2; //> 
         b = (b & 0xAA) >> 1 | (b & 0x55) << 1; //>
         b
-    }
-
-    fn paint_window(&mut self){
-    }
-
-    fn paint_sprites(&mut self){
-
     }
 
     fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
@@ -388,6 +399,16 @@ impl GPU {
 			_ => panic!("Invalid pixel number")
 		};
 		colors[shade as usize]
+    }
+
+    fn update_tile(&mut self, id: usize, raw_addr: u16) {
+        let tile = &mut self.tile_cache[id];
+        
+        for i in (raw_addr..raw_addr+16).enumerate() {
+            tile.data[i.0] = self.vram[i.1 as usize];
+        }
+
+        tile.dirty = false;
     }
 
     fn update_sprite(&mut self, mut index: usize){
@@ -412,13 +433,13 @@ impl GPU {
         current.dirty = false;
     }
 
-    fn search_oam(&mut self){ 
+    fn search_oam(&mut self) -> SpriteList { 
         let sprite_max: u8 = match self.LCDC.test_bit(2) {
             true => 15,
             false => 7
         };
 
-        self.visible_sprites.clear();
+        let mut visible_sprites = SpriteList::default();
 
         for i in 0..40 {
 
@@ -426,12 +447,13 @@ impl GPU {
                 self.update_sprite(i as usize);
             }
 
-            if self.sprites[i].x != 0 && self.lcd_y + sprite_max <= self.sprites[i].y && self.sprites[i].x != 160 && !self.visible_sprites.full() {
+            if self.sprites[i].x != 0 && self.lcd_y + sprite_max <= self.sprites[i].y && self.sprites[i].x != 160 && !visible_sprites.full() {
                 
-                self.visible_sprites.push(i as u8);
+                visible_sprites.push(i as u8);
             }
 
         }
+        visible_sprites
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {

@@ -9,7 +9,7 @@ mod interrupt;
 mod bit_utils;
 mod bus;
 
-const DEBUG_FLAG: bool = true;
+const DEBUG_FLAG: bool = false;
 
 use cpu::{*};
 use cpu::registers::{*};
@@ -41,6 +41,8 @@ impl Gameboy {
     //main loop
     pub fn start(&mut self){
 
+        let mut debug = false;
+
         let mut window = Gameboy::create_window();
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
@@ -49,8 +51,12 @@ impl Gameboy {
 
             while cycles_now < MAXCYCLES { 
 
+                if window.is_key_down(Key::D) {
+                    if debug { debug = false } else { debug = true };
+                }
+
                 //execute the instruction pointed by PC
-                let cycles = self.cpu_inst();
+                let cycles = self.cpu_inst(debug);
                 //update current cycles
                 cycles_now += cycles as u32;
 
@@ -107,7 +113,7 @@ impl Gameboy {
         }
     }
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
-    fn cpu_inst(&mut self) -> u16 {
+    fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
 
         self.cpu.interrupts(&mut self.bus);
 
@@ -136,7 +142,7 @@ impl Gameboy {
             },
         }
 
-        if DEBUG_FLAG {
+        if debug_flag {
             let oprnds = Bus::to_short(operands);
             println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
         }
