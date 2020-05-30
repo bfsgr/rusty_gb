@@ -110,7 +110,9 @@ impl Cartrigbe {
 
     }
 
-    pub fn write_byte(&mut self, _addr: u16, _byte: u8) {}
+    pub fn write_byte(&mut self, _addr: u16, _byte: u8) {
+        // println!("W: {:#10x} to {:#10x}", _byte, _addr);
+    }
 
     pub fn read_byte(&self, addr: u16) -> Response {
         

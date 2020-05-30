@@ -24,7 +24,6 @@ const HEIGHT: usize = 144;
 //max cycles after vblank, when this value is reached we draw the actual screen
 const MAXCYCLES: u32 = 65664;
 
-
 #[derive(Default)]
 pub struct Gameboy {
     cpu: CPU,
@@ -86,7 +85,7 @@ impl Gameboy {
             WindowOptions {
                 borderless: false,
                 resize: false,
-                scale: minifb::Scale::X4,
+                scale: minifb::Scale::X2,
                 scale_mode: minifb::ScaleMode::AspectRatioStretch,
                 title: true,
                 topmost: false
@@ -103,24 +102,32 @@ impl Gameboy {
 
     //get an opcode byte and convert it into an Instruction object
     fn decode(&mut self, mut opcode: u8, pc: u16) -> Instruction {
+        let instruction;
         //if instruction is 0xCB, get next byte and decode it through subset instructions array
         if opcode != 0xCB {
-            CPU::decode(opcode, false)
+            instruction = CPU::decode(opcode, false);
         } else {
             opcode = self.bus.read_byte(pc+1).value();
             self.cpu.increment_PC(1);
-            CPU::decode(opcode, true)
+            instruction = CPU::decode(opcode, true);
         }
+
+        let not = cpu::NOT_IMPLEMENTED;
+
+        if instruction == not {
+            println!("{:#04x} not implemented", opcode)
+        }
+
+        return instruction;
     }
+
+
+
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
-
-        self.cpu.interrupts(&mut self.bus);
-
         let pc = self.cpu.PC();
         let opcode = self.bus.read_byte(pc).value();
         let instruction = self.decode(opcode, pc);
-
 
         let mut operands = [0;2];
 
@@ -146,7 +153,11 @@ impl Gameboy {
             let oprnds = Bus::to_short(operands);
             println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
         }
-        instruction.execute(operands, &mut self.cpu.registers, &mut self.bus)
+        let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
+
+        self.cpu.interrupts(&mut self.bus);
+
+        return cycles;
     }
 
 

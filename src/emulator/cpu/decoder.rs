@@ -12,11 +12,13 @@ impl Decoder {
     }
 }
 
+
+
 const INSTRUCTION_SET: [Instruction; 256] = [
     //0x0
     Instruction{ 
         disassembly: "NOP",
-        function: Instruction::NOP,
+        function: Instruction::NOP_R,
         args: 0,
         cycles: 4
     },
@@ -1813,121 +1815,121 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     //0x0
     Instruction{ 
         disassembly: "RLC B",
-        function: Instruction::NOP,
+        function: Instruction::RLC_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC C",
+        function: Instruction::RLC_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC D",
+        function: Instruction::RLC_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC E",
+        function: Instruction::RLC_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC H",
+        function: Instruction::RLC_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC L",
+        function: Instruction::RLC_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC (HL)",
+        function: Instruction::RLC_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RLC A",
+        function: Instruction::RLC_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC B",
+        function: Instruction::RRC_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC_C",
+        function: Instruction::RRC_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC_D",
+        function: Instruction::RRC_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC E",
+        function: Instruction::RRC_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC H",
+        function: Instruction::RRC_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC L",
+        function: Instruction::RRC_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC (HL)",
+        function: Instruction::RRC_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RRC A",
+        function: Instruction::RRC_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x10
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL B",
+        function: Instruction::RL_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x11
     Instruction{ 
@@ -1938,101 +1940,101 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x12
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL D",
+        function: Instruction::RL_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x13
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL E",
+        function: Instruction::RL_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x14
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL H",
+        function: Instruction::RL_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x15
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL L",
+        function: Instruction::RL_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x16
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL (HL)",
+        function: Instruction::RL_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x17
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RL A",
+        function: Instruction::RL_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x18
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR_B",
+        function: Instruction::RR_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x19
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR C",
+        function: Instruction::RR_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR D",
+        function: Instruction::RR_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR E",
+        function: Instruction::RR_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR H",
+        function: Instruction::RR_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR L",
+        function: Instruction::RR_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x1E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR (HL)",
+        function: Instruction::RR_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x1F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RR A",
+        function: Instruction::RR_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x20
     Instruction{ 
@@ -2197,10 +2199,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x37
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SWAP A",
+        function: Instruction::SWAP_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x38
     Instruction{ 
@@ -2260,1276 +2262,1342 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x40
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,B",
+        function: Instruction::BIT_0B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0X41
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,C",
+        function: Instruction::BIT_0C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x42
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,D",
+        function: Instruction::BIT_0D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x43
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,E",
+        function: Instruction::BIT_0E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x44
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,H",
+        function: Instruction::BIT_0H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x45
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,L",
+        function: Instruction::BIT_0L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x46
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,(HL)",
+        function: Instruction::BIT_0dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x47
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 0,A",
+        function: Instruction::BIT_0A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x48
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,B",
+        function: Instruction::BIT_1B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x49
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,C",
+        function: Instruction::BIT_1C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,D",
+        function: Instruction::BIT_1D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,E",
+        function: Instruction::BIT_1E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,H",
+        function: Instruction::BIT_1H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,L",
+        function: Instruction::BIT_1L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x4E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,(HL)",
+        function: Instruction::BIT_1dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x4F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 1,A",
+        function: Instruction::BIT_1A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x50
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,B",
+        function: Instruction::BIT_2B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x51
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,C",
+        function: Instruction::BIT_2C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x52
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,D",
+        function: Instruction::BIT_2D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x53
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,E",
+        function: Instruction::BIT_2E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x54
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,H",
+        function: Instruction::BIT_2H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x55
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,L",
+        function: Instruction::BIT_2L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x56
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,(HL)",
+        function: Instruction::BIT_2dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x57
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 2,A",
+        function: Instruction::BIT_2A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x58
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,B",
+        function: Instruction::BIT_3B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x59
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,C",
+        function: Instruction::BIT_3C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,D",
+        function: Instruction::BIT_3D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,E",
+        function: Instruction::BIT_3E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,H",
+        function: Instruction::BIT_3H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,L",
+        function: Instruction::BIT_3L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x5E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,(HL)",
+        function: Instruction::BIT_3dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x5F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 3,A",
+        function: Instruction::BIT_3A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x60
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,B",
+        function: Instruction::BIT_4B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x61
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,C",
+        function: Instruction::BIT_4C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x62
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,D",
+        function: Instruction::BIT_4D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x63
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,E",
+        function: Instruction::BIT_4E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x64
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,H",
+        function: Instruction::BIT_4H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x65
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,L",
+        function: Instruction::BIT_4L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x66
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,(HL)",
+        function: Instruction::BIT_4dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x67
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 4,A",
+        function: Instruction::BIT_4A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x68
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,B",
+        function: Instruction::BIT_5B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x69
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,C",
+        function: Instruction::BIT_5C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,D",
+        function: Instruction::BIT_5D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,E",
+        function: Instruction::BIT_5E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,H",
+        function: Instruction::BIT_5H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,L",
+        function: Instruction::BIT_5L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x6E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,(HL)",
+        function: Instruction::BIT_5dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x6F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 5,A",
+        function: Instruction::BIT_5A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x70
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,B",
+        function: Instruction::BIT_6B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x71
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,C",
+        function: Instruction::BIT_6C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x72
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,D",
+        function: Instruction::BIT_6D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x73
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,E",
+        function: Instruction::BIT_6E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x74
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,H",
+        function: Instruction::BIT_6H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x75
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,L",
+        function: Instruction::BIT_6L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x76
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,(HL)",
+        function: Instruction::BIT_6dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x77
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 6,A",
+        function: Instruction::BIT_6A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x78
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,B",
+        function: Instruction::BIT_7B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x79
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,C",
+        function: Instruction::BIT_7C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x7A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,D",
+        function: Instruction::BIT_7D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x7B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,E",
+        function: Instruction::BIT_7E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x7C
     Instruction{ 
         disassembly: "BIT 7,H",
         function: Instruction::BIT_7H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
+    //0x7D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,L",
+        function: Instruction::BIT_7L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0x7E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,(HL)",
+        function: Instruction::BIT_7dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
+    //0x7F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "BIT 7,A",
+        function: Instruction::BIT_7A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0x80
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x81
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x82
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x83
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x84
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x85
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x86
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x87
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 0,A",
+        function: Instruction::RES_0_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0x88
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x89
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x8A
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x8B
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x8C
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x8D
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x8E
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x8F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 1,A",
+        function: Instruction::RES_1_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0x90
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x91
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0X92
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x93
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x94
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x95
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x96
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x97
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,A",
+        function: Instruction::RES_2_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0x98
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x99
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x9A
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x9B
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x9C
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x9D
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0x9E
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0x9F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,A",
+        function: Instruction::RES_3_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xA0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xA1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xA2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xA3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xA4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xA5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xA6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xA7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,A",
+        function: Instruction::RES_4_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xA8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xA9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xAA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xAB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xAC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xAD
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xAE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xAF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,A",
+        function: Instruction::RES_5_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xB0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xB1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xB2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xB3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xB4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xB5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xB6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xB7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,A",
+        function: Instruction::RES_6_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xB8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xB9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xBA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xBB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xBC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xBD
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xBE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xBF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,A",
+        function: Instruction::RES_7_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xC0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xC1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xC2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xC3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xC4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xC5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xC6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xC7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,A",
+        function: Instruction::SET_0A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
-    //0x0
+    //0xC8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xC9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xCA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xCB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xCC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xCD
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xCE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xCF
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xD0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xD1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xD2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xD3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xD4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xD5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xD6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xD7
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xD8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xD9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xDA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xDB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xDC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xDD
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xDE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xDF
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xE0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xE1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xE2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xE3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xE4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xE5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xE6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xE7
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xE8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xE9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xEA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xEB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xEC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xED
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xEE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xEF
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xF0
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xF1
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xF2
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xF3
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xF4
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xF5
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xF6
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xF7
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xF8
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xF9
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xFA
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xFB
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xFC
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xFD
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
-    //0x0
+    //0xFE
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
+    //0xFF
     Instruction{ 
         disassembly: "NOP",
         function: Instruction::NOP,

@@ -269,11 +269,13 @@ impl GPU {
 
         if self.LCDC.test_bit(5) {
             //draw window
+            self.paint_window()
         }
         if self.LCDC.test_bit(1) {
             //search the visible sprites
-            let _visible = self.search_oam();
+            let visible = self.search_oam();
             //draw sprite
+            self.paint_sprites(visible);
         }
     }
 
@@ -370,11 +372,138 @@ impl GPU {
 
         let palette = self.bg_palette;
 
+        let WY = self.window_y;
+        let WX = self.window_x;
 
+        //tile map address base
+        let tile_map_addr = match self.LCDC.test_bit(6) {
+            true => 0x9C00,
+            false => 0x9800
+        };
+        
+        //tile data address base
+        let tile_data_addr = match self.LCDC.test_bit(4) {
+            true => 0x8000,
+            false => 0x9000
+        };
 
+        let LY = self.lcd_y;
+
+        let buffer: u32 = LY as u32 * 160;
+
+        let row = LY / 8;
+
+        //window does not appear in this row
+        if LY < WY || WY > 143 { return (); }
+        if WX > 159 { return (); }
+
+        for i in WX..160 {
+
+            let column = i/8;
+
+            // Upper 5 bits select the row, 5 first the column
+            let index = ((row as u16) << 5) + column as u16; //> 
+
+            let tile_index = tile_map_addr + index;
+
+            let tile_number: u8 = self.vram[(tile_index - 0x8000) as usize];
+
+            let raw_address = match self.LCDC.test_bit(4) {
+                true => {
+                    //8800-97FF (unsigned)
+                    (tile_number as u16 * 16) + tile_data_addr - 0x8000
+                },
+                false => {
+                    //8800-97FF (signed)
+                    let adjusted = ((tile_number as i8) as i16) * 16;
+                    let path = (tile_data_addr as i16) + adjusted;
+                    (path as u16) - 0x8000
+                },
+            };
+
+            let id = (raw_address / 16) as usize;
+
+            if self.tile_cache[id].dirty {
+                self.update_tile(id, raw_address);
+            }
+
+            let cache = self.tile_cache[ id ];
+
+            let py = ((LY % 8) * 2) as u16;
+            let px = i % 8;
+
+            let mut t1 = cache.data[py as usize];    
+            let mut t2 = cache.data[(py+1) as usize];
+
+            t1 = GPU::reverse_order(t1);
+            t2 = GPU::reverse_order(t2);
+            
+            let b1 = t1.test_bit(px);   
+            let b0 = t2.test_bit(px);
+
+            let pixel = (b1 as u8) << 1 | b0 as u8; //>
+            
+
+            let drawn = self.to_rgb(pixel, palette);
+
+            self.display[(buffer + i as u32) as usize] = drawn;
+        }
     }
     
-    fn paint_sprites(&mut self){
+    fn paint_sprites(&mut self, visible: SpriteList){
+
+        //Max vertical size of a sprite
+        let max_size = match self.LCDC.test_bit(2) {
+            true => 16,
+            false => 8
+        };
+
+        let LY = self.lcd_y;
+
+        
+
+        for i in 0 .. visible.size {
+         
+            if self.sprites[ visible.sprites[i as usize] as usize].dirty {
+                self.update_sprite( visible.sprites[i as usize] as usize )
+            }
+
+            let sprite = self.sprites[ visible.sprites[i as usize] as usize] ;
+
+            let mut py = LY.wrapping_sub(sprite.y) % max_size;
+
+            if sprite.y_flip {
+                py = ((py as i16 - max_size as i16) * -1) as u8
+            }
+            
+            let mut px = sprite.x % 8; 
+
+            if sprite.x_flip {
+                px = ((px as i16 - 8) * - 1 ) as u8;
+            }
+
+            let palette = match sprite.palette {
+                true => self.ob_palette1,
+                false => self.ob_palette0
+            };
+
+            let mut t1 = self.vram[ ( sprite.addr * 16 + py * 2 ) as usize];
+            let mut t2 = self.vram[ ( sprite.addr * 16 + py * 2 + 1 ) as usize];
+
+            t1 = GPU::reverse_order(t1);
+            t2 = GPU::reverse_order(t2);
+
+            let b1 = t1.test_bit(px);
+            let b0 = t2.test_bit(px);
+
+            let pixel = (b1 as u8) << 1 | b0 as u8; //>
+
+            if pixel == 0 { return () };
+
+            let drawn = self.to_rgb(pixel, palette);
+
+            self.display[ (LY * 160 + sprite.x + px) as usize ] = drawn;
+        }
         
     }
 

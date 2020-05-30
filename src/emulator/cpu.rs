@@ -16,6 +16,13 @@ pub struct CPU {
     pub registers: Registers,
 }
 
+pub const NOT_IMPLEMENTED: Instruction = Instruction {
+    disassembly: "Not Implemented",
+    function: Instruction::NOP,
+    args: 0,
+    cycles: 0
+};
+
 impl CPU {
     
     pub fn PC(&mut self) -> u16{
