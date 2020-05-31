@@ -16,7 +16,7 @@ use cpu::registers::{*};
 use bus::{*};
 
 
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions, KeyRepeat};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -50,7 +50,7 @@ impl Gameboy {
 
             while cycles_now < MAXCYCLES { 
 
-                if window.is_key_down(Key::D) {
+                if window.is_key_pressed(Key::D, KeyRepeat::Yes) {
                     if debug { debug = false } else { debug = true };
                 }
 
@@ -117,7 +117,7 @@ impl Gameboy {
         let not = cpu::NOT_IMPLEMENTED;
 
         if instruction == not {
-            println!("{:#04x} not implemented", opcode)
+            println!("0xCB {:#04x} not implemented", opcode)
         }
 
         return instruction;

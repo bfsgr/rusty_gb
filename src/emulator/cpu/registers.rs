@@ -68,7 +68,6 @@ pub enum Action {
     Read,
     Decrement(u16),
     Increment(u16),
-    TestBit(u8),
 }
 pub enum Response {
     None,
@@ -122,10 +121,7 @@ impl Registers {
             Action::Read => unsafe { Response::Short(self.AF.all) },
             Action::Decrement(x) => { unsafe { self.AF.all = self.AF.all.wrapping_sub(x); }; return Response::None; } ,
             Action::Increment(x) => { unsafe { self.AF.all = self.AF.all.wrapping_add(x); }; return Response::None; } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.AF.all } & pos) == pos )
-            }
+
         }  
     }
     pub fn BC(&mut self, wr: Action) -> Response {
@@ -137,10 +133,7 @@ impl Registers {
             Action::Read => unsafe { Response::Short(self.BC.all) },
             Action::Decrement(x) => { unsafe { self.BC.all = self.BC.all.wrapping_sub(x); }; return Response::None; } ,
             Action::Increment(x) => { unsafe { self.BC.all = self.BC.all.wrapping_add(x); }; return Response::None; } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.BC.all } & pos) == pos )
-            }
+
         }
     }
     pub fn DE(&mut self, wr: Action) -> Response {
@@ -152,10 +145,7 @@ impl Registers {
             Action::Read => unsafe { Response::Short(self.DE.all) },
             Action::Decrement(x) => { unsafe { self.DE.all = self.DE.all.wrapping_sub(x); }; return Response::None; } ,
             Action::Increment(x) => { unsafe { self.DE.all = self.DE.all.wrapping_add(x); }; return Response::None; } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.DE.all } & pos) == pos )
-            }
+
         }
     }
     pub fn HL(&mut self, wr: Action) -> Response{
@@ -167,10 +157,7 @@ impl Registers {
             Action::Read => unsafe { Response::Short(self.HL.all) },
             Action::Decrement(x) => { unsafe { self.HL.all = self.HL.all.wrapping_sub(x); }; return Response::None; } ,
             Action::Increment(x) => { unsafe { self.HL.all = self.HL.all.wrapping_add(x); }; return Response::None; } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.HL.all } & pos) == pos )
-            }
+
         }
     }
 
@@ -183,7 +170,6 @@ impl Registers {
             Action::Read => Response::Short(self.PC),
             Action::Decrement(x) => { self.PC = self.PC.wrapping_sub(x); Response::None} ,
             Action::Increment(x) => { self.PC = self.PC.wrapping_add(x); Response::None } ,
-            Action::TestBit(_) => { panic!("Can't test bits from PC")}
         }
     }
 
@@ -196,7 +182,6 @@ impl Registers {
             Action::Read => Response::Short(self.SP),
             Action::Decrement(x) => { self.SP = self.SP.wrapping_sub(x); Response::None},
             Action::Increment(x) => { self.SP = self.SP.wrapping_add(x); Response::None },
-            Action::TestBit(_) => { panic!("Can't test bits from PC")}
         }
     }
 
@@ -209,10 +194,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.AF.Pair.msb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.AF.Pair.msb } & pos) == pos )
-            }
+
         }
     }
 
@@ -225,10 +207,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.BC.Pair.msb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.BC.Pair.msb } & pos) == pos )
-            }
+
         }
     }
 
@@ -241,10 +220,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.BC.Pair.lsb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.BC.Pair.lsb } & pos) == pos )
-            }
+
         }
     }
 
@@ -257,10 +233,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.DE.Pair.msb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.DE.Pair.msb } & pos) == pos )
-            }
+
         }
     }
 
@@ -273,10 +246,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.DE.Pair.lsb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.DE.Pair.lsb } & pos) == pos )
-            }
+
         }
     }
 
@@ -289,10 +259,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.HL.Pair.msb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.HL.Pair.msb } & pos) == pos )
-            }
+
         }
     }
 
@@ -305,10 +272,7 @@ impl Registers {
             Action::Read => unsafe { Response::Byte(self.HL.Pair.lsb) },
             Action::Decrement(_) => { panic!("Tried to decrement 8 bit register through registers module") } ,
             Action::Increment(_) => { panic!("Tried to increment 8 bit register through registers module") } ,
-            Action::TestBit(x) => {
-                let pos = 1 << x; //>
-                Response::State( (unsafe { self.HL.Pair.lsb } & pos) == pos )
-            }
+
         }
     }
 

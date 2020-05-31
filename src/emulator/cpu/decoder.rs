@@ -2045,10 +2045,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x21
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA C",
+        function: Instruction::SLA_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x22
     Instruction{ 

@@ -3175,6 +3175,30 @@ impl Instruction {
         shifted
 	}
 
+    fn SL(byte: u8, preserve: bool, registers: &mut Registers) -> u8 {
+		let shifted = match preserve {
+			true => (byte << 1) | (byte & 0x01), //>
+			false => byte << 1, //>
+        };
+        
+        if (byte & 0x80) == 0x80 {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+
+        if byte == 0 {
+            registers.set_flag(ZERO_FLAG);
+        } else {
+            registers.clear_flag(ZERO_FLAG);
+        }
+
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
+        
+        shifted
+	}
+
 
 
     //generic test bit for zero
@@ -3459,6 +3483,18 @@ impl Instruction {
 
         mem.write_byte(dHL, val);
     }
+
+    //0xCB 0x21
+    pub fn SLA_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.C( Action::Write(val as u16) );
+    }
+
+
 
 
 
