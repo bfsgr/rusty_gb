@@ -238,7 +238,7 @@ impl Instruction {
     }
 
     fn ADD_u16(registers: &mut Registers, X: u16, Y: u16) -> u16 {    
-        let value: u16 = X+Y;
+        let value: u16 = X.wrapping_add(Y);
 
         let carry = (0x8000 & X) == 0x8000;
         let halfcarry = (0x0800 & X) == 0x0800;
@@ -623,10 +623,14 @@ impl Instruction {
 
     //0x1A
     pub fn LD_A_dDE(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
-        
-        let dDE: u8 = mem.read_byte( registers.DE(Action::Read).value() ).value();
 
-        registers.A(Action::Write(dDE as u16));
+        let DE: u16 = registers.DE( Action::Read ).value();
+
+        let read = mem.read_byte( DE );
+        
+        let value: u8 = read.value();
+
+        registers.A(Action::Write(value as u16));
 
         
 
@@ -648,7 +652,7 @@ impl Instruction {
         
         E = Instruction::INC(registers, E);
 
-        registers.D( Action::Write(E as u16) );
+        registers.E( Action::Write(E as u16) );
 
         
 
@@ -715,7 +719,7 @@ impl Instruction {
 
     //0x22
     pub fn LDI_HL_A(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
-        let hlad = registers.HL(Action::Read).value();
+        let hlad: u16 = registers.HL(Action::Read).value();
         registers.HL(Action::Increment(1));
         
         
@@ -777,11 +781,11 @@ impl Instruction {
         if registers.test_flag(HALFCARRY_FLAG) { Adjust |= 0x06; };
 
         if !registers.test_flag(NEGATIVE_FLAG) {
-            if A & 0x0F > 0x09 { Adjust |= 0x06 };
+            if (A & 0x0F) > 0x09 { Adjust |= 0x06 };
             if A > 0x99 { Adjust |= 0x60 };
-            A += Adjust;
+            A = A.wrapping_add(Adjust);
         } else {
-            A -= Adjust;
+            A = A.wrapping_sub(Adjust);
         }
 
         registers.clear_flag(HALFCARRY_FLAG);
@@ -800,9 +804,6 @@ impl Instruction {
         
         registers.A( Action::Write(A as u16) );
 
-        
-        
-        
     }
 
     //0x28
@@ -836,8 +837,11 @@ impl Instruction {
 
     //0x2A 
     pub fn LDI_A_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
-        
-        let dHL: u8 = mem.read_byte( registers.HL(Action::Read).value() ).value();
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let rHL = mem.read_byte( HL );
+
+        let dHL: u8 = rHL.value();
 
         registers.A( Action::Write(dHL as u16) );
 
@@ -2283,11 +2287,10 @@ impl Instruction {
     }
 
     //0xA7
-    pub fn AND_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus){
+    pub fn AND_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let A: u8 = registers.A( Action::Read ).value();
 
-        
-
-        
+        Instruction::AND_u8(registers, A);
     }
 
     //0xA8
@@ -2376,11 +2379,9 @@ impl Instruction {
 
     //0xAF
     pub fn XOR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
-        registers.A( Action::Write(0) );
+        let A: u8 = registers.A( Action::Read ).value();
 
-        
-
-        
+        Instruction::XOR_u8(registers, A);
     }
 
     //0xB0
@@ -2468,10 +2469,10 @@ impl Instruction {
     }
 
     //0xB7
-    pub fn OR_A(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus) {
+    pub fn OR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let A: u8 = registers.A( Action::Read ).value();
 
-        
-
+        Instruction::OR_u8(registers, A);
         
     }
 
@@ -2551,10 +2552,6 @@ impl Instruction {
         let A: u8 = registers.A( Action::Read ).value();
 
         Instruction::CP_u8(registers, A);
-
-        
-
-        
     }
 
     //0xC0
@@ -2607,14 +2604,14 @@ impl Instruction {
 
     //0xC4
     pub fn CALL_NZ_nn(operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
-
+        
+        let pointer = Bus::to_short(operands);
         if !registers.test_flag(ZERO_FLAG) {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
-            let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
-        }
 
+        }
 
         
 
@@ -2708,10 +2705,6 @@ impl Instruction {
         Instruction::push_to_stack(registers, mem, PC);
         let pointer = Bus::to_short(operands);
         registers.PC( Action::Write(pointer) );
-
-
-        
-
         
     }
 
@@ -2958,7 +2951,7 @@ impl Instruction {
 
         let jump = (operands[0] as i8) as i16;
 
-        let result = ((SP as i16) + jump) as u16;
+        let result = ((SP as i16).wrapping_add(jump)) as u16;
 
         if (result & 0xFF) < (SP & 0xFF) {
             registers.set_flag(CARRY_FLAG);
@@ -2980,11 +2973,11 @@ impl Instruction {
     }
 
     //0xE9
-    pub fn JP_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+    pub fn JP_dHL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
 
-        let dHL: u8 = mem.read_byte(registers.HL( Action::Read ).value()).value();
+        let HL: u16 = registers.HL( Action::Read ).value();
 
-        registers.PC( Action::Write(dHL as u16) );
+        registers.PC( Action::Write(HL) );
 
     }
 
@@ -3034,12 +3027,9 @@ impl Instruction {
     //0xF1
     pub fn POP_AF(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
         
-        let popped = Instruction::pop_from_stack(registers, mem);
+        let mut popped = Instruction::pop_from_stack(registers, mem);
+        popped = popped & 0xFFF0;
         registers.AF( Action::Write(popped) );
-
-
-        
-
         
     }
 
@@ -3090,7 +3080,7 @@ impl Instruction {
 
         let jump = (operands[0] as i8) as i16;
 
-        let result = ((SP as i16) + jump) as u16;
+        let result = ((SP as i16).wrapping_add(jump)) as u16;
 
         if (result & 0xFF) < (SP & 0xFF) {
             registers.set_flag(CARRY_FLAG);
@@ -3157,13 +3147,36 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(38) );
-
-
-        
-
-        
+        registers.PC( Action::Write(38) );  
     }
+
+
+    fn SR(byte: u8, preserve: bool, registers: &mut Registers) -> u8 {
+		let shifted = match preserve {
+			true => (byte >> 1) | (byte & 0x80),
+			false => byte >> 1,
+        };
+        
+        if (byte & 1) == 1 {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+
+        if byte == 0 {
+            registers.set_flag(ZERO_FLAG);
+        } else {
+            registers.clear_flag(ZERO_FLAG);
+        }
+
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
+        
+        shifted
+	}
+
+
+
     //generic test bit for zero
     fn test_bit(value: u8, bit: u8, registers: &mut Registers) {
         if value.test_bit(bit) {
@@ -3519,6 +3532,24 @@ impl Instruction {
         let mut val: u8 = registers.A( Action::Read ).value();
         
         val = Instruction::swap(val, registers);
+        
+        registers.A( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x38
+    pub fn SRL_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.B( Action::Read ).value();
+        
+        val = Instruction::SR(val, false, registers);
+        
+        registers.B( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x3F
+    pub fn SRL_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.A( Action::Read ).value();
+        
+        val = Instruction::SR(val, false, registers);
         
         registers.A( Action::Write(val as u16) );
     }

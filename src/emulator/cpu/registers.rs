@@ -19,7 +19,6 @@ impl Default for Register {
         Register{ all: 0x0 }
     }
 }
-
 pub struct Registers{
     AF: Register,
     BC: Register,
@@ -27,6 +26,28 @@ pub struct Registers{
     HL: Register,
     SP: u16,
     PC: u16
+}
+
+impl std::fmt::Display for Registers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        unsafe { write!(f,
+           "AF: {:#10x}
+            \rBC: {:#10x}
+            \rDE: {:#10x}
+            \rHL: {:#10x}
+            \rSP: {:#10x}
+            \rPC: {:#10x}
+            ", 
+                self.AF.all,
+                self.BC.all,
+                self.DE.all,
+                self.HL.all,
+                self.SP,
+                self.PC,
+            
+        )
+        }
+    }
 }
 
 impl Default for Registers {
@@ -37,7 +58,7 @@ impl Default for Registers {
             DE: Register::default(),
             HL: Register::default(),
             SP: 0,
-            PC: 0
+            PC: 256
         }
     }
 }
@@ -49,7 +70,6 @@ pub enum Action {
     Increment(u16),
     TestBit(u8),
 }
-
 pub enum Response {
     None,
     Byte(u8),

@@ -96,7 +96,7 @@ impl Bus {
                     _ => { Response::Byte(0) }
                 }
             },
-            Module::Unusable => { Response::None },
+            Module::Unusable => { Response::Byte(0xFF) },
         }
 
 

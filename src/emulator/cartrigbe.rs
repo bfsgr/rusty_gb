@@ -12,10 +12,11 @@ pub struct Cartrigbe {
     banks: Vec<Bank>,
     total_banks: usize,
     current_bank: usize,
-    register: u8,
+    mode: bool,
     pub bios_on: u8,
+    ram_bank: u8,
     has_ram: bool,
-    ram_is_on: bool,
+    ram_enable: bool,
     content: Vec<u8>,
     content_size: usize
 }
@@ -26,11 +27,12 @@ impl Default for Cartrigbe {
             info: Header::default(),
             banks: vec![],
             total_banks: 0,
-            current_bank: 0,
-            register: 0,
+            current_bank: 1,
+            mode: false,
             bios_on: 0,
+            ram_bank: 0,
             has_ram: false,
-            ram_is_on: false,
+            ram_enable: false,
             content: vec![],
             content_size: 0
         }
@@ -39,6 +41,7 @@ impl Default for Cartrigbe {
 
 impl Cartrigbe {
     pub fn insert(&mut self, fname: String){
+
         let file = File::open(fname);
 
         match file {
@@ -110,16 +113,60 @@ impl Cartrigbe {
 
     }
 
-    pub fn write_byte(&mut self, _addr: u16, _byte: u8) {
-        // println!("W: {:#10x} to {:#10x}", _byte, _addr);
+    pub fn write_byte(&mut self, addr: u16, byte: u8) {
+        match addr {
+            0 ..= 0x1FFF => {
+                if (byte & 0x0A) == 0x0A {
+                    self.ram_enable = true;
+                } else {
+                    self.ram_enable = false;
+                }
+            },
+
+            0x2000 ..= 0x3FFF => {
+                let select = byte & 0x1F;
+
+                self.current_bank = self.current_bank & 0x60;
+
+                match select {
+                    0 | 0x20 | 0x40 | 0x60 => self.current_bank |= (select+1) as usize,
+
+                    _ => self.current_bank |= select as usize
+                }
+            },
+            0x4000 ..= 0x5FFF => {
+                if self.mode {
+                    self.ram_bank = byte;
+                } else {
+                    self.current_bank = (self.current_bank & 0x1F) | (byte as usize) << 5; //>
+                }
+            },
+            0x6000 ..= 0x7FFF => {
+                if byte == 1 {
+                    self.mode = true;
+                } else {
+                    self.mode = false;
+                }
+            },
+            0xA000 ..= 0xBFFF => {},
+            _ => panic!("wrong addr to cartrigbe {}", addr)
+        }
     }
 
     pub fn read_byte(&self, addr: u16) -> Response {
-        
-        if self.bios_on == 0 && addr < 256 {
-            return Response::Byte( BIOS[addr as usize] );
-        } else {
-            return Response::Byte( self.banks[self.current_bank].info[addr as usize] ); 
+        match addr {
+            0 ..= 0x3FFF => {
+                if self.bios_on == 0 && addr < 256 {
+                    return Response::Byte( BIOS[addr as usize] );
+                } else {
+                    return Response::Byte( self.banks[0].info[addr as usize] ); 
+                }
+            },
+            0x4000 ..= 0x7FFF => {
+                return Response::Byte( self.banks[ self.current_bank as usize ].info[ (addr - 0x4000) as usize ] );
+            },
+            0xA000 ..= 0xBFFF => { Response::Byte(0xFF) },
+            _ => panic!("Wrong address {:#10x}", addr)
         }
     }
 }

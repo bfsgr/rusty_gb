@@ -4,3 +4,6 @@ Tetris2.gb
 memorydump.bin
 log.txt
 cpu_instrs.gb
+cpu_instrs
+cpu_instrs.asm
+trace.log

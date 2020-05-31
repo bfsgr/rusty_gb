@@ -71,6 +71,8 @@ impl Gameboy {
                 _  => {},
             }
         }
+
+        println!("{}", self.cpu.registers);
     }
 
     fn interrupt_running(&self) -> bool {
@@ -128,6 +130,7 @@ impl Gameboy {
         let pc = self.cpu.PC();
         let opcode = self.bus.read_byte(pc).value();
         let instruction = self.decode(opcode, pc);
+
 
         let mut operands = [0;2];
 

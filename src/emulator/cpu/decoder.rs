@@ -2206,10 +2206,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x38
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRL B",
+        function: Instruction::SRL_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x39
     Instruction{ 
@@ -2255,10 +2255,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x3F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRL A",
+        function: Instruction::SRL_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x40
     Instruction{ 
