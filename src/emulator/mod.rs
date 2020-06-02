@@ -28,12 +28,6 @@ const MAXCYCLES: u32 = 65664;
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
-    //cartrigbe
-    //sound
-    //timers
-    //joypad
-    //interrupt
-    //dma
 }
 
 impl Gameboy {
@@ -127,9 +121,13 @@ impl Gameboy {
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
+        self.cpu.interrupts(&mut self.bus);
+        
         let pc = self.cpu.PC();
         let opcode = self.bus.read_byte(pc).value();
+
         let instruction = self.decode(opcode, pc);
+
 
 
         let mut operands = [0;2];
@@ -158,7 +156,6 @@ impl Gameboy {
         }
         let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
-        self.cpu.interrupts(&mut self.bus);
 
         return cycles;
     }

@@ -3508,10 +3508,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xF2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,D",
+        function: Instruction::SET_6D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF3
     Instruction{ 

@@ -36,8 +36,7 @@ impl std::fmt::Display for Registers {
             \rDE: {:#10x}
             \rHL: {:#10x}
             \rSP: {:#10x}
-            \rPC: {:#10x}
-            ", 
+            \rPC: {:#10x}\n", 
                 self.AF.all,
                 self.BC.all,
                 self.DE.all,
@@ -58,7 +57,7 @@ impl Default for Registers {
             DE: Register::default(),
             HL: Register::default(),
             SP: 0,
-            PC: 256
+            PC: 0x0
         }
     }
 }

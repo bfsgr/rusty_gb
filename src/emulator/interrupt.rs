@@ -40,8 +40,6 @@ impl InterruptHandler {
                     4 => return InterruptVector::Joypad,
                     _ => return InterruptVector::None
                 }
-            } else {
-                return InterruptVector::None
             }
         }
 
