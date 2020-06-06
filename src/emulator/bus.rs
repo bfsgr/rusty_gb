@@ -2,6 +2,7 @@ use super::io_constants::{*};
 
 use super::gpu::{*};
 use super::memory::{*};
+use super::timer::{*};
 use super::cartrigbe::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
@@ -13,6 +14,7 @@ pub struct Bus {
     pub gpu: GPU,
     cartrigbe: Cartrigbe,
     pub interrupts: InterruptHandler,
+    timer: Timer
     //everything with memory mapped I/O registers goes in here
 }
 
@@ -24,6 +26,7 @@ pub enum Module {
     IO,        
     Interrupt,
     Unusable,  
+    Timer,
 }
 
 impl Bus {
@@ -64,6 +67,7 @@ impl Bus {
                 }
             },
             Module::Unusable => {},
+            Module::Timer => { self.timer.write_byte(addr, byte); }
         }
 
         Response::None
@@ -97,6 +101,7 @@ impl Bus {
                 }
             },
             Module::Unusable => { Response::Byte(0xFF) },
+            Module::Timer => { self.timer.read_byte(addr) },
         }
 
 
@@ -140,6 +145,7 @@ impl Bus {
             0xC000..=0xFDFF => Module::Memory,    
             0xFE00..=0xFE9F => Module::GPU,     
             0xFEA0..=0xFEFF => Module::Unusable,
+            TMA | TIMA | DIV | TAC => Module::Timer,
             0xFF00..=0xFF7F => Module::IO, 
             0xFF80..=0xFFFE => Module::Memory,   
             0xFFFF => Module::Interrupt         
@@ -164,7 +170,7 @@ impl Bus {
 
     pub fn run_system(&mut self, cycles: u16) {
         self.gpu.step(cycles, &mut self.interrupts);
-        //self.timer.step
+        self.timer.step(cycles, &mut self.interrupts);
         //self.sound.step
         //self.dma
     }

@@ -8,6 +8,7 @@ mod cartrigbe;
 mod interrupt;
 mod bit_utils;
 mod bus;
+mod timer;
 
 const DEBUG_FLAG: bool = false;
 

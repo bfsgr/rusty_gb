@@ -264,101 +264,60 @@ impl Instruction {
         return value;
     }
 
-    fn RR(registers: &mut Registers, mut value: u8) -> u8{
-        let carry = registers.test_flag(CARRY_FLAG);
+    fn RR(registers: &mut Registers, mut value: u8, carry: bool, zflag_on: bool) -> u8{
 
-        if (value & 0x80) == 0x80 {
-            registers.set_flag(CARRY_FLAG);
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
- 
-        value = value >> 1; //>
-        value += (carry as u8) << 7; //>
+        let bit = value.test_bit(1);
 
-        if value == 0 {
-            registers.set_flag(ZERO_FLAG);
-        } else {
-            registers.clear_flag(ZERO_FLAG);
-        }
+        value = match carry {
+            true => (value >> 1) | registers.test_flag(CARRY_FLAG) as u8, //>
+            false => value.rotate_right(1)
+        };
 
-        registers.clear_flag(NEGATIVE_FLAG);
-        registers.clear_flag(HALFCARRY_FLAG);
-
-        return value;
-    }
-    
-    fn RRC(registers: &mut Registers, mut value: u8) -> u8{
-        let carry = (value & 1) == 1;
-
-        value = value >> 1; 
-
-        if carry {
-            registers.set_flag(CARRY_FLAG);
-            value = value | 0x80;
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
-
-        if value == 0 {
-            registers.set_flag(ZERO_FLAG);
-        } else {
-            registers.clear_flag(ZERO_FLAG);
-        }
-
-        registers.clear_flag(NEGATIVE_FLAG);
-        registers.clear_flag(HALFCARRY_FLAG);
-
-        return value;
-    }
-
-    fn RL(registers: &mut Registers, mut value: u8) -> u8{
-        let carry = registers.test_flag(CARRY_FLAG);
-
-        if (value & 0x80) == 0x80 {
+        if bit {
             registers.set_flag(CARRY_FLAG);
         } else {
             registers.clear_flag(CARRY_FLAG);
         }
 
-        value = value << 1; //>
-        value += carry as u8;
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
 
-        if value == 0 {
+        if value == 0 && zflag_on {
             registers.set_flag(ZERO_FLAG);
         } else {
             registers.clear_flag(ZERO_FLAG);
         }
 
-        registers.clear_flag(NEGATIVE_FLAG);
-        registers.clear_flag(HALFCARRY_FLAG);
-
         return value;
     }
 
-    fn RLC(registers: &mut Registers, mut value: u8) -> u8 {
-        let carry = (value & 0x80) == 0x80;
+    fn RL(registers: &mut Registers, mut value: u8, carry: bool, zflag_on: bool) -> u8{
 
-        if carry {
+        let bit = value.test_bit(7);
+
+        value = match carry {
+            true => (value << 1) | registers.test_flag(CARRY_FLAG) as u8, //>
+            false => value.rotate_left(1)
+        };
+
+        if bit {
             registers.set_flag(CARRY_FLAG);
         } else {
             registers.clear_flag(CARRY_FLAG);
         }
 
-        value = value << 1; //>
-        value += carry as u8;
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
 
-        if value == 0 {
+        if value == 0 && zflag_on {
             registers.set_flag(ZERO_FLAG);
         } else {
             registers.clear_flag(ZERO_FLAG);
         }
 
-        registers.clear_flag(NEGATIVE_FLAG);
-        registers.clear_flag(HALFCARRY_FLAG);
-
         return value;
     }
+
 
 
 
@@ -429,7 +388,7 @@ impl Instruction {
 
         let mut A: u8 = registers.A(Action::Read).value();
 
-        A = Instruction::RLC(registers, A);
+        A = Instruction::RL(registers, A, false, false);
 
         registers.A(Action::Write(A as u16));
 
@@ -510,17 +469,13 @@ impl Instruction {
         
     }
 
-    //0x0F and 0xCB 0x0F
+    //0x0F
     pub fn RRC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
 
-        A = Instruction::RRC(registers, A);
+        A = Instruction::RR(registers, A, false, false);
 
-        registers.A( Action::Write(A as u16) );
-
-        
-
-        
+        registers.A( Action::Write(A as u16) );  
     }
 
     //0x10
@@ -584,7 +539,7 @@ impl Instruction {
     pub fn RL_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut A: u8 = registers.A( Action::Read ).value();
 
-        A = Instruction::RL(registers, A);
+        A = Instruction::RL(registers, A, true, false);
 
         registers.A( Action::Write(A as u16) );
 
@@ -682,13 +637,9 @@ impl Instruction {
     pub fn RR_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
 
-        A = Instruction::RR(registers, A);
+        A = Instruction::RR(registers, A, true, false);
 
         registers.A( Action::Write(A as u16) );
-
-        
-
-        
     }
 
     //0x20
@@ -3239,7 +3190,7 @@ impl Instruction {
     pub fn RLC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut B: u8 = registers.B( Action::Read ).value();
 
-        B = Instruction::RLC(registers, B);
+        B = Instruction::RL(registers, B, false, true);
 
         registers.B( Action::Write(B as u16) );
     }
@@ -3248,7 +3199,7 @@ impl Instruction {
     pub fn RLC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut C: u8 = registers.C( Action::Read ).value();
 
-        C = Instruction::RLC(registers, C);
+        C = Instruction::RL(registers, C, false, true);
 
         registers.C( Action::Write(C as u16) );
     }
@@ -3257,7 +3208,7 @@ impl Instruction {
     pub fn RLC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut D: u8 = registers.D( Action::Read ).value();
 
-        D = Instruction::RLC(registers, D);
+        D = Instruction::RL(registers, D, false, true);
 
         registers.D( Action::Write(D as u16) );
     }
@@ -3266,7 +3217,7 @@ impl Instruction {
     pub fn RLC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut E: u8 = registers.E( Action::Read ).value();
 
-        E = Instruction::RLC(registers, E);
+        E = Instruction::RL(registers, E, false, true);
 
         registers.E( Action::Write(E as u16) );
     }
@@ -3275,7 +3226,7 @@ impl Instruction {
     pub fn RLC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut H: u8 = registers.H( Action::Read ).value();
 
-        H = Instruction::RLC(registers, H);
+        H = Instruction::RL(registers, H, false, true);
 
         registers.H( Action::Write(H as u16) );
     }
@@ -3284,7 +3235,7 @@ impl Instruction {
     pub fn RLC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut L: u8 = registers.L( Action::Read ).value();
 
-        L = Instruction::RLC(registers, L);
+        L = Instruction::RL(registers, L, false, true);
 
         registers.L( Action::Write(L as u16) );
     }
@@ -3295,16 +3246,25 @@ impl Instruction {
 
         let mut val = mem.read_byte(dHL).value();
 
-        val = Instruction::RLC(registers, val);
+        val = Instruction::RL(registers, val, false, true);
 
         mem.write_byte(dHL, val);
+    }
+
+    //0xCB 0x07
+    pub fn RLC_A_CB(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+
+        A = Instruction::RL(registers, A, false, true);
+
+        registers.A( Action::Write(A as u16) );
     }
 
     //0xCB 0x08
     pub fn RRC_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.B( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.B( Action::Write(val as u16) );
     }
@@ -3313,7 +3273,7 @@ impl Instruction {
     pub fn RRC_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.C( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.C( Action::Write(val as u16) );
     }
@@ -3322,7 +3282,7 @@ impl Instruction {
     pub fn RRC_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.D( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.D( Action::Write(val as u16) );
     }
@@ -3331,7 +3291,7 @@ impl Instruction {
     pub fn RRC_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.E( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.E( Action::Write(val as u16) );
     }
@@ -3339,7 +3299,7 @@ impl Instruction {
     pub fn RRC_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.H( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.H( Action::Write(val as u16) );
     }
@@ -3347,7 +3307,7 @@ impl Instruction {
     pub fn RRC_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.L( Action::Read ).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         registers.L( Action::Write(val as u16) );
     }
@@ -3358,25 +3318,43 @@ impl Instruction {
 
         let mut val = mem.read_byte(dHL).value();
 
-        val = Instruction::RRC(registers, val);
+        val = Instruction::RR(registers, val, false, true);
 
         mem.write_byte(dHL, val);
+    }
+
+    //0xCB 0x0F
+    pub fn RRC_A_CB(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut A: u8 = registers.A( Action::Read ).value();
+
+        A = Instruction::RR(registers, A, false, true);
+
+        registers.A( Action::Write(A as u16) );  
     }
 
     //0xCB 0x10
     pub fn RL_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.B( Action::Read ).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         registers.B( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x11
+    pub fn RL_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut C: u8 = registers.C( Action::Read ).value();
+
+        C = Instruction::RL(registers, C, true, true);
+
+        registers.C( Action::Write(C as u16) );
     }
 
     //0xCB 0x12
     pub fn RL_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.D( Action::Read ).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         registers.D( Action::Write(val as u16) );
     }
@@ -3385,7 +3363,7 @@ impl Instruction {
     pub fn RL_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.E( Action::Read ).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         registers.E( Action::Write(val as u16) );
     }
@@ -3394,7 +3372,7 @@ impl Instruction {
     pub fn RL_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.H( Action::Read ).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         registers.H( Action::Write(val as u16) );
     }
@@ -3403,7 +3381,7 @@ impl Instruction {
     pub fn RL_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.L( Action::Read ).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         registers.L( Action::Write(val as u16) );
     }
@@ -3414,16 +3392,25 @@ impl Instruction {
 
         let mut val = mem.read_byte(dHL).value();
 
-        val = Instruction::RL(registers, val);
+        val = Instruction::RL(registers, val, true, true);
 
         mem.write_byte(dHL, val);
+    }
+
+    //0xCB 0x17
+    pub fn RL_A_CB(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.A( Action::Read ).value();
+
+        val = Instruction::RL(registers, val, true, true);
+
+        registers.A( Action::Write(val as u16) );
     }
 
     //0xCB 0x18
     pub fn RR_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.B( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.B( Action::Write(val as u16) );
     }
@@ -3432,7 +3419,7 @@ impl Instruction {
     pub fn RR_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.C( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.C( Action::Write(val as u16) );
     }
@@ -3441,7 +3428,7 @@ impl Instruction {
     pub fn RR_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.D( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.D( Action::Write(val as u16) );
     }
@@ -3450,7 +3437,7 @@ impl Instruction {
     pub fn RR_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.E( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.E( Action::Write(val as u16) );
     }
@@ -3459,7 +3446,7 @@ impl Instruction {
     pub fn RR_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.H( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.H( Action::Write(val as u16) );
     }
@@ -3468,7 +3455,7 @@ impl Instruction {
     pub fn RR_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.L( Action::Read ).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         registers.L( Action::Write(val as u16) );
     }
@@ -3479,9 +3466,18 @@ impl Instruction {
 
         let mut val = mem.read_byte(dHL).value();
 
-        val = Instruction::RR(registers, val);
+        val = Instruction::RR(registers, val, true, true);
 
         mem.write_byte(dHL, val);
+    }
+
+    //0xCB 0x1F
+    pub fn RR_A_CB(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut A: u8 = registers.A( Action::Read ).value();
+
+        A = Instruction::RR(registers, A, true, true);
+
+        registers.A( Action::Write(A as u16) );
     }
 
     //0xCB 0x21
@@ -4020,14 +4016,5 @@ impl Instruction {
         registers.D( Action::Write(val as u16) );
     }
     
-
-    //0xCB 0xCB
-    pub fn RL_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
-        let mut C: u8 = registers.C( Action::Read ).value();
-
-        C = Instruction::RL(registers, C);
-
-        registers.C( Action::Write(C as u16) );
-    }
 
 }

@@ -1864,7 +1864,7 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     //0x7
     Instruction{ 
         disassembly: "RLC A",
-        function: Instruction::RLC_A,
+        function: Instruction::RLC_A_CB,
         args: 0,
         cycles: 8
     },
@@ -1920,7 +1920,7 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     //0xF
     Instruction{ 
         disassembly: "RRC A",
-        function: Instruction::RRC_A,
+        function: Instruction::RRC_A_CB,
         args: 0,
         cycles: 8
     },
@@ -1976,7 +1976,7 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     //0x17
     Instruction{ 
         disassembly: "RL A",
-        function: Instruction::RL_A,
+        function: Instruction::RL_A_CB,
         args: 0,
         cycles: 8
     },
@@ -2032,7 +2032,7 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     //0x1F
     Instruction{ 
         disassembly: "RR A",
-        function: Instruction::RR_A,
+        function: Instruction::RR_A_CB,
         args: 0,
         cycles: 8
     },
