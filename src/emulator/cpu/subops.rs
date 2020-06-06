@@ -383,7 +383,7 @@ impl Instruction {
     pub fn SWAP_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.A( Action::Read ).value();
         
-        val = Instruction::swap(val, registers);
+        val = Instruction::SWAP(val, registers);
         
         registers.A( Action::Write(val as u16) );
     }
@@ -409,37 +409,37 @@ impl Instruction {
     //0xCB 0x40
     pub fn BIT_0B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x41
     pub fn BIT_0C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x42
     pub fn BIT_0D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x43
     pub fn BIT_0E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x44
     pub fn BIT_0H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x45
     pub fn BIT_0L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x46
@@ -448,49 +448,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x47
     pub fn BIT_0A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 0, registers);
+        Instruction::BIT(val, 0, registers);
     }
 
     //0xCB 0x48
     pub fn BIT_1B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x49
     pub fn BIT_1C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4A
     pub fn BIT_1D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4B
     pub fn BIT_1E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4C
     pub fn BIT_1H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4D
     pub fn BIT_1L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4E
@@ -499,49 +499,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x4F
     pub fn BIT_1A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 1, registers);
+        Instruction::BIT(val, 1, registers);
     }
 
     //0xCB 0x50
     pub fn BIT_2B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x51
     pub fn BIT_2C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x52
     pub fn BIT_2D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x53
     pub fn BIT_2E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x54
     pub fn BIT_2H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x55
     pub fn BIT_2L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x56
@@ -550,49 +550,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x57
     pub fn BIT_2A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 2, registers);
+        Instruction::BIT(val, 2, registers);
     }
 
     //0xCB 0x58
     pub fn BIT_3B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x59
     pub fn BIT_3C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5A
     pub fn BIT_3D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5B
     pub fn BIT_3E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5C
     pub fn BIT_3H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5D
     pub fn BIT_3L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5E
@@ -601,49 +601,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x5F
     pub fn BIT_3A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 3, registers);
+        Instruction::BIT(val, 3, registers);
     }
 
     //0xCB 0x60
     pub fn BIT_4B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x61
     pub fn BIT_4C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x62
     pub fn BIT_4D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x63
     pub fn BIT_4E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x64
     pub fn BIT_4H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x65
     pub fn BIT_4L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x66
@@ -652,49 +652,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x67
     pub fn BIT_4A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 4, registers);
+        Instruction::BIT(val, 4, registers);
     }
 
     //0xCB 0x68
     pub fn BIT_5B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x69
     pub fn BIT_5C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x6A
     pub fn BIT_5D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x6B
     pub fn BIT_5E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x6C
     pub fn BIT_5H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x6D
     pub fn BIT_5L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     
     }
 
@@ -704,50 +704,50 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     }
 
     //0xCB 0x6F
     pub fn BIT_5A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 5, registers);
+        Instruction::BIT(val, 5, registers);
     
     }
 
     //0xCB 0x70
     pub fn BIT_6B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x71
     pub fn BIT_6C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x72
     pub fn BIT_6D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x73
     pub fn BIT_6E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x74
     pub fn BIT_6H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x75
     pub fn BIT_6L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x76
@@ -756,49 +756,49 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x77
     pub fn BIT_6A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 6, registers);
+        Instruction::BIT(val, 6, registers);
     }
 
     //0xCB 0x78
     pub fn BIT_7B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.B( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x79
     pub fn BIT_7C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.C( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7A
     pub fn BIT_7D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.D( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7B
     pub fn BIT_7E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.E( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7C
     pub fn BIT_7H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.H( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7D
     pub fn BIT_7L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.L( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7E
@@ -807,13 +807,13 @@ impl Instruction {
 
         let val = mem.read_byte(dHL).value();
 
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0x7F
     pub fn BIT_7A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let val: u8 = registers.A( Action::Read ).value();
-        Instruction::test_bit(val, 7, registers);
+        Instruction::BIT(val, 7, registers);
     }
 
     //0xCB 0xC7

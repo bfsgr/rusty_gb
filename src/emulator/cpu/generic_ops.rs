@@ -321,7 +321,7 @@ impl Instruction {
         shifted
 	}
 
-    pub fn test_bit(value: u8, bit: u8, registers: &mut Registers) {
+    pub fn BIT(value: u8, bit: u8, registers: &mut Registers) {
         if value.test_bit(bit) {
             registers.clear_flag(ZERO_FLAG);
         } else {
@@ -332,7 +332,7 @@ impl Instruction {
         registers.clear_flag(NEGATIVE_FLAG);
     }
 
-    pub fn swap(value: u8, registers: &mut Registers) -> u8 {
+    pub fn SWAP(value: u8, registers: &mut Registers) -> u8 {
 
         if value == 0 {
             registers.set_flag(ZERO_FLAG);
