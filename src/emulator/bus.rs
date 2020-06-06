@@ -2,17 +2,19 @@ use super::io_constants::{*};
 
 use super::gpu::{*};
 use super::memory::{*};
+use super::timer::{*};
 use super::cartrigbe::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
-use super::interrupt::{*};
+pub use super::interrupt::{*};
 
 #[derive(Default)]
 pub struct Bus {
     memory: Memory,
     pub gpu: GPU,
     cartrigbe: Cartrigbe,
-    interrupts: InterruptHandler
+    pub interrupts: InterruptHandler,
+    timer: Timer
     //everything with memory mapped I/O registers goes in here
 }
 
@@ -24,6 +26,7 @@ pub enum Module {
     IO,        
     Interrupt,
     Unusable,  
+    Timer,
 }
 
 impl Bus {
@@ -32,14 +35,39 @@ impl Bus {
         let into = Bus::classify(addr);
 
         match into {
-            Module::Cartrigbe => {},
-            Module::GPU => {},
-            Module::Memory => {
-                self.memory.write_byte(addr, byte);
+            Module::Cartrigbe => { self.cartrigbe.write_byte(addr, byte); },
+
+            Module::GPU => { self.gpu.write_byte(addr, byte); },
+
+            Module::Memory => { self.memory.write_byte(addr, byte); },
+
+            Module::Interrupt => { self.interrupts.enable = byte; },
+
+            Module::IO => {
+                match addr {
+                    LCDC => self.gpu.LCDC = byte,
+                    STAT => self.gpu.STAT = byte,
+                    SCY => self.gpu.scroll_y = byte,
+                    SCX => self.gpu.scroll_x = byte,
+                    LY => self.gpu.lcd_y = byte,
+                    LYC => self.gpu.lycompare = byte,
+                    OAM_DMA => {
+                        self.gpu.OAM_DMA = byte;
+                        self.perform_dma();
+                    }
+                    BGP => self.gpu.bg_palette = byte,
+                    OBP0 => self.gpu.ob_palette0 = byte,
+                    OBP1 => self.gpu.ob_palette1 = byte,
+                    WY => self.gpu.window_y = byte,
+                    WX => self.gpu.window_x = byte,
+                    BROM => self.cartrigbe.bios_on = byte,
+                    
+                    IF => self.interrupts.requests = byte,
+                    _ => {}
+                }
             },
-            Module::Interrupt => {},
-            Module::IO => {},
             Module::Unusable => {},
+            Module::Timer => { self.timer.write_byte(addr, byte); }
         }
 
         Response::None
@@ -52,7 +80,7 @@ impl Bus {
             Module::Cartrigbe => self.cartrigbe.read_byte(addr),
             Module::GPU => self.gpu.read_byte(addr),
             Module::Memory => self.memory.read_byte(addr),
-            Module::Interrupt => { Response::None },
+            Module::Interrupt => Response::Byte(self.interrupts.enable),
             Module::IO => {
                 match addr {
                     LCDC => { Response::Byte( self.gpu.LCDC ) },
@@ -68,11 +96,12 @@ impl Bus {
                     WY => { Response::Byte( self.gpu.window_y ) },
                     WX => { Response::Byte( self.gpu.window_x ) },
                     
-                    IF => { Response::Byte( 0 ) },
+                    IF => { Response::Byte( self.interrupts.requests ) },
                     _ => { Response::Byte(0) }
                 }
             },
-            Module::Unusable => { Response::None },
+            Module::Unusable => { Response::Byte(0xFF) },
+            Module::Timer => { self.timer.read_byte(addr) },
         }
 
 
@@ -110,15 +139,16 @@ impl Bus {
 
     fn classify(address: u16) -> Module{
         match address {
-            0..=0x7FFF => Module::Cartrigbe,    //32kb
-            0x8000..=0x9FFF => Module::GPU,    //8kb
-            0xA000..=0xBFFF => Module::Cartrigbe,    //8kb
-            0xC000..=0xFDFF => Module::Memory,    //8kb
+            0..=0x7FFF => Module::Cartrigbe,    
+            0x8000..=0x9FFF => Module::GPU,    
+            0xA000..=0xBFFF => Module::Cartrigbe,   
+            0xC000..=0xFDFF => Module::Memory,    
             0xFE00..=0xFE9F => Module::GPU,     
             0xFEA0..=0xFEFF => Module::Unusable,
+            TMA | TIMA | DIV | TAC => Module::Timer,
             0xFF00..=0xFF7F => Module::IO, 
-            0xFF80..=0xFFFE => Module::Memory,   //127 bytes
-            0xFFFF => Module::Interrupt         //1 byte
+            0xFF80..=0xFFFE => Module::Memory,   
+            0xFFFF => Module::Interrupt         
         }
     }
 
@@ -136,5 +166,35 @@ impl Bus {
     
     pub fn disable_interrupts(&mut self){
         self.interrupts.master = false;
+    }
+
+    pub fn run_system(&mut self, cycles: u16) {
+        self.gpu.step(cycles, &mut self.interrupts);
+        self.timer.step(cycles, &mut self.interrupts);
+        //self.sound.step
+        //self.dma
+    }
+    //maybe not an optimal solution, performs the dma all at once. The rom will wait 160 cycles either way
+    fn perform_dma(&mut self) {
+        //Max transfer start is 0xF100
+        if self.gpu.OAM_DMA <= 0xF1 {
+
+            let start = (self.gpu.OAM_DMA as u16) << 8; //>
+            let end = (self.gpu.OAM_DMA as u16) << 8 | 0x9F; //>
+
+            let mut oam_start = 0xFE00;
+
+            //will run 160 times
+            for addr in start ..= end {
+                let byte: u8 = self.read_byte(addr).value();
+
+                self.write_byte(oam_start, byte);
+                oam_start += 1;
+            }
+
+
+        } else {
+            panic!("Wrong OAM_DMA address")
+        }     
     }
 }

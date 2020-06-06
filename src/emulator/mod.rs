@@ -8,13 +8,16 @@ mod cartrigbe;
 mod interrupt;
 mod bit_utils;
 mod bus;
+mod timer;
+
+const DEBUG_FLAG: bool = false;
 
 use cpu::{*};
 use cpu::registers::{*};
 use bus::{*};
 
 
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions, KeyRepeat};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -22,22 +25,17 @@ const HEIGHT: usize = 144;
 //max cycles after vblank, when this value is reached we draw the actual screen
 const MAXCYCLES: u32 = 65664;
 
-
 #[derive(Default)]
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
-    //cartrigbe
-    //sound
-    //timers
-    //joypad
-    //interrupt
-    //dma
 }
 
 impl Gameboy {
     //main loop
     pub fn start(&mut self){
+
+        let mut debug = false;
 
         let mut window = Gameboy::create_window();
 
@@ -47,20 +45,19 @@ impl Gameboy {
 
             while cycles_now < MAXCYCLES { 
 
+                if window.is_key_pressed(Key::D, KeyRepeat::Yes) {
+                    if debug { debug = false } else { debug = true };
+                }
+
                 //execute the instruction pointed by PC
-                let cycles = self.cpu_inst();
+                let cycles = self.cpu_inst(debug);
                 //update current cycles
                 cycles_now += cycles as u32;
 
-                // self.gpu.step(state.0, &mut self.interrupt, &self.memory);
+                //run the rest of the system
+                self.bus.run_system(cycles);
 
-                //update pc to execute interrupt vector if any
-                // self.interrupt.execute(&mut self.cpu);
-                //sync harware registers to memory
-                // self.sync_to_mem();
             };
-
-
 
             // render next frame, this is VBLANK
             let up = window.update_with_buffer(&self.bus.gpu.display, WIDTH, HEIGHT);
@@ -69,10 +66,16 @@ impl Gameboy {
                 _  => {},
             }
         }
+
+        println!("{}", self.cpu.registers);
+    }
+
+    fn interrupt_running(&self) -> bool {
+        self.bus.interrupts.enable & 0x00FF != 0
     }
 
     fn create_window() -> Window {
-        let mut win = Window::new(
+        let win = Window::new(
             "Rusty GB",
             WIDTH,
             HEIGHT,
@@ -80,7 +83,7 @@ impl Gameboy {
                 borderless: false,
                 resize: false,
                 scale: minifb::Scale::X2,
-                scale_mode: minifb::ScaleMode::Center,
+                scale_mode: minifb::ScaleMode::AspectRatioStretch,
                 title: true,
                 topmost: false
             },
@@ -89,27 +92,43 @@ impl Gameboy {
             panic!("{}", e);
         });
 
-        win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+        // win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
         return win;
     }
 
     //get an opcode byte and convert it into an Instruction object
     fn decode(&mut self, mut opcode: u8, pc: u16) -> Instruction {
+        let instruction;
         //if instruction is 0xCB, get next byte and decode it through subset instructions array
         if opcode != 0xCB {
-            CPU::decode(opcode, false)
+            instruction = CPU::decode(opcode, false);
         } else {
             opcode = self.bus.read_byte(pc+1).value();
             self.cpu.increment_PC(1);
-            CPU::decode(opcode, true)
+            instruction = CPU::decode(opcode, true);
         }
+
+        let not = cpu::NOT_IMPLEMENTED;
+
+        if instruction == not {
+            println!("0xCB {:#04x} not implemented", opcode)
+        }
+
+        return instruction;
     }
+
+
+
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
-    fn cpu_inst(&mut self) -> u16 {
+    fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
+        self.cpu.interrupts(&mut self.bus);
+        
         let pc = self.cpu.PC();
         let opcode = self.bus.read_byte(pc).value();
+
         let instruction = self.decode(opcode, pc);
+
 
 
         let mut operands = [0;2];
@@ -132,9 +151,14 @@ impl Gameboy {
             },
         }
 
-        print!("{:#04x}: ", opcode);
+        if debug_flag {
+            let oprnds = Bus::to_short(operands);
+            println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
+        }
+        let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
-        instruction.execute(operands, &mut self.cpu.registers, &mut self.bus, instruction)
+
+        return cycles;
     }
 
 

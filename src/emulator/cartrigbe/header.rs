@@ -43,7 +43,7 @@ impl Default for Header {
 impl Header {
     pub fn convert_to_rom_banks(&self) -> usize {
         match self.rom_size {
-            0x0 => 0,
+            0x0 => 2,
             0x1 => 4,
             0x2 => 8,
             0x3 => 16,
