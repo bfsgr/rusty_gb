@@ -300,6 +300,11 @@ impl Instruction {
         registers.A( Action::Write(A as u16) );
     }
 
+
+    //===================
+
+
+
     //0xCB 0x21
     pub fn SLA_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         let mut val: u8 = registers.C( Action::Read ).value();
