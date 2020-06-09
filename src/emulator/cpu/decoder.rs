@@ -2808,10 +2808,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x8E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 1,(HL)",
+        function: Instruction::RES_1_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x8F
     Instruction{ 
@@ -2822,52 +2822,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x90
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,B",
+        function: Instruction::RES_2_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x91
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,C",
+        function: Instruction::RES_2_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0X92
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,D",
+        function: Instruction::RES_2_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x93
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,E",
+        function: Instruction::RES_2_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x94
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,H",
+        function: Instruction::RES_2_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x95
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,L",
+        function: Instruction::RES_2_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x96
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 2,(HL)",
+        function: Instruction::RES_2_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x97
     Instruction{ 
@@ -2878,52 +2878,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x98
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,B",
+        function: Instruction::RES_3_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x99
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,C",
+        function: Instruction::RES_3_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,D",
+        function: Instruction::RES_3_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,E",
+        function: Instruction::RES_3_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,H",
+        function: Instruction::RES_3_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,L",
+        function: Instruction::RES_3_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x9E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 3,(HL)",
+        function: Instruction::RES_3_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x9F
     Instruction{ 
@@ -2934,52 +2934,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xA0
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,B",
+        function: Instruction::RES_4_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,C",
+        function: Instruction::RES_4_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,D",
+        function: Instruction::RES_4_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,E",
+        function: Instruction::RES_4_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,H",
+        function: Instruction::RES_4_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,L",
+        function: Instruction::RES_4_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 4,(HL)",
+        function: Instruction::RES_4_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xA7
     Instruction{ 
@@ -2990,52 +2990,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xA8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,B",
+        function: Instruction::RES_5_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xA9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,C",
+        function: Instruction::RES_5_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xAA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,D",
+        function: Instruction::RES_5_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xAB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,E",
+        function: Instruction::RES_5_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xAC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,H",
+        function: Instruction::RES_5_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xAD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,L",
+        function: Instruction::RES_5_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xAE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 5,(HL)",
+        function: Instruction::RES_5_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xAF
     Instruction{ 
@@ -3046,52 +3046,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xB0
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,B",
+        function: Instruction::RES_6_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,C",
+        function: Instruction::RES_6_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,D",
+        function: Instruction::RES_6_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,E",
+        function: Instruction::RES_6_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,H",
+        function: Instruction::RES_6_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,L",
+        function: Instruction::RES_6_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 6,(HL)",
+        function: Instruction::RES_6_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xB7
     Instruction{ 
@@ -3102,52 +3102,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xB8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,B",
+        function: Instruction::RES_7_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xB9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,C",
+        function: Instruction::RES_7_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xBA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,D",
+        function: Instruction::RES_7_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xBB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES_7_E",
+        function: Instruction::RES_7_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xBC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,H",
+        function: Instruction::RES_7_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xBD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,L",
+        function: Instruction::RES_7_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xBE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "RES 7,(HL)",
+        function: Instruction::RES_7_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xBF
     Instruction{ 

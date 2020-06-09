@@ -1173,8 +1173,72 @@ impl Instruction {
         registers.A( Action::Write( A as u16 ) );
     }
 
+    //0xCB 0x90
+    pub fn RES_2_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
 
-    
+        val.reset_bit(2);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x91
+    pub fn RES_2_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(2);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x92
+    pub fn RES_2_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(2);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x93
+    pub fn RES_2_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(2);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x94
+    pub fn RES_2_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(2);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x95
+    pub fn RES_2_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(2);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x96
+    pub fn RES_2_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(2);
+
+        mem.write_byte(HL, val);
+    }
+
     //0xCB 0x97
     pub fn RES_2_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1183,6 +1247,73 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
+
+    //0xCB 0x98
+    pub fn RES_3_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x99
+    pub fn RES_3_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x9A
+    pub fn RES_3_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x9B
+    pub fn RES_3_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x9C
+    pub fn RES_3_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x9D
+    pub fn RES_3_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(3);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0x9E
+    pub fn RES_3_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(3);
+
+        mem.write_byte(HL, val);
+    }
+
     //0xCB 0x9F
     pub fn RES_3_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1191,6 +1322,73 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
+
+    //0xCB 0xA0
+    pub fn RES_4_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA1
+    pub fn RES_4_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA2
+    pub fn RES_4_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA3
+    pub fn RES_4_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA4
+    pub fn RES_4_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA5
+    pub fn RES_4_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(4);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+    
+    //0xCB 0xA6
+    pub fn RES_4_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(4);
+
+        mem.write_byte(HL, val);
+    } 
+
     //0xCB 0xA7
     pub fn RES_4_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1199,6 +1397,73 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
+
+    //0xCB 0xA8
+    pub fn RES_5_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xA9
+    pub fn RES_5_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xAA
+    pub fn RES_5_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xAB
+    pub fn RES_5_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xAC
+    pub fn RES_5_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xAD
+    pub fn RES_5_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(5);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xAE
+    pub fn RES_5_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(5);
+
+        mem.write_byte(HL, val);
+    } 
+
     //0xCB 0xAF
     pub fn RES_5_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1207,6 +1472,73 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
+
+    //0xCB 0xB0
+    pub fn RES_6_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB1
+    pub fn RES_6_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB2
+    pub fn RES_6_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB3
+    pub fn RES_6_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB4
+    pub fn RES_6_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB5
+    pub fn RES_6_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(6);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB6
+    pub fn RES_6_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(6);
+
+        mem.write_byte(HL, val);
+    } 
+
     //0xCB 0xB7
     pub fn RES_6_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1215,6 +1547,73 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
+
+    //0xCB 0xB8
+    pub fn RES_7_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.B( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xB9
+    pub fn RES_7_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.C( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xBA
+    pub fn RES_7_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.D( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xBB
+    pub fn RES_7_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.E( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xBC
+    pub fn RES_7_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.H( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xBD
+    pub fn RES_7_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+        val.reset_bit(7);
+
+        registers.L( Action::Write( val as u16 ) );
+    }
+
+    //0xCB 0xBE
+    pub fn RES_7_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val.reset_bit(7);
+
+        mem.write_byte(HL, val);
+    } 
+
     //0xCB 0xBF
     pub fn RES_7_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let mut A: u8 = registers.A( Action::Read ).value();
@@ -1223,9 +1622,6 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
-
-
-
 
 
     
