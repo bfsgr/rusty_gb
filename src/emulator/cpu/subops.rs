@@ -382,6 +382,86 @@ impl Instruction {
         registers.A( Action::Write(val as u16) );
     }
 
+    //0xCB 0x28
+    pub fn SRA_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.B( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.B( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x29
+    pub fn SRA_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.C( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.C( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x2A
+    pub fn SRA_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.D( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.D( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x2B
+    pub fn SRA_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.E( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x2C
+    pub fn SRA_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.H( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x2D
+    pub fn SRA_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.L( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x2E
+    pub fn SRA_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val = Instruction::SR(val, true, registers);
+
+        mem.write_byte(HL, val);
+    }
+
+    //0xCB 0x2F
+    pub fn SRA_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.A( Action::Read ).value();
+
+
+        val = Instruction::SR(val, true, registers);
+
+        registers.A( Action::Write(val as u16) );
+    }
 
 
     //0xCB 0x87

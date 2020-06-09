@@ -2094,59 +2094,59 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x28
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA B",
+        function: Instruction::SRA_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x29
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA C",
+        function: Instruction::SRA_C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2A
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA D",
+        function: Instruction::SRA_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2B
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA E",
+        function: Instruction::SRA_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2C
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA H",
+        function: Instruction::SRA_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2D
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA L",
+        function: Instruction::SRA_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x2E
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA (HL)",
+        function: Instruction::SRA_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x2F
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SRA A",
+        function: Instruction::SRA_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x30
     Instruction{ 
