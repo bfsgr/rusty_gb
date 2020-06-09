@@ -664,12 +664,10 @@ impl Instruction {
     }
 
     //0x37
-    pub fn SCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
-        
+    pub fn SCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){  
         registers.set_flag(CARRY_FLAG);
-
-        
-
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
         
     }
 
@@ -763,10 +761,8 @@ impl Instruction {
     pub fn CCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         
         registers.clear_flag(CARRY_FLAG);
-
-        
-
-        
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
     }
 
     //0x40
