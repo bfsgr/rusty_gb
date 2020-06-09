@@ -2038,10 +2038,10 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x20
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA B",
+        function: Instruction::SLA_B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x21
     Instruction{ 
@@ -2052,45 +2052,45 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0x22
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA D",
+        function: Instruction::SLA_D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x23
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA E",
+        function: Instruction::SLA_E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x24
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA H",
+        function: Instruction::SLA_H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x25
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA L",
+        function: Instruction::SLA_L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x26
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA (HL)",
+        function: Instruction::SLA_dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0x27
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SLA A",
+        function: Instruction::SLA_A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0x28
     Instruction{ 

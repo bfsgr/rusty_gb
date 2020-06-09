@@ -300,10 +300,15 @@ impl Instruction {
         registers.A( Action::Write(A as u16) );
     }
 
+    //0xCB 0x20
+    pub fn SLA_B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.B( Action::Read ).value();
 
-    //===================
 
+        val = Instruction::SL(val, true, registers);
 
+        registers.B( Action::Write(val as u16) );
+    }
 
     //0xCB 0x21
     pub fn SLA_C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
@@ -315,7 +320,67 @@ impl Instruction {
         registers.C( Action::Write(val as u16) );
     }
 
+    //0xCB 0x22
+    pub fn SLA_D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.D( Action::Read ).value();
 
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.D( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x23
+    pub fn SLA_E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.E( Action::Read ).value();
+
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.E( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x24
+    pub fn SLA_H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.H( Action::Read ).value();
+
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.H( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x25
+    pub fn SLA_L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.L( Action::Read ).value();
+
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.L( Action::Write(val as u16) );
+    }
+
+    //0xCB 0x26
+    pub fn SLA_dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+
+        val = Instruction::SL(val, true, registers);
+
+        mem.write_byte(HL, val);
+    }
+
+    //0xCB 0x27
+    pub fn SLA_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+        let mut val: u8 = registers.A( Action::Read ).value();
+
+
+        val = Instruction::SL(val, true, registers);
+
+        registers.A( Action::Write(val as u16) );
+    }
 
 
 
