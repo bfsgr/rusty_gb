@@ -1,1 +1,1 @@
-#Rusty GB - Gameboy Emulator
+# Rusty GB - Gameboy Emulator
