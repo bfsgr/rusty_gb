@@ -2329,7 +2329,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(0) );
+        registers.PC( Action::Write(0x0) );
 
     }
 
@@ -2407,7 +2407,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(8) );
+        registers.PC( Action::Write(0x08) );
 
 
         
@@ -2490,7 +2490,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(10) );
+        registers.PC( Action::Write(0x10) );
 
 
         
@@ -2559,7 +2559,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(18) );
+        registers.PC( Action::Write(0x18) );
 
 
         
@@ -2619,7 +2619,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(20) );
+        registers.PC( Action::Write(0x20) );
 
 
         
@@ -2686,7 +2686,7 @@ impl Instruction {
 
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(28) );
+        registers.PC( Action::Write(0x28) );
 
 
         
@@ -2751,7 +2751,7 @@ impl Instruction {
     pub fn RST_30(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(30) );
+        registers.PC( Action::Write(0x30) );
     }
 
     //0xF8
@@ -2808,7 +2808,7 @@ impl Instruction {
     pub fn RST_38(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
         let PC: u16 = registers.PC( Action::Read ).value(); 
         Instruction::push_to_stack(registers, mem, PC);
-        registers.PC( Action::Write(38) );  
+        registers.PC( Action::Write(0x38) );  
     }
 
 

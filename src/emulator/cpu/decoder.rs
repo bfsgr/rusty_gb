@@ -1413,7 +1413,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 0",
         function: Instruction::RST_0,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xC8
     Instruction{ 
@@ -1469,7 +1469,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 8",
         function: Instruction::RST_8,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xD0
     Instruction{ 
@@ -1525,7 +1525,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 10",
         function: Instruction::RST_10,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xD8
     Instruction{ 
@@ -1581,7 +1581,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 18",
         function: Instruction::RST_18,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xE0
     Instruction{ 
@@ -1637,7 +1637,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 20",
         function: Instruction::RST_20,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //OxE8
     Instruction{ 
@@ -1691,7 +1691,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 28",
         function: Instruction::RST_28,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xF0
     Instruction{ 
@@ -1747,7 +1747,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 30",
         function: Instruction::RST_30,
         args: 0,
-        cycles: 32
+        cycles: 16
     }, 
     //0xF8
     Instruction{ 
@@ -1802,7 +1802,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
         disassembly: "RST 38",
         function: Instruction::RST_38,
         args: 0,
-        cycles: 32
+        cycles: 16
     }
 ];
 
