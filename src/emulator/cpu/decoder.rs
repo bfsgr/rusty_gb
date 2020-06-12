@@ -1709,10 +1709,10 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     }, 
     //0xF2
     Instruction{ 
-        disassembly: "REMOVED",
-        function: Instruction::NOP,
+        disassembly: "LDH A,(C)",
+        function: Instruction::LDH_A_dC,
         args: 0,
-        cycles: 0
+        cycles: 8
     }, 
     //0xF3
     Instruction{ 
@@ -3298,213 +3298,213 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xD4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,H",
+        function: Instruction::SET_2H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,L",
+        function: Instruction::SET_2L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,(HL)",
+        function: Instruction::SET_2dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xD7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,A",
+        function: Instruction::SET_2A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,B",
+        function: Instruction::SET_3B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,C",
+        function: Instruction::SET_3C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xDA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,D",
+        function: Instruction::SET_3D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xDB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,E",
+        function: Instruction::SET_3E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xDC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,H",
+        function: Instruction::SET_3H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xDD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,L",
+        function: Instruction::SET_3L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xDE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,(HL)",
+        function: Instruction::SET_3dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xDF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 3,A",
+        function: Instruction::SET_3A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE0
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,B",
+        function: Instruction::SET_4B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,C",
+        function: Instruction::SET_4C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,D",
+        function: Instruction::SET_4D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,E",
+        function: Instruction::SET_4E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,H",
+        function: Instruction::SET_4H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,L",
+        function: Instruction::SET_4L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,(HL)",
+        function: Instruction::SET_4dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xE7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 4,A",
+        function: Instruction::SET_4A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,B",
+        function: Instruction::SET_5B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xE9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,C",
+        function: Instruction::SET_5C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xEA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,D",
+        function: Instruction::SET_5D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xEB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,E",
+        function: Instruction::SET_5E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xEC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,H",
+        function: Instruction::SET_5H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xED
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,L",
+        function: Instruction::SET_5L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xEE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,(HL)",
+        function: Instruction::SET_5dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xEF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 5,A",
+        function: Instruction::SET_5A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF0
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,B",
+        function: Instruction::SET_6B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,C",
+        function: Instruction::SET_6C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF2
     Instruction{ 
@@ -3515,94 +3515,94 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xF3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,E",
+        function: Instruction::SET_6E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,H",
+        function: Instruction::SET_6H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,L",
+        function: Instruction::SET_6L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,(HL)",
+        function: Instruction::SET_6dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xF7
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 6,A",
+        function: Instruction::SET_6A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,B",
+        function: Instruction::SET_7B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xF9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,C",
+        function: Instruction::SET_7C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xFA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,D",
+        function: Instruction::SET_7D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xFB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,E",
+        function: Instruction::SET_7E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xFC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,H",
+        function: Instruction::SET_7H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xFD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,L",
+        function: Instruction::SET_7L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xFE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,(HL)",
+        function: Instruction::SET_7dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xFF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 7,A",
+        function: Instruction::SET_7A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
 ];
         

@@ -2700,10 +2700,7 @@ impl Instruction {
         let result: u8 = mem.read_byte( 0xFF00 + operands[0] as u16).value();
 
         registers.A( Action::Write(result as u16) );
-        
-        
 
-        
     }
 
     //0xF1
@@ -2713,6 +2710,18 @@ impl Instruction {
         popped = popped & 0xFFF0;
         registers.AF( Action::Write(popped) );
         
+    }
+
+
+    //0xF2
+    pub fn LDH_A_dC(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
+
+        let C: u8 = registers.C( Action::Read ).value();
+
+        let result: u8 = mem.read_byte( 0xFF00 + C as u16).value();
+
+        registers.A( Action::Write(result as u16) );
+
     }
 
     //0xF3
