@@ -1391,9 +1391,17 @@ impl Instruction {
     }
 
     //0x76 
-    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus){
+    pub fn HALT(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
 
-        mem.halt_cpu = true;
+        //if IME is reset then skip next instruction (HALT bug)
+        if !mem.interrupts.master {
+            registers.PC( Action::Increment(1));
+            mem.halt_cpu = true;
+            mem.interrupts.halt_bug = true;
+        } else {
+            mem.halt_cpu = true;
+        }
+
     }
 
     //0x77
@@ -2506,14 +2514,9 @@ impl Instruction {
 
     //0xD9
     pub fn RETI(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) {
-
-        let pointer = Instruction::pop_from_stack(registers, mem);
-        registers.PC( Action::Write(pointer) );
         mem.enable_interrupts();
-
-        
-
-        
+        let pointer = Instruction::pop_from_stack(registers, mem);
+        registers.PC( Action::Write(pointer) ); 
     }
 
     //0xDA

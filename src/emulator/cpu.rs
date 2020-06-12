@@ -40,7 +40,8 @@ impl CPU {
     }
 
     pub fn interrupts(&mut self, bus: &mut Bus){
-        if bus.interrupts.master {
+        //if halt was called with interrupts disabled we will wait an interrupt anyway
+        if bus.interrupts.master || bus.interrupts.halt_bug {
             
             let call_inst = CPU::decode(0xCD, false);
             let f = call_inst.function;
@@ -49,6 +50,12 @@ impl CPU {
 
             if vec == InterruptVector::None { return () }
 
+            //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu
+            if bus.interrupts.halt_bug {
+                bus.halt_cpu = false;
+                return ();
+            };
+
             if bus.halt_cpu { bus.halt_cpu = false };
 
             // bus.interrupts.master = false;
@@ -56,7 +63,6 @@ impl CPU {
             match vec {
                 InterruptVector::VBlank => {
                     bus.interrupts.requests.reset_bit(0);
-                    bus.interrupts.enable.set_bit(0);
 
                     let vector: [u8; 2] = [0x0040, 0x00]; 
 
@@ -64,7 +70,6 @@ impl CPU {
                 },
                 InterruptVector::LCDC => {
                     bus.interrupts.requests.reset_bit(1);
-                    bus.interrupts.enable.set_bit(1);
 
                     let vector: [u8; 2] = [0x0048, 0x00]; 
 
@@ -72,7 +77,6 @@ impl CPU {
                 },
                 InterruptVector::Timer => {
                     bus.interrupts.requests.reset_bit(2);
-                    bus.interrupts.enable.set_bit(2);
 
                     let vector: [u8; 2] = [0x0050, 0x00]; 
 
@@ -80,7 +84,6 @@ impl CPU {
                 },
                 InterruptVector::Serial => {
                     bus.interrupts.requests.reset_bit(3);
-                    bus.interrupts.enable.set_bit(3);
 
                     let vector: [u8; 2] = [0x0058, 0x00]; 
 
@@ -88,7 +91,6 @@ impl CPU {
                 },
                 InterruptVector::Joypad => {
                     bus.interrupts.requests.reset_bit(4);
-                    bus.interrupts.enable.set_bit(4);
 
                     let vector: [u8; 2] = [0x0060, 0x00]; 
 

@@ -67,7 +67,7 @@ impl Gameboy {
             }
         }
 
-        println!("{}", self.cpu.registers);
+        println!("{}\n{}", self.cpu.registers, self.bus.interrupts);
     }
 
     fn interrupt_running(&self) -> bool {
@@ -167,7 +167,7 @@ impl Gameboy {
 
 
         } else {
-            return 0;
+            return 4;
         }
     }
 

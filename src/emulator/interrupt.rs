@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::bit_utils::BitUtils;
+use std::fmt::{Formatter, Result, Display};
 #[derive(Copy, Clone)]
 pub enum Interrupt {
     VBlank,
@@ -24,8 +25,15 @@ pub enum InterruptVector {
 #[derive(Default)]
 pub struct InterruptHandler  {
     pub master: bool,               //reduntant from memory field interrupt switch
+    pub halt_bug: bool,
     pub enable: u8,             //reduntant from memory 0xFFFF
     pub requests: u8,           //reduntant from memory field 0xFF0F
+}
+
+impl Display for InterruptHandler {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result{
+        write!(f, "IME: {} | IE: {:#6x} | IF: {:#6x}", self.master, self.enable, self.requests)
+    }
 }
 
 impl InterruptHandler {
