@@ -1029,7 +1029,7 @@ impl Instruction {
 
         val.reset_bit(0);
 
-        registers.A( Action::Write( val as u16 ) );
+        registers.B( Action::Write( val as u16 ) );
     }
 
     //0xCB 0x81
