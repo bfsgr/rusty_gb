@@ -53,7 +53,7 @@ impl Instruction {
     //generic decrement function for 8 bit registers. 
     pub fn DEC(registers: &mut Registers, mut val: u8) -> u8{
         //will lower nibble overflow?
-        if (val & 0x0F) == 0x0F {
+        if (val & 0x0F) == 0x00 {
             registers.set_flag(HALFCARRY_FLAG);
         } else {
             registers.clear_flag(HALFCARRY_FLAG);
@@ -192,25 +192,24 @@ impl Instruction {
         registers.A( Action::Write(A as u16) );
     }
 
-    pub fn ADD_u16(registers: &mut Registers, X: u16, Y: u16) -> u16 {    
-        let value: u16 = X.wrapping_add(Y);
+    pub fn ADD_u16(registers: &mut Registers, X: u16) -> u16 {
+        
+        let HL: u16 = registers.HL( Action::Read ).value();
+        
+        let value: u16 = HL.wrapping_add(X);
 
-        let carry = (0x8000 & X) == 0x8000;
-        let halfcarry = (0x0800 & X) == 0x0800;
+        let hc = (((HL & 0xFFF) + (X & 0xFFF)) & 0x1000) != 0;
 
-        let new_carry = (0x8000 & value) == 0x8000;
-        let new_halfcarry = (0x0800 & value) == 0x0800;
-
-        if carry && !new_carry {
-            registers.set_flag(CARRY_FLAG);
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
-
-        if halfcarry && !new_halfcarry {
+        if hc {
             registers.set_flag(HALFCARRY_FLAG);
         } else {
             registers.clear_flag(HALFCARRY_FLAG);
+        }
+
+        if HL > 0xFFFF - X {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG);
         }
 
         registers.clear_flag(NEGATIVE_FLAG);

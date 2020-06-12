@@ -67,7 +67,7 @@ impl Gameboy {
             }
         }
 
-        println!("{}", self.cpu.registers);
+        println!("{}\n{}", self.cpu.registers, self.bus.interrupts);
     }
 
     fn interrupt_running(&self) -> bool {
@@ -109,12 +109,6 @@ impl Gameboy {
             instruction = CPU::decode(opcode, true);
         }
 
-        let not = cpu::NOT_IMPLEMENTED;
-
-        if instruction == not {
-            println!("0xCB {:#04x} not implemented", opcode)
-        }
-
         return instruction;
     }
 
@@ -124,41 +118,46 @@ impl Gameboy {
     fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
         self.cpu.interrupts(&mut self.bus);
         
-        let pc = self.cpu.PC();
-        let opcode = self.bus.read_byte(pc).value();
-
-        let instruction = self.decode(opcode, pc);
-
-
-
-        let mut operands = [0;2];
-
-        match instruction.args {
-            0 => {
-                self.cpu.increment_PC(1);
-            },
-            1 => {
-                operands[0] = self.bus.read_byte(pc+1).value();
-                self.cpu.increment_PC(2);
-            },
-            2 => {
-                operands[0] = self.bus.read_byte(pc+1).value();
-                operands[1] = self.bus.read_byte(pc+2).value();
-                self.cpu.increment_PC(3)
+        if !self.bus.halt_cpu {
+            let pc = self.cpu.PC();
+            let opcode = self.bus.read_byte(pc).value();
+    
+            let instruction = self.decode(opcode, pc);
+    
+            let mut operands = [0;2];
+    
+            match instruction.args {
+                0 => {
+                    self.cpu.increment_PC(1);
+                },
+                1 => {
+                    operands[0] = self.bus.read_byte(pc+1).value();
+                    self.cpu.increment_PC(2);
+                },
+                2 => {
+                    operands[0] = self.bus.read_byte(pc+1).value();
+                    operands[1] = self.bus.read_byte(pc+2).value();
+                    self.cpu.increment_PC(3)
+                }
+                _ => {
+                    panic!("Instruction has wrong number of args \"{}\"", instruction);
+                },
             }
-            _ => {
-                panic!("Instruction has wrong number of args \"{}\"", instruction);
-            },
+    
+            if debug_flag {
+                let oprnds = Bus::to_short(operands);
+                println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
+            }
+
+
+            let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
+
+            return cycles;
+
+
+        } else {
+            return 4;
         }
-
-        if debug_flag {
-            let oprnds = Bus::to_short(operands);
-            println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
-        }
-        let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
-
-
-        return cycles;
     }
 
 

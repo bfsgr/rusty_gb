@@ -80,7 +80,7 @@ impl Timer {
     }
 
     fn enabled(&self) -> bool {
-        self.TAC.test_bit(3)
+        self.TAC.test_bit(2)
     }
 
     fn update_div(&mut self, cycles: u16) {

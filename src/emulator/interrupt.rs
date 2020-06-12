@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::bit_utils::BitUtils;
+use std::fmt::{Formatter, Result, Display};
 #[derive(Copy, Clone)]
 pub enum Interrupt {
     VBlank,
@@ -24,8 +25,15 @@ pub enum InterruptVector {
 #[derive(Default)]
 pub struct InterruptHandler  {
     pub master: bool,               //reduntant from memory field interrupt switch
+    pub halt_bug: bool,
     pub enable: u8,             //reduntant from memory 0xFFFF
     pub requests: u8,           //reduntant from memory field 0xFF0F
+}
+
+impl Display for InterruptHandler {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result{
+        write!(f, "IME: {} | IE: {:#6x} | IF: {:#6x}", self.master, self.enable, self.requests)
+    }
 }
 
 impl InterruptHandler {
@@ -71,25 +79,23 @@ impl InterruptHandler {
 
  
     pub fn request(&mut self, interrupt: Interrupt) {
-        if self.master {
-            match interrupt {
-                Interrupt::VBlank => {
-                    self.requests.set_bit(0)
-                },
-                Interrupt::LCDC => {
-                    self.requests.set_bit(1)
-                },
-                Interrupt::Timer => {
-                    self.requests.set_bit(2)
-                },
-                Interrupt::Serial => {
-                    self.requests.set_bit(3)
-                },
-                Interrupt::Joypad => {
-                    self.requests.set_bit(4)
-                },
-                _ => unreachable!("")
-            }
+        match interrupt {
+            Interrupt::VBlank => {
+                self.requests.set_bit(0)
+            },
+            Interrupt::LCDC => {
+                self.requests.set_bit(1)
+            },
+            Interrupt::Timer => {
+                self.requests.set_bit(2)
+            },
+            Interrupt::Serial => {
+                self.requests.set_bit(3)
+            },
+            Interrupt::Joypad => {
+                self.requests.set_bit(4)
+            },
+            _ => unreachable!("")
         }
     }
 }

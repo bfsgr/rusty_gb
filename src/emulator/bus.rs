@@ -14,7 +14,8 @@ pub struct Bus {
     pub gpu: GPU,
     cartrigbe: Cartrigbe,
     pub interrupts: InterruptHandler,
-    timer: Timer
+    timer: Timer,
+    pub halt_cpu: bool
     //everything with memory mapped I/O registers goes in here
 }
 
