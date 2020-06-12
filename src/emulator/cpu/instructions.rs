@@ -44,17 +44,13 @@ impl Instruction {
 
     pub fn execute(self, params: [u8; 2], cpu: &mut Registers, mem: &mut Bus) -> u16 {
         let f = self.function;
-
+        
         f(params, cpu, mem);
-    
+
         self.cycles
     }
 
     //0x00
-    pub fn NOP_R(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus ){
-    }
-
-    //not implemented function
     pub fn NOP(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus ){
     }
 
@@ -62,8 +58,6 @@ impl Instruction {
     pub fn LD_BC_nn(operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let ops = Bus::to_short(operands);
         registers.BC(Action::Write(ops));
-        
-        
     }
 
     //0x02
@@ -88,9 +82,6 @@ impl Instruction {
         val = Instruction::INC(registers, val);
 
         registers.B(Action::Write(val as u16));
-
-        
-
     }
 
     //0x05

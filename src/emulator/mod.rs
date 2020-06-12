@@ -109,12 +109,6 @@ impl Gameboy {
             instruction = CPU::decode(opcode, true);
         }
 
-        let not = cpu::NOT_IMPLEMENTED;
-
-        if instruction == not {
-            println!("0xCB {:#04x} not implemented", opcode)
-        }
-
         return instruction;
     }
 
@@ -129,8 +123,6 @@ impl Gameboy {
             let opcode = self.bus.read_byte(pc).value();
     
             let instruction = self.decode(opcode, pc);
-    
-    
     
             let mut operands = [0;2];
     
@@ -157,9 +149,6 @@ impl Gameboy {
                 println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
             }
 
-            if pc == 0xC34E {
-                print!("");
-            }
 
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 

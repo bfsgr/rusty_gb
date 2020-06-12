@@ -18,7 +18,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0x0
     Instruction{ 
         disassembly: "NOP",
-        function: Instruction::NOP_R,
+        function: Instruction::NOP,
         args: 0,
         cycles: 4
     },
