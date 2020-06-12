@@ -1,13 +1,14 @@
 #![allow(non_snake_case)]
 
 use super::bit_utils::BitUtils;
-
+#[derive(Copy, Clone)]
 pub enum Interrupt {
     VBlank,
     LCDC,
     Timer,
     Serial,
     Joypad,
+    None
 }
 
 #[derive(PartialEq)]
@@ -30,14 +31,35 @@ pub struct InterruptHandler  {
 impl InterruptHandler {
 
     pub fn get_vec(&self) -> InterruptVector {
+
         for i in 0..5 {
             if (self.requests & 1 << i) == 1 << i { //>>
                 match i {
-                    0 => return InterruptVector::VBlank,
-                    1 => return InterruptVector::LCDC,
-                    2 => return InterruptVector::Timer,
-                    3 => return InterruptVector::Serial,
-                    4 => return InterruptVector::Joypad,
+                    0 => {
+                        if self.enable.test_bit(0) {
+                            return InterruptVector::VBlank;
+                        }
+                    },
+                    1 =>{
+                        if self.enable.test_bit(1) {
+                            return InterruptVector::LCDC;
+                        }
+                    }
+                    2 => {
+                        if self.enable.test_bit(2) {
+                            return InterruptVector::Timer
+                        }
+                    },
+                    3 => {
+                        if self.enable.test_bit(3) {
+                            return InterruptVector::Serial
+                        }
+                    },
+                    4 => {
+                        if self.enable.test_bit(4) {
+                            return InterruptVector::Joypad
+                        }
+                    },
                     _ => return InterruptVector::None
                 }
             }
@@ -46,6 +68,7 @@ impl InterruptHandler {
         return InterruptVector::None;
 
     }
+
  
     pub fn request(&mut self, interrupt: Interrupt) {
         if self.master {
@@ -65,6 +88,7 @@ impl InterruptHandler {
                 Interrupt::Joypad => {
                     self.requests.set_bit(4)
                 },
+                _ => unreachable!("")
             }
         }
     }

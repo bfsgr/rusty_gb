@@ -5,6 +5,8 @@ use registers::{*};
 
 use super::bus::{*};
 pub mod instructions;
+pub mod subops;
+pub mod generic_ops;
 pub use instructions::Instruction;
 use super::bit_utils::{*};
 
