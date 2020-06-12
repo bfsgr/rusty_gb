@@ -3284,17 +3284,17 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xD2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,D",
+        function: Instruction::SET_2D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 2,E",
+        function: Instruction::SET_2E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD4
     Instruction{ 

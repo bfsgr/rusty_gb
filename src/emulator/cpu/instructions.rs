@@ -136,10 +136,9 @@ impl Instruction {
 
     //0x09
     pub fn ADD_HL_BC(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
-        let HL: u16 = registers.HL(Action::Read).value();
         let BC: u16 = registers.BC(Action::Read).value();
 
-        let added = Instruction::ADD_u16(registers, HL, BC);
+        let added = Instruction::ADD_u16(registers, BC);
 
         registers.HL(Action::Write(added));
 
@@ -293,10 +292,9 @@ impl Instruction {
 
     //0x19
     pub fn ADD_HL_DE(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
-        let HL: u16 = registers.HL(Action::Read).value();
         let DE: u16 = registers.DE(Action::Read).value();
 
-        let added = Instruction::ADD_u16(registers, HL, DE);
+        let added = Instruction::ADD_u16(registers, DE);
 
         registers.HL(Action::Write(added));
 
@@ -506,7 +504,7 @@ impl Instruction {
     pub fn ADD_HL_HL(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
         let HL: u16 = registers.HL(Action::Read).value();
 
-        let added = Instruction::ADD_u16(registers, HL, HL);
+        let added = Instruction::ADD_u16(registers, HL);
 
         registers.HL(Action::Write(added));
 
@@ -692,10 +690,9 @@ impl Instruction {
 
     //0x39
     pub fn ADD_HL_SP(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
-        let HL: u16 = registers.HL(Action::Read).value();
         let SP: u16 = registers.SP(Action::Read).value();
 
-        let added = Instruction::ADD_u16(registers, HL, SP);
+        let added = Instruction::ADD_u16(registers, SP);
 
         registers.HL(Action::Write(added));
 
