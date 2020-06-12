@@ -1787,6 +1787,26 @@ impl Instruction {
         registers.A( Action::Write(val as u16) );
     }
 
+    //0xCB 0xD0
+    pub fn SET_2B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.B( Action::Read ).value();
+        
+        val.set_bit(2);
+
+        registers.B( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xD1
+    pub fn SET_2C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.C( Action::Read ).value();
+        
+        val.set_bit(2);
+
+        registers.C( Action::Write(val as u16) );
+    }
+
 
     //0xCB 0xF2
     pub fn SET_6D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){

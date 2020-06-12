@@ -49,7 +49,9 @@ impl CPU {
 
             if vec == InterruptVector::None { return () }
 
-            bus.interrupts.master = false;
+            if bus.halt_cpu { bus.halt_cpu = false };
+
+            // bus.interrupts.master = false;
 
             match vec {
                 InterruptVector::VBlank => {

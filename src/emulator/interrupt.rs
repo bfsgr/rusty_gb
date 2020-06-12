@@ -71,25 +71,23 @@ impl InterruptHandler {
 
  
     pub fn request(&mut self, interrupt: Interrupt) {
-        if self.master {
-            match interrupt {
-                Interrupt::VBlank => {
-                    self.requests.set_bit(0)
-                },
-                Interrupt::LCDC => {
-                    self.requests.set_bit(1)
-                },
-                Interrupt::Timer => {
-                    self.requests.set_bit(2)
-                },
-                Interrupt::Serial => {
-                    self.requests.set_bit(3)
-                },
-                Interrupt::Joypad => {
-                    self.requests.set_bit(4)
-                },
-                _ => unreachable!("")
-            }
+        match interrupt {
+            Interrupt::VBlank => {
+                self.requests.set_bit(0)
+            },
+            Interrupt::LCDC => {
+                self.requests.set_bit(1)
+            },
+            Interrupt::Timer => {
+                self.requests.set_bit(2)
+            },
+            Interrupt::Serial => {
+                self.requests.set_bit(3)
+            },
+            Interrupt::Joypad => {
+                self.requests.set_bit(4)
+            },
+            _ => unreachable!("")
         }
     }
 }

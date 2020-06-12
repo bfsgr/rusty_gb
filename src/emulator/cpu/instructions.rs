@@ -1391,11 +1391,9 @@ impl Instruction {
     }
 
     //0x76 
-    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus){
+    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus){
 
-        
-
-        
+        mem.halt_cpu = true;
     }
 
     //0x77
