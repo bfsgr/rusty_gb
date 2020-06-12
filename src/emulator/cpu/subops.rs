@@ -1622,9 +1622,78 @@ impl Instruction {
 
         registers.A( Action::Write( A as u16 ) );
     }
-
-
     
+    //0xCB 0xC0
+    pub fn SET_0B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.B( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.B( Action::Write(val as u16) );
+    }
+    
+    //0xCB 0xC1
+    pub fn SET_0C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.C( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.C( Action::Write(val as u16) );
+    }
+    
+    //0xCB 0xC2
+    pub fn SET_0D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.D( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.D( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xC3
+    pub fn SET_0E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.E( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.E( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xC4
+    pub fn SET_0H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.H( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.H( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xC5
+    pub fn SET_0L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.L( Action::Read ).value();
+        
+        val.set_bit(0);
+
+        registers.L( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xC6
+    pub fn SET_0dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+        
+        val.set_bit(0);
+
+        mem.write_byte(HL, val);
+    }
 
     //0xCB 0xC7
     pub fn SET_0A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
@@ -1635,6 +1704,89 @@ impl Instruction {
 
         registers.A( Action::Write(val as u16) );
     }
+
+    //0xCB 0xC8
+    pub fn SET_1B(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.B( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.B( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xC9
+    pub fn SET_1C(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.C( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.C( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xCA
+    pub fn SET_1D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.D( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.D( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xCB
+    pub fn SET_1E(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.E( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.E( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xCC
+    pub fn SET_1H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.H( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.H( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xCD
+    pub fn SET_1L(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.L( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.L( Action::Write(val as u16) );
+    }
+
+    //0xCB 0xCE
+    pub fn SET_1dHL(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
+
+        let HL: u16 = registers.HL( Action::Read ).value();
+
+        let mut val: u8 = mem.read_byte(HL).value();
+        
+        val.set_bit(1);
+
+        mem.write_byte(HL, val);
+    }
+
+    //0xCB 0xCF
+    pub fn SET_1A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
+
+        let mut val: u8 = registers.A( Action::Read ).value();
+        
+        val.set_bit(1);
+
+        registers.A( Action::Write(val as u16) );
+    }
+
 
     //0xCB 0xF2
     pub fn SET_6D(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){

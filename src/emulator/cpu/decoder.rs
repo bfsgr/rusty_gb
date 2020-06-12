@@ -3158,52 +3158,52 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xC0
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,B",
+        function: Instruction::SET_0B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC1
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,C",
+        function: Instruction::SET_0C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC2
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,D",
+        function: Instruction::SET_0D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC3
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,E",
+        function: Instruction::SET_0E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC4
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,H",
+        function: Instruction::SET_0H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC5
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,L",
+        function: Instruction::SET_0L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC6
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 0,(HL)",
+        function: Instruction::SET_0dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xC7
     Instruction{ 
@@ -3214,59 +3214,59 @@ const INSTRUCTION_SUBSET: [Instruction; 256] = [
     },
     //0xC8
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,B",
+        function: Instruction::SET_1B,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xC9
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,C",
+        function: Instruction::SET_1C,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xCA
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,D",
+        function: Instruction::SET_1D,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xCB
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,E",
+        function: Instruction::SET_1E,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xCC
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,H",
+        function: Instruction::SET_1H,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xCD
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,L",
+        function: Instruction::SET_1L,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xCE
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,(HL)",
+        function: Instruction::SET_1dHL,
         args: 0,
-        cycles: 4
+        cycles: 16
     },
     //0xCF
     Instruction{ 
-        disassembly: "NOP",
-        function: Instruction::NOP,
+        disassembly: "SET 1,A",
+        function: Instruction::SET_1A,
         args: 0,
-        cycles: 4
+        cycles: 8
     },
     //0xD0
     Instruction{ 
