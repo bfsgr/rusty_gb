@@ -305,7 +305,7 @@ impl Instruction {
         let mut val: u8 = registers.B( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.B( Action::Write(val as u16) );
     }
@@ -315,7 +315,7 @@ impl Instruction {
         let mut val: u8 = registers.C( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.C( Action::Write(val as u16) );
     }
@@ -325,7 +325,7 @@ impl Instruction {
         let mut val: u8 = registers.D( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.D( Action::Write(val as u16) );
     }
@@ -335,7 +335,7 @@ impl Instruction {
         let mut val: u8 = registers.E( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.E( Action::Write(val as u16) );
     }
@@ -345,7 +345,7 @@ impl Instruction {
         let mut val: u8 = registers.H( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.H( Action::Write(val as u16) );
     }
@@ -355,7 +355,7 @@ impl Instruction {
         let mut val: u8 = registers.L( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.L( Action::Write(val as u16) );
     }
@@ -367,7 +367,7 @@ impl Instruction {
 
         let mut val: u8 = mem.read_byte(HL).value();
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         mem.write_byte(HL, val);
     }
@@ -377,7 +377,7 @@ impl Instruction {
         let mut val: u8 = registers.A( Action::Read ).value();
 
 
-        val = Instruction::SL(val, true, registers);
+        val = Instruction::SL(val, registers);
 
         registers.A( Action::Write(val as u16) );
     }

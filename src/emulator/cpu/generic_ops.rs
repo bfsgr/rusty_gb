@@ -220,10 +220,10 @@ impl Instruction {
 
     pub fn RR(registers: &mut Registers, mut value: u8, carry: bool, zflag_on: bool) -> u8{
 
-        let bit = value.test_bit(1);
+        let bit = value.test_bit(0);
 
         value = match carry {
-            true => (value >> 1) | registers.test_flag(CARRY_FLAG) as u8, //>
+            true => (value >> 1) | ((registers.test_flag(CARRY_FLAG) as u8) << 7), //>
             false => value.rotate_right(1)
         };
 
@@ -278,13 +278,13 @@ impl Instruction {
 			false => byte >> 1,
         };
         
-        if (byte & 1) == 1 {
+        if byte.test_bit(0) {
             registers.set_flag(CARRY_FLAG);
         } else {
             registers.clear_flag(CARRY_FLAG);
         }
 
-        if byte == 0 {
+        if shifted == 0 {
             registers.set_flag(ZERO_FLAG);
         } else {
             registers.clear_flag(ZERO_FLAG);
@@ -296,19 +296,17 @@ impl Instruction {
         shifted
 	}
 
-    pub fn SL(byte: u8, preserve: bool, registers: &mut Registers) -> u8 {
-		let shifted = match preserve {
-			true => (byte << 1) | (byte & 0x01), //>
-			false => byte << 1, //>
-        };
+    pub fn SL(byte: u8, registers: &mut Registers) -> u8 {
+		let shifted = byte << 1; //>
+
         
-        if (byte & 0x80) == 0x80 {
+        if byte.test_bit(7) {
             registers.set_flag(CARRY_FLAG);
         } else {
             registers.clear_flag(CARRY_FLAG);
         }
 
-        if byte == 0 {
+        if shifted == 0 {
             registers.set_flag(ZERO_FLAG);
         } else {
             registers.clear_flag(ZERO_FLAG);
