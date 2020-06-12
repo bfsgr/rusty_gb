@@ -53,7 +53,7 @@ impl Instruction {
     //generic decrement function for 8 bit registers. 
     pub fn DEC(registers: &mut Registers, mut val: u8) -> u8{
         //will lower nibble overflow?
-        if (val & 0x0F) == 0x0F {
+        if (val & 0x0F) == 0x00 {
             registers.set_flag(HALFCARRY_FLAG);
         } else {
             registers.clear_flag(HALFCARRY_FLAG);
