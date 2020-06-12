@@ -112,7 +112,7 @@ impl Instruction {
 
     }
 
-    //0x07 and 0xCB 0x07
+    //0x07 
     pub fn RLC_A(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) {
 
         let mut A: u8 = registers.A(Action::Read).value();
@@ -456,16 +456,16 @@ impl Instruction {
 
         let mut A: u8 = registers.A( Action::Read ).value();
 
-        let mut Adjust: u8 = if registers.test_flag(CARRY_FLAG) { 0x60 } else { 0x00 };
+        let mut adjust: u8 = if registers.test_flag(CARRY_FLAG) { 0x60 } else { 0x00 };
 
-        if registers.test_flag(HALFCARRY_FLAG) { Adjust |= 0x06; };
+        if registers.test_flag(HALFCARRY_FLAG) { adjust |= 0x06; };
 
         if !registers.test_flag(NEGATIVE_FLAG) {
-            if (A & 0x0F) > 0x09 { Adjust |= 0x06 };
-            if A > 0x99 { Adjust |= 0x60 };
-            A = A.wrapping_add(Adjust);
+            if (A & 0x0F) > 0x09 { adjust |= 0x06 };
+            if A > 0x99 { adjust |= 0x60 };
+            A = A.wrapping_add(adjust);
         } else {
-            A = A.wrapping_sub(Adjust);
+            A = A.wrapping_sub(adjust);
         }
 
         registers.clear_flag(HALFCARRY_FLAG);
@@ -476,7 +476,7 @@ impl Instruction {
             registers.clear_flag(ZERO_FLAG);
         }
 
-        if Adjust >= 0x60 {
+        if adjust >= 0x60 {
             registers.set_flag(CARRY_FLAG)
         } else {
             registers.clear_flag(CARRY_FLAG);
@@ -579,7 +579,10 @@ impl Instruction {
         let A: u8 = registers.A(Action::Read).value();
 
         registers.A( Action::Write(!A as u16) );
- 
+        
+        registers.set_flag(HALFCARRY_FLAG);
+        registers.set_flag(NEGATIVE_FLAG);
+
     }
 
     //0x30 
@@ -760,17 +763,21 @@ impl Instruction {
     //0x3F
     pub fn CCF(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus){
         
-        registers.clear_flag(CARRY_FLAG);
+        let bit = registers.test_flag(CARRY_FLAG) as u8;
+
+        if (bit ^ 1) == 1 {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG)
+        }
+
         registers.clear_flag(HALFCARRY_FLAG);
         registers.clear_flag(NEGATIVE_FLAG);
     }
 
     //0x40
     pub fn LD_B_B(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus){
-        
-        
 
-        
     }
 
     //0x41

@@ -213,7 +213,6 @@ impl Instruction {
             registers.clear_flag(HALFCARRY_FLAG);
         }
 
-        registers.clear_flag(ZERO_FLAG);
         registers.clear_flag(NEGATIVE_FLAG);
 
         return value;
