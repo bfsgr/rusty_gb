@@ -1394,6 +1394,7 @@ impl Instruction {
     pub fn HALT(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus){
 
         //if IME is reset then skip next instruction (HALT bug)
+        //this bug doesn't happend in GBC
         if !mem.interrupts.master {
             registers.PC( Action::Increment(1));
             mem.halt_cpu = true;

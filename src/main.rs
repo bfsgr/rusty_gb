@@ -5,7 +5,9 @@ use emulator::Gameboy;
 fn main(){
     let mut system = Gameboy::default();
 
-    system.insert("cpu_instrs.gb".to_string());
+    let args: Vec<_> = std::env::args().collect();
+
+    system.insert(args[1].to_string());
     
     system.start();
 }
