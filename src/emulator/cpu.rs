@@ -45,6 +45,7 @@ impl CPU {
 
             //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu
             if bus.interrupts.halt_bug {
+                bus.interrupts.halt_bug = false;
                 bus.halt_cpu = false;
                 return ();
             };

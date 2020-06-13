@@ -172,6 +172,7 @@ impl GPU {
                     self.STAT.reset_bit(1);
                     self.lock_vram = false;
                     self.lock_oam = false;
+                    interrupt_handler.request(Interrupt::VBlank);
                     //update interrupt flag
                     interrupt_status = true;
                 }

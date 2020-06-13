@@ -150,6 +150,8 @@ impl Gameboy {
             }
 
 
+
+
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
             return cycles;
