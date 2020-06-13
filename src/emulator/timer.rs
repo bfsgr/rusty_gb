@@ -51,7 +51,7 @@ impl Timer {
         }
     }
 
-    pub fn step(&mut self, cycles: u16, interrupts: &mut InterruptHandler) {
+    pub fn step(&mut self, cycles: u8, interrupts: &mut InterruptHandler) {
         self.update_div(cycles);
 
         let freq = self.get_freq();
@@ -83,7 +83,7 @@ impl Timer {
         self.TAC.test_bit(2)
     }
 
-    fn update_div(&mut self, cycles: u16) {
+    fn update_div(&mut self, cycles: u8) {
         self.divider_count += cycles as i32;
 
         if self.divider_count >= 256 {

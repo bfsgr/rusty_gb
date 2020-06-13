@@ -274,7 +274,7 @@ impl Instruction {
             registers.PC(Action::Decrement(jump.abs() as u16)); 
         }
 
-        return 8;
+        return 12;
     }
 
     //0x19
@@ -358,6 +358,7 @@ impl Instruction {
             } else {
                 registers.PC(Action::Decrement(jump.abs() as u16)); 
             }
+            return 12;
         }
         return 8;
     }
@@ -469,6 +470,7 @@ impl Instruction {
             } else {
                 registers.PC(Action::Decrement(jump.abs() as u16)); 
             }
+            return 12;
         }
         return 8;
     }
@@ -565,6 +567,7 @@ impl Instruction {
             } else {
                 registers.PC(Action::Decrement(jump.abs() as u16)); 
             }
+            return 12;
         }
         return 8;
     }
@@ -653,6 +656,7 @@ impl Instruction {
             } else {
                 registers.PC(Action::Decrement(jump.abs() as u16)); 
             }
+            return 12;
         }
         return 8;
     }
@@ -2214,6 +2218,7 @@ impl Instruction {
         if !registers.test_flag(ZERO_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
+            return 20;
         }
 
         
@@ -2239,9 +2244,9 @@ impl Instruction {
         if !registers.test_flag(ZERO_FLAG) {
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            
+            return 16;
         }
-
-        
 
         return 12;
     }
@@ -2254,7 +2259,7 @@ impl Instruction {
 
         
 
-        return 12;
+        return 16;
     }
 
     //0xC4
@@ -2265,6 +2270,7 @@ impl Instruction {
             let PC: u16 = registers.PC( Action::Read ).value(); 
             Instruction::push_to_stack(registers, mem, PC);
             registers.PC( Action::Write(pointer) );
+            return 24;
 
         }
 
@@ -2306,6 +2312,7 @@ impl Instruction {
         if registers.test_flag(ZERO_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
+            return 20;
         }
 
         
@@ -2320,7 +2327,7 @@ impl Instruction {
 
         
 
-        return 8;
+        return 16;
     }
 
     //0xCA
@@ -2328,6 +2335,8 @@ impl Instruction {
         if registers.test_flag(ZERO_FLAG) { 
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            
+            return 16;
         }
 
         
@@ -2345,6 +2354,7 @@ impl Instruction {
             Instruction::push_to_stack(registers, mem, PC);
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            return 24;
         }
 
 
@@ -2360,7 +2370,7 @@ impl Instruction {
         Instruction::push_to_stack(registers, mem, PC);
         let pointer = Bus::to_short(operands);
         registers.PC( Action::Write(pointer) );
-        return 12;
+        return 24;
     }
 
     //0xCE
@@ -2388,6 +2398,7 @@ impl Instruction {
         if !registers.test_flag(CARRY_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
+            return 20;
         }
 
         
@@ -2412,6 +2423,7 @@ impl Instruction {
         if !registers.test_flag(CARRY_FLAG) { 
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            return 16;
         }
 
         
@@ -2427,6 +2439,7 @@ impl Instruction {
             Instruction::push_to_stack(registers, mem, PC);
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            return 24;
         }
 
 
@@ -2471,6 +2484,7 @@ impl Instruction {
         if registers.test_flag(CARRY_FLAG) {
             let pointer = Instruction::pop_from_stack(registers, mem);
             registers.PC( Action::Write(pointer) );
+            return 20;
         }
 
         
@@ -2491,6 +2505,7 @@ impl Instruction {
         if registers.test_flag(CARRY_FLAG) { 
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            return 16;
         }
 
         
@@ -2506,6 +2521,7 @@ impl Instruction {
             Instruction::push_to_stack(registers, mem, PC);
             let pointer = Bus::to_short(operands);
             registers.PC( Action::Write(pointer) );
+            return 24;
         }
 
 

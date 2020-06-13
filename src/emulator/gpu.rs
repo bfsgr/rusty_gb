@@ -149,7 +149,7 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler){
+    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
