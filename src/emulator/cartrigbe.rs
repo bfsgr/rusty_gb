@@ -110,7 +110,10 @@ impl Cartrigbe {
 
         self.get_total_banks();
         self.assign_banks();
+        
+        if self.info.ctype > 2 { panic!("ONLY MBC1 and default ROM implemented")}
 
+        println!("{}", self.info);
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) {
@@ -150,6 +153,10 @@ impl Cartrigbe {
             },
             0xA000 ..= 0xBFFF => {},
             _ => panic!("wrong addr to cartrigbe {}", addr)
+        }
+
+        if self.current_bank > self.total_banks {
+            panic!("Tried to access unreacheble bank");
         }
     }
 

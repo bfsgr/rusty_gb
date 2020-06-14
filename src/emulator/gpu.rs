@@ -173,7 +173,7 @@ impl GPU {
                     self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
                     //update interrupt flag
-                    interrupt_status = self.STAT.test_bit(4) | self.STAT.test_bit(5);
+                    interrupt_status = self.STAT.test_bit(4);
 
                 }
                 //frame_cycles are bigger than the Vblank period, reset everything

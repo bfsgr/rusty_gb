@@ -162,7 +162,7 @@ impl Bus {
     }
 
     pub fn enable_interrupts(&mut self){
-        self.interrupts.master = true;
+        self.interrupts.ei_key = EI::Requested;
     }
     
     pub fn disable_interrupts(&mut self){

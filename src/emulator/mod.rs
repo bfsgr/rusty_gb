@@ -51,7 +51,6 @@ impl Gameboy {
 
                 //execute the instruction pointed by PC
                 let cycles = self.cpu_inst(debug);
-
                 //update current cycles
                 cycles_now += cycles as u32;
 
@@ -123,7 +122,7 @@ impl Gameboy {
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
-        self.cpu.interrupts(&mut self.bus);
+        let int_cylces = self.cpu.interrupts(&mut self.bus);
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
@@ -172,11 +171,12 @@ impl Gameboy {
             if debug_flag {
                 let oprnds = Bus::to_short(operands);
                 println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
-            }         
+            }      
 
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
-            return cycles;
+
+            return cycles + int_cylces;
 
 
         } else {

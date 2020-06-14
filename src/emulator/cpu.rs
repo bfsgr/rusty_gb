@@ -32,7 +32,17 @@ impl CPU {
         Decoder::decode(opcode, subset)
     }
 
-    pub fn interrupts(&mut self, bus: &mut Bus){
+    pub fn interrupts(&mut self, bus: &mut Bus) -> u8{
+
+        if bus.interrupts.ei_key == EI::Requested {
+            bus.interrupts.ei_key = EI::Active;
+        }
+
+        if bus.interrupts.ei_key == EI::Active {
+            bus.interrupts.master = true;
+            bus.interrupts.ei_key = EI::Disabled;
+        }
+
         //if halt was called with interrupts disabled we will wait an interrupt anyway
         if bus.interrupts.master || bus.halt_cpu {
             
@@ -41,18 +51,20 @@ impl CPU {
 
             let vec = bus.interrupts.get_vec();
 
-            if vec == InterruptVector::None { return () }
+            if vec == InterruptVector::None { return 0 }
+
+            bus.interrupts.master = false;
 
             //HALT was called and caused PC bug
             if bus.interrupts.halt_bug {
                 bus.halt_cpu = false;
-                return ();
+                return 0;
             };
 
             //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu (and didn't bug)
             if bus.halt_cpu && !bus.interrupts.master {
                 bus.halt_cpu = false;
-                return ();
+                return 0;
             };
 
             //HALT was called with IME on
@@ -69,6 +81,7 @@ impl CPU {
                     let vector: [u8; 2] = [0x0040, 0x00]; 
 
                     f( vector , &mut self.registers, bus );
+                    
                 },
                 InterruptVector::LCDC => {
                     bus.interrupts.requests.reset_bit(1);
@@ -98,9 +111,11 @@ impl CPU {
 
                     f( vector , &mut self.registers, bus);
                 },
-                InterruptVector::None => {},
+                _ => unreachable!("This should never happen"),
             }
-
+            return 13;
         }
+
+        return 0;
     }
 }

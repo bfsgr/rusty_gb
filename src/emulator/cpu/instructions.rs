@@ -2505,7 +2505,7 @@ impl Instruction {
         mem.enable_interrupts();
         let pointer = Instruction::pop_from_stack(registers, mem);
         registers.PC( Action::Write(pointer) ); 
-        return 8;
+        return 16;
     }
 
     //0xDA
@@ -2811,7 +2811,7 @@ impl Instruction {
 
     //0xFF
     pub fn RST_38(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) -> u8 {
-        let PC: u16 = registers.PC( Action::Read ).value(); 
+        let PC: u16 = registers.PC( Action::Read ).value();
         Instruction::push_to_stack(registers, mem, PC);
         registers.PC( Action::Write(0x38) );  
         return 16;
