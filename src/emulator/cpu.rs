@@ -53,7 +53,7 @@ impl CPU {
 
             if vec == InterruptVector::None { return 0 }
 
-            bus.interrupts.master = false;
+            
 
             //HALT was called and caused PC bug
             if bus.interrupts.halt_bug {
@@ -72,7 +72,7 @@ impl CPU {
                 bus.halt_cpu = false 
             };
 
-            // bus.interrupts.master = false;
+            bus.interrupts.master = false;
 
             match vec {
                 InterruptVector::VBlank => {
