@@ -28,7 +28,6 @@
 
 ## Sound Controller
 - [ ] Basic implementation
-- [X] Interrupt triggers
 
 ## Joypad
 - [ ] Basic implementation
