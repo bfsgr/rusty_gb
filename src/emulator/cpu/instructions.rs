@@ -1354,18 +1354,26 @@ impl Instruction {
     }
 
     //0x76 
-    pub fn HALT(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) -> u8{
+    pub fn HALT(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus) -> u8{
 
-        //if IME is reset then skip next instruction (HALT bug)
-        //this bug doesn't happend in GBC
-        if !mem.interrupts.master {
-            registers.PC( Action::Increment(1));
-            mem.halt_cpu = true;
-            mem.interrupts.halt_bug = true;
+        if !mem.interrupts.master{
+
+            if (mem.interrupts.enable & mem.interrupts.requests & 0x1F) == 0 {
+
+                mem.interrupts.halt_bug = false;
+                mem.halt_cpu = true;
+                
+            } else {
+                
+                mem.halt_cpu = true;
+                mem.interrupts.halt_bug = true;
+
+            }
+
         } else {
             mem.halt_cpu = true;
+            mem.interrupts.halt_bug = false;
         }
-
         return 4;
     }
 

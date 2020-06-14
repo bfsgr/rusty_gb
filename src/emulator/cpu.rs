@@ -34,7 +34,7 @@ impl CPU {
 
     pub fn interrupts(&mut self, bus: &mut Bus){
         //if halt was called with interrupts disabled we will wait an interrupt anyway
-        if bus.interrupts.master || bus.interrupts.halt_bug {
+        if bus.interrupts.master || bus.halt_cpu {
             
             let call_inst = CPU::decode(0xCD, false);
             let f = call_inst.function;
@@ -43,14 +43,22 @@ impl CPU {
 
             if vec == InterruptVector::None { return () }
 
-            //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu
+            //HALT was called and caused PC bug
             if bus.interrupts.halt_bug {
-                bus.interrupts.halt_bug = false;
                 bus.halt_cpu = false;
                 return ();
             };
 
-            if bus.halt_cpu { bus.halt_cpu = false };
+            //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu (and didn't bug)
+            if bus.halt_cpu && !bus.interrupts.master {
+                bus.halt_cpu = false;
+                return ();
+            };
+
+            //HALT was called with IME on
+            if bus.halt_cpu { 
+                bus.halt_cpu = false 
+            };
 
             // bus.interrupts.master = false;
 

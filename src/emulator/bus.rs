@@ -47,7 +47,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => self.gpu.LCDC = byte,
-                    STAT => self.gpu.STAT = byte,
+                    STAT => self.gpu.STAT = byte | 0x80,
                     SCY => self.gpu.scroll_y = byte,
                     SCX => self.gpu.scroll_x = byte,
                     LY => self.gpu.lcd_y = byte,
@@ -63,7 +63,7 @@ impl Bus {
                     WX => self.gpu.window_x = byte,
                     BROM => self.cartrigbe.bios_on = byte,
                     
-                    IF => self.interrupts.requests = byte,
+                    IF => self.interrupts.requests = byte | 0xE0,
                     _ => {}
                 }
             },
@@ -85,7 +85,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => { Response::Byte( self.gpu.LCDC ) },
-                    STAT => { Response::Byte( self.gpu.STAT ) },
+                    STAT => { Response::Byte( self.gpu.STAT | 0x80 ) },
                     SCY => { Response::Byte( self.gpu.scroll_y ) },
                     SCX => { Response::Byte( self.gpu.scroll_x ) },
                     LY => { Response::Byte( self.gpu.lcd_y ) },
@@ -97,7 +97,7 @@ impl Bus {
                     WY => { Response::Byte( self.gpu.window_y ) },
                     WX => { Response::Byte( self.gpu.window_x ) },
                     
-                    IF => { Response::Byte( self.interrupts.requests ) },
+                    IF => { Response::Byte( self.interrupts.requests | 0xE0 ) },
                     _ => { Response::Byte(0) }
                 }
             },
