@@ -156,7 +156,7 @@ impl Cartrigbe {
         }
 
         if self.current_bank > self.total_banks {
-            panic!("Tried to access unreacheble bank");
+            panic!("Tried to access unreachable bank");
         }
     }
 
