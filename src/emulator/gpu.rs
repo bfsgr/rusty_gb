@@ -4,11 +4,11 @@ use super::interrupt::{*};
 use super::bit_utils::{*};
 use super::cpu::registers::{Response};
 
-const OAM_SEARCH: usize = 79;
+const OAM_SEARCH: usize = 80;
 const TRANSFER_CYCLES: usize = OAM_SEARCH + 172;
-const HBLANK_CYCLES: usize = 456;
+const HBLANK_CYCLES: usize = OAM_SEARCH + 204;
 const FRAME_CYCLES: usize = HBLANK_CYCLES * 146;
-const VBLANK_CYCLES: usize = FRAME_CYCLES + 4560;
+const VBLANK_CYCLES: usize = FRAME_CYCLES + HBLANK_CYCLES * 10;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -121,7 +121,7 @@ impl Default for GPU {
             sprites: [Sprite::default(); 40],
             tile_cache: [Tile::default(); 384],
             LCDC: 0,           //0xFF40     (R/W)
-            STAT: 0,           //0xFF41     (R/W)
+            STAT: 0x82,           //0xFF41     (R/W)
             scroll_y: 0,       //0xFF42     (R/W)
             scroll_x: 0,       //0xFF43     (R/W)
             lcd_y: 0,          //0xFF44     (R)
@@ -149,7 +149,7 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u16, interrupt_handler: &mut InterruptHandler){
+    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -167,13 +167,14 @@ impl GPU {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     //set STAT bits
-                    self.STAT.set_bit(4);
                     self.STAT.set_bit(0);
                     self.STAT.reset_bit(1);
                     self.lock_vram = false;
                     self.lock_oam = false;
+                    interrupt_handler.request(Interrupt::VBlank);
                     //update interrupt flag
-                    interrupt_status = true;
+                    interrupt_status = self.STAT.test_bit(4);
+
                 }
                 //frame_cycles are bigger than the Vblank period, reset everything
                 if self.frame_cycles > VBLANK_CYCLES {
@@ -194,10 +195,9 @@ impl GPU {
                         //OAM period
                         if cur_mode != Mode::Oam {
                             self.mode = Mode::Oam;
-                            self.STAT.set_bit(5);
                             self.STAT.set_bit(1);
                             self.STAT.reset_bit(0);
-                            interrupt_status = true;
+                            interrupt_status = self.STAT.test_bit(5);
 
                             self.lock_oam = true;
                             self.lock_vram = false;
@@ -219,14 +219,13 @@ impl GPU {
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
                             self.mode = Mode::HBlank;
-                            self.STAT.set_bit(3);
                             self.STAT.reset_bit(1);
                             self.STAT.reset_bit(0);
 
                             self.lock_vram = false;
                             self.lock_oam = false;
 
-                            interrupt_status = true;
+                            interrupt_status = self.STAT.test_bit(3);
                         }
 
                     },
@@ -251,7 +250,9 @@ impl GPU {
     fn line_compare(&mut self, interrupt: &mut InterruptHandler){
         if self.lycompare == self.lcd_y {
             self.STAT.set_bit(2);
-            interrupt.request(Interrupt::LCDC)
+            if self.STAT.test_bit(6) {
+                interrupt.request(Interrupt::LCDC)
+            }
         } else {
             self.STAT.reset_bit(2);
         }

@@ -32,26 +32,48 @@ impl CPU {
         Decoder::decode(opcode, subset)
     }
 
-    pub fn interrupts(&mut self, bus: &mut Bus){
+    pub fn interrupts(&mut self, bus: &mut Bus) -> u8{
+
+        if bus.interrupts.ei_key == EI::Requested {
+            bus.interrupts.ei_key = EI::Active;
+        }
+
+        if bus.interrupts.ei_key == EI::Active {
+            bus.interrupts.master = true;
+            bus.interrupts.ei_key = EI::Disabled;
+        }
+
         //if halt was called with interrupts disabled we will wait an interrupt anyway
-        if bus.interrupts.master || bus.interrupts.halt_bug {
+        if bus.interrupts.master || bus.halt_cpu {
             
             let call_inst = CPU::decode(0xCD, false);
             let f = call_inst.function;
 
             let vec = bus.interrupts.get_vec();
 
-            if vec == InterruptVector::None { return () }
+            if vec == InterruptVector::None { return 0 }
 
-            //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu
+            let mut cycles = 20;
+
+            //HALT was called and caused PC bug
             if bus.interrupts.halt_bug {
                 bus.halt_cpu = false;
-                return ();
+                return 0;
             };
 
-            if bus.halt_cpu { bus.halt_cpu = false };
+            //if HALT was called with IME off then we wait until an interrupt is called, but we don't execute it we just unhalt the cpu (and didn't bug)
+            if bus.halt_cpu && !bus.interrupts.master {
+                bus.halt_cpu = false;
+                return 0;
+            };
 
-            // bus.interrupts.master = false;
+            //HALT was called with IME on
+            if bus.halt_cpu { 
+                bus.halt_cpu = false;
+                cycles = 24;
+            };
+
+            bus.interrupts.master = false;
 
             match vec {
                 InterruptVector::VBlank => {
@@ -60,6 +82,7 @@ impl CPU {
                     let vector: [u8; 2] = [0x0040, 0x00]; 
 
                     f( vector , &mut self.registers, bus );
+                    
                 },
                 InterruptVector::LCDC => {
                     bus.interrupts.requests.reset_bit(1);
@@ -89,9 +112,11 @@ impl CPU {
 
                     f( vector , &mut self.registers, bus);
                 },
-                InterruptVector::None => {},
+                _ => unreachable!("This should never happen"),
             }
-
+            return cycles;
         }
+
+        return 0;
     }
 }

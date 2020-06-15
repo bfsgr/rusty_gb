@@ -2,6 +2,19 @@
 
 use super::bit_utils::BitUtils;
 use std::fmt::{Formatter, Result, Display};
+
+#[derive(PartialEq)]
+pub enum EI {
+    Requested,
+    Active,
+    Disabled,
+}
+
+impl Default for EI {
+    fn default() -> Self { EI::Disabled }
+}
+
+
 #[derive(Copy, Clone)]
 pub enum Interrupt {
     VBlank,
@@ -26,6 +39,7 @@ pub enum InterruptVector {
 pub struct InterruptHandler  {
     pub master: bool,               //reduntant from memory field interrupt switch
     pub halt_bug: bool,
+    pub ei_key: EI,
     pub enable: u8,             //reduntant from memory 0xFFFF
     pub requests: u8,           //reduntant from memory field 0xFF0F
 }

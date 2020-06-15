@@ -23,7 +23,7 @@ const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
 
 //max cycles after vblank, when this value is reached we draw the actual screen
-const MAXCYCLES: u32 = 65664;
+const MAXCYCLES: u32 = 66576;
 
 #[derive(Default)]
 pub struct Gameboy {
@@ -104,9 +104,15 @@ impl Gameboy {
         if opcode != 0xCB {
             instruction = CPU::decode(opcode, false);
         } else {
-            opcode = self.bus.read_byte(pc+1).value();
-            self.cpu.increment_PC(1);
-            instruction = CPU::decode(opcode, true);
+            
+            if !self.bus.interrupts.halt_bug {
+                opcode = self.bus.read_byte(pc+1).value();
+                instruction = CPU::decode(opcode, true);
+                self.cpu.increment_PC(1);
+            } else {
+                instruction = CPU::decode(0xCB, true);
+                self.cpu.increment_PC(1);
+            }
         }
 
         return instruction;
@@ -115,8 +121,8 @@ impl Gameboy {
 
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
-    fn cpu_inst(&mut self, debug_flag: bool) -> u16 {
-        self.cpu.interrupts(&mut self.bus);
+    fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
+        let int_cylces = self.cpu.interrupts(&mut self.bus);
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
@@ -128,16 +134,34 @@ impl Gameboy {
     
             match instruction.args {
                 0 => {
-                    self.cpu.increment_PC(1);
+                    if !self.bus.interrupts.halt_bug {
+                        self.cpu.increment_PC(1);
+                    } else {
+                        self.bus.interrupts.halt_bug = false;
+                    }
                 },
                 1 => {
-                    operands[0] = self.bus.read_byte(pc+1).value();
-                    self.cpu.increment_PC(2);
+                    
+                    if !self.bus.interrupts.halt_bug {
+                        self.cpu.increment_PC(2);
+                        operands[0] = self.bus.read_byte(pc+1).value();
+                    } else {
+                        operands[0] = self.bus.read_byte(pc).value();
+                        self.cpu.increment_PC(1);
+                        self.bus.interrupts.halt_bug = false;
+                    }
                 },
                 2 => {
-                    operands[0] = self.bus.read_byte(pc+1).value();
-                    operands[1] = self.bus.read_byte(pc+2).value();
-                    self.cpu.increment_PC(3)
+                    if !self.bus.interrupts.halt_bug {
+                        self.cpu.increment_PC(3);
+                        operands[0] = self.bus.read_byte(pc+1).value();
+                        operands[1] = self.bus.read_byte(pc+2).value();
+                    } else {
+                        self.cpu.increment_PC(2);
+                        operands[0] = self.bus.read_byte(pc).value();
+                        operands[1] = self.bus.read_byte(pc+1).value();
+                        self.bus.interrupts.halt_bug = false;
+                    }
                 }
                 _ => {
                     panic!("Instruction has wrong number of args \"{}\"", instruction);
@@ -147,12 +171,12 @@ impl Gameboy {
             if debug_flag {
                 let oprnds = Bus::to_short(operands);
                 println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
-            }
-
+            }      
 
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
-            return cycles;
+
+            return cycles + int_cylces;
 
 
         } else {

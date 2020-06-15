@@ -47,7 +47,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => self.gpu.LCDC = byte,
-                    STAT => self.gpu.STAT = byte,
+                    STAT => self.gpu.STAT = byte | 0x80,
                     SCY => self.gpu.scroll_y = byte,
                     SCX => self.gpu.scroll_x = byte,
                     LY => self.gpu.lcd_y = byte,
@@ -63,7 +63,7 @@ impl Bus {
                     WX => self.gpu.window_x = byte,
                     BROM => self.cartrigbe.bios_on = byte,
                     
-                    IF => self.interrupts.requests = byte,
+                    IF => self.interrupts.requests = byte | 0xE0,
                     _ => {}
                 }
             },
@@ -85,7 +85,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => { Response::Byte( self.gpu.LCDC ) },
-                    STAT => { Response::Byte( self.gpu.STAT ) },
+                    STAT => { Response::Byte( self.gpu.STAT | 0x80 ) },
                     SCY => { Response::Byte( self.gpu.scroll_y ) },
                     SCX => { Response::Byte( self.gpu.scroll_x ) },
                     LY => { Response::Byte( self.gpu.lcd_y ) },
@@ -97,7 +97,7 @@ impl Bus {
                     WY => { Response::Byte( self.gpu.window_y ) },
                     WX => { Response::Byte( self.gpu.window_x ) },
                     
-                    IF => { Response::Byte( self.interrupts.requests ) },
+                    IF => { Response::Byte( self.interrupts.requests | 0xE0 ) },
                     _ => { Response::Byte(0) }
                 }
             },
@@ -162,14 +162,14 @@ impl Bus {
     }
 
     pub fn enable_interrupts(&mut self){
-        self.interrupts.master = true;
+        self.interrupts.ei_key = EI::Requested;
     }
     
     pub fn disable_interrupts(&mut self){
         self.interrupts.master = false;
     }
 
-    pub fn run_system(&mut self, cycles: u16) {
+    pub fn run_system(&mut self, cycles: u8) {
         self.gpu.step(cycles, &mut self.interrupts);
         self.timer.step(cycles, &mut self.interrupts);
         //self.sound.step
