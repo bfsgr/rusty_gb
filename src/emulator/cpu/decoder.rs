@@ -1279,7 +1279,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xD3
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xD4
@@ -1327,7 +1327,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xDB
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xDC
@@ -1339,7 +1339,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xDD
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xDE
@@ -1375,13 +1375,13 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xE3
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xE4
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xE5
@@ -1423,17 +1423,17 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xEB
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xEE
@@ -1475,7 +1475,7 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xF4
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xF5
@@ -1523,12 +1523,12 @@ const INSTRUCTION_SET: [Instruction; 256] = [
     //0xFC
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     Instruction{ 
         disassembly: "REMOVED",
-        function: Instruction::NOP,
+        function: Instruction::PANIC,
         args: 0,
     }, 
     //0xFE

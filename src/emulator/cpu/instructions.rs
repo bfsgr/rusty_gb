@@ -47,6 +47,10 @@ impl Instruction {
         f(params, cpu, mem)
     }
 
+    pub fn PANIC(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus) -> u8{
+        panic!("REMOVED OPCODE WAS CALLED");
+     }
+
     //0x00
     pub fn NOP(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus) -> u8{
         return 4;
