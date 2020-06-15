@@ -134,7 +134,7 @@ impl Cartrigbe {
 
             0x2000 ..= 0x3FFF => {
                 let select = byte & 0x1F;
-
+                self.current_bank = self.current_bank & 0x60;
 
                 match select {
                     0 | 0x20 | 0x40 | 0x60 => self.current_bank |= (select+1) as usize,
@@ -146,6 +146,7 @@ impl Cartrigbe {
                 if self.mode == Mode::RAM {
                     self.ram_bank = byte;
                 } else {
+                    self.current_bank = self.current_bank & !(0x60);
                     self.current_bank = self.current_bank | (byte as usize) << 5; //>
                 }
             },
