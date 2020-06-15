@@ -23,8 +23,9 @@
 - [X] Interrupt triggers
 
 ## Cartrigbe
-- [X] Basic MCB1 (Only without SRAM)
-- [ ] SRAM support
+- [X] MCB1 (Only battery)
+- [ ] MCB2
+
 
 ## Sound Controller
 - [ ] Basic implementation
