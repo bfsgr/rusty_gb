@@ -53,7 +53,7 @@ impl CPU {
 
             if vec == InterruptVector::None { return 0 }
 
-            
+            let mut cycles = 20;
 
             //HALT was called and caused PC bug
             if bus.interrupts.halt_bug {
@@ -69,7 +69,8 @@ impl CPU {
 
             //HALT was called with IME on
             if bus.halt_cpu { 
-                bus.halt_cpu = false 
+                bus.halt_cpu = false;
+                cycles = 24;
             };
 
             bus.interrupts.master = false;
@@ -113,7 +114,7 @@ impl CPU {
                 },
                 _ => unreachable!("This should never happen"),
             }
-            return 13;
+            return cycles;
         }
 
         return 0;
