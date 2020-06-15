@@ -15,7 +15,7 @@ impl Default for EI {
 }
 
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum Interrupt {
     VBlank,
     LCDC,

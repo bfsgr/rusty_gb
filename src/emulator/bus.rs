@@ -4,6 +4,7 @@ use super::gpu::{*};
 use super::memory::{*};
 use super::timer::{*};
 use super::cartrigbe::{*};
+use super::joypad::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
 pub use super::interrupt::{*};
@@ -15,6 +16,7 @@ pub struct Bus {
     cartrigbe: Cartrigbe,
     pub interrupts: InterruptHandler,
     timer: Timer,
+    pub joypad: Joypad,
     pub halt_cpu: bool
     //everything with memory mapped I/O registers goes in here
 }
@@ -62,6 +64,7 @@ impl Bus {
                     WY => self.gpu.window_y = byte,
                     WX => self.gpu.window_x = byte,
                     BROM => self.cartrigbe.bios_control(byte),
+                    JOYP => self.joypad.write(byte),
                     
                     IF => self.interrupts.requests = byte | 0xE0,
                     _ => {}
@@ -96,6 +99,7 @@ impl Bus {
                     OBP1 => { Response::Byte( self.gpu.ob_palette1 ) },
                     WY => { Response::Byte( self.gpu.window_y ) },
                     WX => { Response::Byte( self.gpu.window_x ) },
+                    JOYP => { Response::Byte( self.joypad.read() ) }
                     
                     IF => { Response::Byte( self.interrupts.requests | 0xE0 ) },
                     _ => { Response::Byte(0) }

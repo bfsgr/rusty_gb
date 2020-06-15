@@ -9,6 +9,7 @@ mod interrupt;
 mod bit_utils;
 mod bus;
 mod timer;
+mod joypad;
 
 const DEBUG_FLAG: bool = false;
 
@@ -47,6 +48,55 @@ impl Gameboy {
 
                 if window.is_key_pressed(Key::D, KeyRepeat::Yes) {
                     if debug { debug = false } else { debug = true };
+                }
+
+                if window.is_key_pressed(Key::Up, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.up();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::Left, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.left();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::Right, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.right();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::Down, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.down();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::Z, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.btn_a();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::X, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.btn_b();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::D, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.start();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
+                }
+                if window.is_key_pressed(Key::F, KeyRepeat::No) {
+                    let jp_int = self.bus.joypad.start();
+                    if jp_int == Interrupt::Joypad { 
+                        self.bus.interrupts.request(jp_int);
+                    }
                 }
 
                 //execute the instruction pointed by PC
