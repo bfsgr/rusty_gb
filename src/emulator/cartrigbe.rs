@@ -7,12 +7,18 @@ use std::fs::File;
 use std::io::Read;
 use super::cpu::registers::{Response};
 
+#[derive(PartialEq)]
+enum Mode {
+    RAM,
+    ROM
+}
+
 pub struct Cartrigbe {
     info: Header,
     banks: Vec<Bank>,
     total_banks: usize,
     current_bank: usize,
-    mode: bool,
+    mode: Mode,
     pub bios_on: u8,
     ram_bank: u8,
     has_ram: bool,
@@ -28,7 +34,7 @@ impl Default for Cartrigbe {
             banks: vec![],
             total_banks: 0,
             current_bank: 1,
-            mode: false,
+            mode: Mode::ROM,
             bios_on: 0,
             ram_bank: 0,
             has_ram: false,
@@ -129,7 +135,6 @@ impl Cartrigbe {
             0x2000 ..= 0x3FFF => {
                 let select = byte & 0x1F;
 
-                self.current_bank = self.current_bank & 0x60;
 
                 match select {
                     0 | 0x20 | 0x40 | 0x60 => self.current_bank |= (select+1) as usize,
@@ -138,20 +143,23 @@ impl Cartrigbe {
                 }
             },
             0x4000 ..= 0x5FFF => {
-                if self.mode {
+                if self.mode == Mode::RAM {
                     self.ram_bank = byte;
                 } else {
-                    self.current_bank = (self.current_bank & 0x1F) | (byte as usize) << 5; //>
+                    self.current_bank = self.current_bank | (byte as usize) << 5; //>
                 }
             },
             0x6000 ..= 0x7FFF => {
                 if byte == 1 {
-                    self.mode = true;
+                    self.mode = Mode::RAM;
                 } else {
-                    self.mode = false;
+                    self.mode = Mode::ROM;
                 }
             },
-            0xA000 ..= 0xBFFF => {},
+            0xA000 ..= 0xBFFF => {
+                
+                
+            },
             _ => panic!("wrong addr to cartrigbe {}", addr)
         }
 
@@ -172,7 +180,22 @@ impl Cartrigbe {
             0x4000 ..= 0x7FFF => {
                 return Response::Byte( self.banks[ self.current_bank as usize ].info[ (addr - 0x4000) as usize ] );
             },
-            0xA000 ..= 0xBFFF => { Response::Byte(0xFF) },
+            0xA000 ..= 0xBFFF => { 
+                if self.has_ram {
+
+                    match self.mode {
+                        Mode::RAM => {
+                            // Responde::Byte( self. )
+                        },
+                        Mode::ROM => {
+
+                        },
+                    }
+                    
+                }    
+                Response::Byte(0xFF) 
+            
+            },
             _ => panic!("Wrong address {:#10x}", addr)
         }
     }
