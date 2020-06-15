@@ -1,67 +1,66 @@
-use std::fmt;
-use std::fmt::Display;
+#![allow(non_snake_case)]
 
-
+#[derive(Default)]
 pub struct Header {
-    pub title: String,
-    pub manufacturer: String,
-    pub cgb_flag: u8,
-    pub sgb_flag: u8,
-    pub ctype: u8,
-    pub license: u16,
-    pub rom_size: u8,
+    title: String,
+    manufacturer_code: String,
+    cartrigbe_type: u8,
+    license_code: u16,
+    GCB_flag: u8,
+    SGB_flag: u8,
+    rom_size: u8,
     pub ram_size: u8,
-    pub japan: u8,
-    pub old_license: u8,
-    pub version: u8,
-    pub hchecksum: u8,
-    pub gchecksum: u16,
-    pub entry: [u8; 4]
-}
-
-impl Default for Header {
-    fn default() -> Self {
-        Header {
-            title: "".to_string(),
-            manufacturer: "".to_string(),
-            cgb_flag: 0,
-            sgb_flag: 0,
-            ctype: 0,
-            license: 0,
-            rom_size: 0,
-            ram_size: 0,
-            japan: 0,
-            old_license: 0,
-            version: 0,
-            hchecksum: 0,
-            gchecksum: 0,
-            entry: [0; 4]
-        }
-    }
+    jp_flag: u8,
+    old_license: u8,
+    version: u8,
+    header_checksum: u8,
+    global_checksum: u16
 }
 
 impl Header {
-    pub fn convert_to_rom_banks(&self) -> usize {
-        match self.rom_size {
-            0x0 => 2,
-            0x1 => 4,
-            0x2 => 8,
-            0x3 => 16,
-            0x4 => 32,
-            0x5 => 64,
-            0x6 => 128,
-            0x7 => 256,
-            0x8 => 512,
-            0x52 => 72,
-            0x53 => 80,
-            0x54 => 96,
-            _ => 0
-        }
-    }
-}
+    pub fn parse(&mut self, data: &Vec<u8>){
 
-impl Display for Header {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result{
-        write!(f, "Title: {}\nManufacturer: {}\nCGB flag: {:#04x}\nSGB flag: {:#04x}\nJP flag: {:#04x}\nLicense: {:#04x}\nOld License: {:#04x}\nCartrigbe Type: {:#04x}\nROM size: {:#04x}\nRAM size: {:#04x}\nVersion: {:#04x}\nHeader checksum: {:#04x}\nGlobal checksum: {:#04x}\nRaw entry point: {:#04x?}", self.title, self.manufacturer, self.cgb_flag, self.sgb_flag, self.japan, self.license, self.old_license, self.ctype, self.rom_size, self.ram_size, self.version, self.hchecksum, self.gchecksum, self.entry )
+        for i in 0x0134..=0x0143{
+            self.title.push(data[i] as char)
+        }
+
+        for i in 0x013F..=0x0142 {
+            self.manufacturer_code.push(data[i] as char); 
+        }
+
+        self.GCB_flag = data[0x0143];
+        self.SGB_flag = data[0x0146];
+        self.cartrigbe_type = data[0x0147];
+        self.rom_size = data[0x0148];
+        self.ram_size = data[0x0149];
+        self.jp_flag = data[0x014A];
+        self.license_code = data[0x0144] as u16 | (data[0x0145] as u16) << 8; //>
+        self.old_license = data[0x014B];
+        self.version = data[0x014C];
+        self.header_checksum = data[0x014D];
+        self.global_checksum = data[0x014E] as u16 | (data[0x014F] as u16) << 8; //>
+
+        self.validate(data);
+    }
+
+    fn validate(&self, data: &Vec<u8>) {
+        if (self.GCB_flag & 0xC0 ) == 0xC0 { panic!("Game is GameBoy Color only") }
+
+        if self.cartrigbe_type > 2 { panic!("Emulator only supports cartrigbe up to MCB1+RAM") }
+
+        if self.ram_size != 0 && self.cartrigbe_type != 2 { 
+            panic!("RAM size and cartrigbe type doesn't match")
+        }
+
+        let mut x: u8 = 0;
+
+        for i in 0x0134 ..= 0x014C {
+            x = x.wrapping_sub(data[i]).wrapping_sub(1);
+        }
+
+        if x != self.header_checksum { panic!("Header checksum doesn't match") }
+
+
+        //at this point we have a valid cartrigbe
     }
 }

@@ -170,7 +170,7 @@ impl Gameboy {
     
             if debug_flag {
                 let oprnds = Bus::to_short(operands);
-                println!("{:#04x}: {}\r\t\t\t{:#10x}", opcode, instruction.disassembly, oprnds);
+                println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
             }      
 
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
