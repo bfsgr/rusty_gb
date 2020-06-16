@@ -23,7 +23,7 @@
 - [X] Interrupt triggers
 
 ## Cartrigbe
-- [X] MCB1 (Only battery)
+- [X] MCB1 (Only battery support missing)
 - [ ] MCB2
 
 
