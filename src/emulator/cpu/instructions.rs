@@ -199,8 +199,9 @@ impl Instruction {
     }
 
     //0x10
-    pub fn STOP(_operands: [u8; 2], _registers: &mut Registers, _mem: &mut Bus) -> u8 {
-
+    pub fn STOP(_operands: [u8; 2], _registers: &mut Registers, mem: &mut Bus) -> u8 {
+        mem.halt_cpu = true;
+        mem.interrupts.halt_bug = false;
         return 4;
     }
 
