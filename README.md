@@ -3,7 +3,7 @@
 ## CPU
 - [X] 256 basic instruction set
 - [X] 256 sub instruction set (0xCB prefix)
-- [X] Pass all [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests 
+- [ ] Pass all [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests (see [#7](/../../issues/7))
 - [ ] Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) instrs timming tests
 - [ ] Review hardcoded cycles and interrupts cycles
 
@@ -31,6 +31,6 @@
 - [ ] Basic implementation
 
 ## Joypad
-- [ ] Basic implementation
+- [X] Basic implementation
 - [X] Interrupt triggers
 
