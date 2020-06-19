@@ -149,7 +149,7 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler){
+    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -172,6 +172,7 @@ impl GPU {
                     self.lock_vram = false;
                     self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
+                    *screen = self.display.clone();
                     //update interrupt flag
                     interrupt_status = self.STAT.test_bit(4);
 

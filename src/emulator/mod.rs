@@ -30,6 +30,7 @@ const MAXCYCLES: u32 = 66576;
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
+    screen: Vec<u32>
 }
 
 impl Gameboy {
@@ -39,6 +40,8 @@ impl Gameboy {
         let mut debug = false;
 
         let mut window = Gameboy::create_window();
+
+        self.screen = vec![0;WIDTH*HEIGHT];
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
 
@@ -104,13 +107,14 @@ impl Gameboy {
                 //update current cycles
                 cycles_now += cycles as u32;
 
+                let screen = &mut self.screen;
                 //run the rest of the system
-                self.bus.run_system(cycles);
+                self.bus.run_system(cycles, screen);
 
             };
 
             // render next frame, this is VBLANK
-            let up = window.update_with_buffer(&self.bus.gpu.display, WIDTH, HEIGHT);
+            let up = window.update_with_buffer(&self.screen, WIDTH, HEIGHT);
             match up {
                 Err(up) => println!("{}", up),
                 _  => {},
@@ -223,8 +227,18 @@ impl Gameboy {
             if debug_flag && pc > 256 {
                 let oprnds = Bus::to_short(operands);
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
-            }      
-
+            }   
+               
+            if pc == 0x0F15 || pc == 0x344 {
+                print!("");
+            }
+            
+            let ret = CPU::decode(0xC9, false);
+            
+            if ret == instruction {
+                print!("")
+            }
+            
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
 
