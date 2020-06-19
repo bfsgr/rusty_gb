@@ -70,7 +70,7 @@ impl Bus {
                     _ => {}
                 }
             },
-            Module::Unusable => {},
+            Module::Unusable => { panic!("unusable memory") },
             Module::Timer => { self.timer.write_byte(addr, byte); }
         }
 
@@ -102,10 +102,10 @@ impl Bus {
                     JOYP => { Response::Byte( self.joypad.read() ) }
                     
                     IF => { Response::Byte( self.interrupts.requests | 0xE0 ) },
-                    _ => { Response::Byte(0) }
+                    _ => { Response::Byte(0xFF) }
                 }
             },
-            Module::Unusable => { Response::Byte(0xFF) },
+            Module::Unusable => { panic!("unusable memory") },
             Module::Timer => { self.timer.read_byte(addr) },
         }
 
