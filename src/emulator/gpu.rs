@@ -611,6 +611,25 @@ impl GPU {
         self.mode = mode;
     }
 
+    pub fn write_lcdc(&mut self, byte: u8) {
+        if !byte.test_bit(7) && self.enabled() {
+            if self.mode != Mode::VBlank {
+                panic!("Turned LCD off outside of Vblank")
+            }
+            self.lcd_y = 0;
+            self.STAT = 0x80;
+            self.mode = Mode::HBlank;
+        }
+        if byte.test_bit(7) && !self.enabled() {
+            if self.lcd_y == self.lycompare { 
+                self.STAT.set_bit(2);
+            } else {
+                self.STAT.reset_bit(2)
+            }
+        }
+        self.LCDC = byte
+    }
+
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
 
         let into = GPU::translate(addr);
