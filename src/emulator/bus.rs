@@ -126,21 +126,6 @@ impl Bus {
         }
     }
 
-    pub fn read_short(&mut self, addr: u16) -> Response{
-        let b1 = Bus::classify(addr);
-        let b2 = Bus::classify(addr+1);
-
-        if b1 == b2 {
-
-            let lsb: u8 = self.read_byte(addr).value();
-            let msb: u8 = self.read_byte(addr+1).value();
-
-            Response::Short( lsb as u16 | (msb as u16) << 8  ) //>
-
-        } else {
-            panic!("Tried to read short along different modules")
-        }
-    }
 
     fn classify(address: u16) -> Module{
         match address {
