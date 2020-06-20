@@ -70,7 +70,7 @@ impl Bus {
                     _ => {}
                 }
             },
-            Module::Unusable => { panic!("unusable memory") },
+            Module::Unusable => { panic!("Unusable was written") },
             Module::Timer => { self.timer.write_byte(addr, byte); }
         }
 
@@ -105,7 +105,7 @@ impl Bus {
                     _ => { Response::Byte(0xFF) }
                 }
             },
-            Module::Unusable => { panic!("unusable memory") },
+            Module::Unusable => { panic!("Unusable was read") },
             Module::Timer => { self.timer.read_byte(addr) },
         }
 
@@ -144,16 +144,16 @@ impl Bus {
 
     fn classify(address: u16) -> Module{
         match address {
-            0..=0x7FFF => Module::Cartrigbe,    
-            0x8000..=0x9FFF => Module::GPU,    
-            0xA000..=0xBFFF => Module::Cartrigbe,   
-            0xC000..=0xFDFF => Module::Memory,    
-            0xFE00..=0xFE9F => Module::GPU,     
-            0xFEA0..=0xFEFF => Module::Unusable,
+            0      ..= 0x7FFF => Module::Cartrigbe,    
+            0x8000 ..= 0x9FFF => Module::GPU,    
+            0xA000 ..= 0xBFFF => Module::Cartrigbe,   
+            0xC000 ..= 0xFDFF => Module::Memory,    
+            0xFE00 ..= 0xFE9F => Module::GPU,     
+            0xFEA0 ..= 0xFEFF => Module::Memory,
             TMA | TIMA | DIV | TAC => Module::Timer,
-            0xFF00..=0xFF7F => Module::IO, 
-            0xFF80..=0xFFFE => Module::Memory,   
-            0xFFFF => Module::Interrupt         
+            0xFF00 ..= 0xFF7F => Module::IO, 
+            0xFF80 ..= 0xFFFE => Module::Memory,   
+            0xFFFF            => Module::Interrupt,
         }
     }
 

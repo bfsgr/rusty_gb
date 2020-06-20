@@ -5,20 +5,21 @@ use super::cpu::registers::Response;
 //TODO, remove echo field, all logic will convert addresses in echo to wram
 pub struct Memory {
     wram: [u8; 0x2000], //Internal RAM
-    hram: [u8; 0x7F],   //High Ram (Stack)
+    hram: [u8; 0x160],   //High Ram (Stack)
 }
 
 enum Region {
     WRAM(usize),
     Echo(usize),
-    HRAM(usize)
+    HRAM(usize),
+    HBASE(usize),
 }
 
 impl Default for Memory {
     fn default() -> Self {
         Memory {
             wram: [0; 0x2000], //Internal RAM
-            hram: [0; 0x7F],   //High Ram (Stack)
+            hram: [0; 0x160],   //High Ram (Stack)
         }
     }
 }
@@ -36,6 +37,9 @@ impl Memory {
                 self.wram[x] = byte;
 
             },
+            Region::HBASE(x) => {
+                self.hram[x] = byte;
+            }
             Region::HRAM(x) => {
                 self.hram[x] = byte;
             }
@@ -54,6 +58,9 @@ impl Memory {
             Region::Echo(x) => {
                 Response::Byte(self.wram[x])
             },
+            Region::HBASE(x) => {
+                Response::Byte(self.hram[x])
+            }
             Region::HRAM(x) => {
                 Response::Byte(self.hram[x])
             }
@@ -65,6 +72,7 @@ impl Memory {
         match addr {
             0xC000 ..= 0xDFFF => Region::WRAM(addr as usize - 0xC000 ),
             0xE000 ..= 0xFDFF => Region::Echo(addr as usize - 0xE000),
+            0xFEA0 ..= 0xFEFF => Region::HBASE(addr as usize - 0xFEA0),
             0xFF80 ..= 0xFFFE => Region::HRAM(addr as usize - 0xFF80),
             _ => panic!("Error translating address in memory module")
         }
