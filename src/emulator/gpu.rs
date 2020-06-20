@@ -78,7 +78,7 @@ impl SpriteList {
 }
 
 pub struct GPU {
-    mode: Mode,
+    pub mode: Mode,
     scanline_cycles: usize,
     frame_cycles: usize,
 
@@ -166,9 +166,7 @@ impl GPU {
             if self.frame_cycles > FRAME_CYCLES {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
-                    //set STAT bits
-                    self.STAT.set_bit(0);
-                    self.STAT.reset_bit(1);
+                    self.set_mode(Mode::VBlank);
                     self.lock_vram = false;
                     self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
@@ -186,8 +184,7 @@ impl GPU {
                     self.lock_oam = false;
                     //compare LY to LYC
                     self.line_compare(interrupt_handler);
-                    //reset mode to OAM
-                    self.mode = Mode::Oam;
+                    self.set_mode(Mode::Oam);
                 }
             } else {
                 //it's not vblank so test scanline cycles
@@ -195,9 +192,7 @@ impl GPU {
                     0 ..= OAM_SEARCH  => {
                         //OAM period
                         if cur_mode != Mode::Oam {
-                            self.mode = Mode::Oam;
-                            self.STAT.set_bit(1);
-                            self.STAT.reset_bit(0);
+                            self.set_mode(Mode::Oam);
                             interrupt_status = self.STAT.test_bit(5);
 
                             self.lock_oam = true;
@@ -207,9 +202,7 @@ impl GPU {
                     OAM_SEARCH ..= TRANSFER_CYCLES => {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
-                            self.mode = Mode::Transfer;
-                            self.STAT.set_bit(0);
-                            self.STAT.set_bit(1);
+                            self.set_mode(Mode::Transfer);
 
                             self.lock_vram = true;
                             self.lock_oam = true;
@@ -219,9 +212,7 @@ impl GPU {
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
-                            self.mode = Mode::HBlank;
-                            self.STAT.reset_bit(1);
-                            self.STAT.reset_bit(0);
+                            self.set_mode(Mode::HBlank);
 
                             self.lock_vram = false;
                             self.lock_oam = false;
@@ -596,6 +587,28 @@ impl GPU {
 
         }
         visible_sprites
+    }
+
+    pub fn set_mode(&mut self, mode: Mode) {
+        let save = self.STAT;
+        match mode {
+            Mode::HBlank => {
+                self.STAT = save & 0xFC;
+            },
+            Mode::VBlank => {
+                self.STAT = save & 0xFC;
+                self.STAT.set_bit(0);
+            },
+            Mode::Oam => {
+                self.STAT = save & 0xFC;
+                self.STAT.set_bit(1);
+            },
+            Mode::Transfer => {
+                self.STAT.set_bit(0);
+                self.STAT.set_bit(1);
+            }
+        }
+        self.mode = mode;
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {

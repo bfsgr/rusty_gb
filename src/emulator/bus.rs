@@ -8,6 +8,7 @@ use super::joypad::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
 pub use super::interrupt::{*};
+use super::bit_utils::BitUtils;
 
 #[derive(Default)]
 pub struct Bus {
@@ -48,7 +49,19 @@ impl Bus {
 
             Module::IO => {
                 match addr {
-                    LCDC => self.gpu.LCDC = byte,
+                    LCDC => {
+                        if !byte.test_bit(7) && self.gpu.enabled() {
+                            if self.gpu.mode != Mode::VBlank {
+                                panic!("Turned LCD off outside of Vblank")
+                            }
+                            self.gpu.lcd_y = 0;
+                            self.gpu.set_mode(Mode::HBlank);
+                        }
+                        if byte.test_bit(7) && !self.gpu.enabled() {
+                            self.gpu.set_mode(Mode::Oam);
+                        }
+                        self.gpu.LCDC = byte
+                    },
                     STAT => self.gpu.STAT = byte | 0x80,
                     SCY => self.gpu.scroll_y = byte,
                     SCX => self.gpu.scroll_x = byte,
