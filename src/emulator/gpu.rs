@@ -5,10 +5,10 @@ use super::bit_utils::{*};
 use super::cpu::registers::{Response};
 
 const OAM_SEARCH: usize = 80;
-const TRANSFER_CYCLES: usize = OAM_SEARCH + 172;
-const HBLANK_CYCLES: usize = OAM_SEARCH + 204;
-const FRAME_CYCLES: usize = HBLANK_CYCLES * 146;
-const VBLANK_CYCLES: usize = FRAME_CYCLES + HBLANK_CYCLES * 10;
+const TRANSFER_CYCLES: usize = 252;
+const HBLANK_CYCLES: usize = 456;
+const FRAME_CYCLES: usize = 456 * 146;
+const VBLANK_CYCLES: usize = FRAME_CYCLES + 456 * 10;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -269,7 +269,7 @@ impl GPU {
             self.paint_background();
         }
 
-        if self.LCDC.test_bit(5) {
+        if self.LCDC.test_bit(5) && self.LCDC.test_bit(0) {
             //draw window
             self.paint_window()
         }
