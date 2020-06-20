@@ -346,10 +346,10 @@ impl GPU {
                 self.update_tile(id, raw_address);
             }
 
-            let cache = self.tile_cache[ id ];
+            let cache = &self.tile_cache[ id ];
 
             let py = ((Y % 8) * 2) as u16;
-            let px = i % 8;
+            let px = X % 8;
 
             let mut t1 = cache.data[py as usize];    
             let mut t2 = cache.data[(py+1) as usize];
