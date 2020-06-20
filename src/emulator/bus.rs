@@ -48,7 +48,7 @@ impl Bus {
 
             Module::IO => {
                 match addr {
-                    LCDC => self.gpu.LCDC = byte,
+                    LCDC => self.gpu.write_lcdc(byte),
                     STAT => self.gpu.STAT = byte | 0x80,
                     SCY => self.gpu.scroll_y = byte,
                     SCX => self.gpu.scroll_x = byte,
@@ -70,7 +70,7 @@ impl Bus {
                     _ => {}
                 }
             },
-            Module::Unusable => { panic!("unusable memory") },
+            Module::Unusable => { panic!("Unusable was written") },
             Module::Timer => { self.timer.write_byte(addr, byte); }
         }
 
@@ -105,7 +105,7 @@ impl Bus {
                     _ => { Response::Byte(0xFF) }
                 }
             },
-            Module::Unusable => { panic!("unusable memory") },
+            Module::Unusable => { panic!("Unusable was read") },
             Module::Timer => { self.timer.read_byte(addr) },
         }
 
@@ -126,34 +126,19 @@ impl Bus {
         }
     }
 
-    pub fn read_short(&mut self, addr: u16) -> Response{
-        let b1 = Bus::classify(addr);
-        let b2 = Bus::classify(addr+1);
-
-        if b1 == b2 {
-
-            let lsb: u8 = self.read_byte(addr).value();
-            let msb: u8 = self.read_byte(addr+1).value();
-
-            Response::Short( lsb as u16 | (msb as u16) << 8  ) //>
-
-        } else {
-            panic!("Tried to read short along different modules")
-        }
-    }
 
     fn classify(address: u16) -> Module{
         match address {
-            0..=0x7FFF => Module::Cartrigbe,    
-            0x8000..=0x9FFF => Module::GPU,    
-            0xA000..=0xBFFF => Module::Cartrigbe,   
-            0xC000..=0xFDFF => Module::Memory,    
-            0xFE00..=0xFE9F => Module::GPU,     
-            0xFEA0..=0xFEFF => Module::Unusable,
+            0      ..= 0x7FFF => Module::Cartrigbe,    
+            0x8000 ..= 0x9FFF => Module::GPU,    
+            0xA000 ..= 0xBFFF => Module::Cartrigbe,   
+            0xC000 ..= 0xFDFF => Module::Memory,    
+            0xFE00 ..= 0xFE9F => Module::GPU,     
+            0xFEA0 ..= 0xFEFF => Module::Memory,
             TMA | TIMA | DIV | TAC => Module::Timer,
-            0xFF00..=0xFF7F => Module::IO, 
-            0xFF80..=0xFFFE => Module::Memory,   
-            0xFFFF => Module::Interrupt         
+            0xFF00 ..= 0xFF7F => Module::IO, 
+            0xFF80 ..= 0xFFFE => Module::Memory,   
+            0xFFFF            => Module::Interrupt,
         }
     }
 
@@ -173,11 +158,9 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn run_system(&mut self, cycles: u8) {
-        self.gpu.step(cycles, &mut self.interrupts);
+    pub fn run_system(&mut self, cycles: u8, screen: &mut Vec<u32>) {
+        self.gpu.step(cycles, &mut self.interrupts, screen);
         self.timer.step(cycles, &mut self.interrupts);
-        //self.sound.step
-        //self.dma
     }
     //maybe not an optimal solution, performs the dma all at once. The rom will wait 160 cycles either way
     fn perform_dma(&mut self) {

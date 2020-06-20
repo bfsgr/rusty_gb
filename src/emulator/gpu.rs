@@ -5,10 +5,10 @@ use super::bit_utils::{*};
 use super::cpu::registers::{Response};
 
 const OAM_SEARCH: usize = 80;
-const TRANSFER_CYCLES: usize = OAM_SEARCH + 172;
-const HBLANK_CYCLES: usize = OAM_SEARCH + 204;
-const FRAME_CYCLES: usize = HBLANK_CYCLES * 146;
-const VBLANK_CYCLES: usize = FRAME_CYCLES + HBLANK_CYCLES * 10;
+const TRANSFER_CYCLES: usize = 252;
+const HBLANK_CYCLES: usize = 456;
+const FRAME_CYCLES: usize = 456 * 146;
+const VBLANK_CYCLES: usize = FRAME_CYCLES + 456 * 10;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -78,7 +78,7 @@ impl SpriteList {
 }
 
 pub struct GPU {
-    mode: Mode,
+    pub mode: Mode,
     scanline_cycles: usize,
     frame_cycles: usize,
 
@@ -149,7 +149,7 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler){
+    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -166,12 +166,11 @@ impl GPU {
             if self.frame_cycles > FRAME_CYCLES {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
-                    //set STAT bits
-                    self.STAT.set_bit(0);
-                    self.STAT.reset_bit(1);
+                    self.set_mode(Mode::VBlank);
                     self.lock_vram = false;
                     self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
+                    *screen = self.display.clone();
                     //update interrupt flag
                     interrupt_status = self.STAT.test_bit(4);
 
@@ -185,8 +184,7 @@ impl GPU {
                     self.lock_oam = false;
                     //compare LY to LYC
                     self.line_compare(interrupt_handler);
-                    //reset mode to OAM
-                    self.mode = Mode::Oam;
+                    self.set_mode(Mode::Oam);
                 }
             } else {
                 //it's not vblank so test scanline cycles
@@ -194,9 +192,7 @@ impl GPU {
                     0 ..= OAM_SEARCH  => {
                         //OAM period
                         if cur_mode != Mode::Oam {
-                            self.mode = Mode::Oam;
-                            self.STAT.set_bit(1);
-                            self.STAT.reset_bit(0);
+                            self.set_mode(Mode::Oam);
                             interrupt_status = self.STAT.test_bit(5);
 
                             self.lock_oam = true;
@@ -206,9 +202,7 @@ impl GPU {
                     OAM_SEARCH ..= TRANSFER_CYCLES => {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
-                            self.mode = Mode::Transfer;
-                            self.STAT.set_bit(0);
-                            self.STAT.set_bit(1);
+                            self.set_mode(Mode::Transfer);
 
                             self.lock_vram = true;
                             self.lock_oam = true;
@@ -218,9 +212,7 @@ impl GPU {
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
-                            self.mode = Mode::HBlank;
-                            self.STAT.reset_bit(1);
-                            self.STAT.reset_bit(0);
+                            self.set_mode(Mode::HBlank);
 
                             self.lock_vram = false;
                             self.lock_oam = false;
@@ -264,23 +256,26 @@ impl GPU {
     }
 
     fn draw(&mut self){
+
+        let mut priority = vec![false; 160];
+
         if self.LCDC.test_bit(0) {
-            self.paint_background();
+            self.paint_background(&mut priority);
         }
 
-        if self.LCDC.test_bit(5) {
+        if self.LCDC.test_bit(5) && self.LCDC.test_bit(0) {
             //draw window
-            self.paint_window()
+            self.paint_window(&mut priority)
         }
         if self.LCDC.test_bit(1) {
             //search the visible sprites
             let visible = self.search_oam();
             //draw sprite
-            self.paint_sprites(visible);
+            self.paint_sprites(visible, &mut priority);
         }
     }
 
-    fn paint_background(&mut self){
+    fn paint_background(&mut self, priority: &mut Vec<bool>){
         //draw bg
 
         //get palette
@@ -345,10 +340,10 @@ impl GPU {
                 self.update_tile(id, raw_address);
             }
 
-            let cache = self.tile_cache[ id ];
+            let cache = &self.tile_cache[ id ];
 
             let py = ((Y % 8) * 2) as u16;
-            let px = i % 8;
+            let px = X % 8;
 
             let mut t1 = cache.data[py as usize];    
             let mut t2 = cache.data[(py+1) as usize];
@@ -364,12 +359,14 @@ impl GPU {
 
             let drawn = self.to_rgb(pixel, palette);
 
+            priority[i] = pixel != 0;
+
             self.display[(buffer + i as u32) as usize] = drawn;
         }
     }
 
     
-    fn paint_window(&mut self){
+    fn paint_window(&mut self, priority: &mut Vec<bool>){
 
         let palette = self.bg_palette;
 
@@ -447,11 +444,13 @@ impl GPU {
 
             let drawn = self.to_rgb(pixel, palette);
 
+            priority[i as usize] = pixel != 0;
+
             self.display[(buffer + i as u32) as usize] = drawn;
         }
     }
     
-    fn paint_sprites(&mut self, visible: SpriteList){
+    fn paint_sprites(&mut self, visible: SpriteList, priority: &mut Vec<bool>){
 
         //Max vertical size of a sprite
         let max_size = match self.LCDC.test_bit(2) {
@@ -499,7 +498,9 @@ impl GPU {
 
             let pixel = (b1 as u8) << 1 | b0 as u8; //>
 
-            if pixel == 0 { return () };
+            if pixel == 0 { continue; };
+
+            if sprite.priority && priority[px as usize] { continue; }
 
             let drawn = self.to_rgb(pixel, palette);
 
@@ -586,6 +587,47 @@ impl GPU {
 
         }
         visible_sprites
+    }
+
+    pub fn set_mode(&mut self, mode: Mode) {
+        let save = self.STAT;
+        match mode {
+            Mode::HBlank => {
+                self.STAT = save & 0xFC;
+            },
+            Mode::VBlank => {
+                self.STAT = save & 0xFC;
+                self.STAT.set_bit(0);
+            },
+            Mode::Oam => {
+                self.STAT = save & 0xFC;
+                self.STAT.set_bit(1);
+            },
+            Mode::Transfer => {
+                self.STAT.set_bit(0);
+                self.STAT.set_bit(1);
+            }
+        }
+        self.mode = mode;
+    }
+
+    pub fn write_lcdc(&mut self, byte: u8) {
+        if !byte.test_bit(7) && self.enabled() {
+            if self.mode != Mode::VBlank {
+                panic!("Turned LCD off outside of Vblank")
+            }
+            self.lcd_y = 0;
+            self.STAT = 0x80;
+            self.mode = Mode::HBlank;
+        }
+        if byte.test_bit(7) && !self.enabled() {
+            if self.lcd_y == self.lycompare { 
+                self.STAT.set_bit(2);
+            } else {
+                self.STAT.reset_bit(2)
+            }
+        }
+        self.LCDC = byte
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {

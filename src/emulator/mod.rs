@@ -11,6 +11,9 @@ mod bus;
 mod timer;
 mod joypad;
 
+use std::thread;
+use std::time::{Duration, Instant};
+
 const DEBUG_FLAG: bool = false;
 
 use cpu::{*};
@@ -30,6 +33,7 @@ const MAXCYCLES: u32 = 66576;
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
+    screen: Vec<u32>
 }
 
 impl Gameboy {
@@ -40,9 +44,15 @@ impl Gameboy {
 
         let mut window = Gameboy::create_window();
 
+        self.screen = vec![0;WIDTH*HEIGHT];
+
+        let duration = Duration::new(0, 16600000); 
+
         while window.is_open() && !window.is_key_down(Key::Escape) {
 
             let mut cycles_now = 0;
+
+            let start = Instant::now();
 
             while cycles_now < MAXCYCLES { 
 
@@ -104,13 +114,19 @@ impl Gameboy {
                 //update current cycles
                 cycles_now += cycles as u32;
 
+                let screen = &mut self.screen;
                 //run the rest of the system
-                self.bus.run_system(cycles);
+                self.bus.run_system(cycles, screen);
 
-            };
+                let elapsed = start.elapsed();
+                if elapsed < duration {
+                    thread::sleep(duration-elapsed);
+                }
+
+            };  
 
             // render next frame, this is VBLANK
-            let up = window.update_with_buffer(&self.bus.gpu.display, WIDTH, HEIGHT);
+            let up = window.update_with_buffer(&self.screen, WIDTH, HEIGHT);
             match up {
                 Err(up) => println!("{}", up),
                 _  => {},
@@ -172,9 +188,9 @@ impl Gameboy {
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
-        let int_cylces = self.cpu.interrupts(&mut self.bus);
+        self.cpu.interrupts(&mut self.bus);
 
-        if int_cylces != 0 { return int_cylces; }
+        // if int_cylces != 0 { return int_cylces; }
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
@@ -220,11 +236,21 @@ impl Gameboy {
                 },
             }
     
-            if debug_flag {
+            if debug_flag && pc > 256 {
                 let oprnds = Bus::to_short(operands);
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
-            }      
-
+            }   
+               
+            if pc == 0x0F15 || pc == 0x344 {
+                print!("");
+            }
+            
+            let ret = CPU::decode(0xC9, false);
+            
+            if ret == instruction {
+                print!("")
+            }
+            
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
 
