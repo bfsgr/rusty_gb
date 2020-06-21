@@ -167,8 +167,6 @@ impl GPU {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     self.set_mode(Mode::VBlank);
-                    self.lock_vram = false;
-                    self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
                     *screen = self.display.clone();
                     //update interrupt flag
@@ -180,8 +178,6 @@ impl GPU {
                     self.frame_cycles = 0;
                     self.scanline_cycles = 0;
                     self.lcd_y = 0;
-                    self.lock_vram = false;
-                    self.lock_oam = false;
                     //compare LY to LYC
                     self.line_compare(interrupt_handler);
                     self.set_mode(Mode::Oam);
@@ -194,29 +190,18 @@ impl GPU {
                         if cur_mode != Mode::Oam {
                             self.set_mode(Mode::Oam);
                             interrupt_status = self.STAT.test_bit(5);
-
-                            self.lock_oam = true;
-                            self.lock_vram = false;
                         }
                     },
                     OAM_SEARCH ..= TRANSFER_CYCLES => {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
                             self.set_mode(Mode::Transfer);
-
-                            self.lock_vram = true;
-                            self.lock_oam = true;
-
                             self.draw();
                         }
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
                             self.set_mode(Mode::HBlank);
-
-                            self.lock_vram = false;
-                            self.lock_oam = false;
-
                             interrupt_status = self.STAT.test_bit(3);
                         }
 
@@ -594,18 +579,26 @@ impl GPU {
         match mode {
             Mode::HBlank => {
                 self.STAT = save & 0xFC;
+                self.lock_vram = false;
+                self.lock_oam = false;
             },
             Mode::VBlank => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(0);
+                self.lock_vram = false;
+                self.lock_oam = false;
             },
             Mode::Oam => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(1);
+                self.lock_oam = true;
+                self.lock_vram = false;
             },
             Mode::Transfer => {
                 self.STAT.set_bit(0);
                 self.STAT.set_bit(1);
+                self.lock_vram = true;
+                self.lock_oam = true;
             }
         }
         self.mode = mode;
@@ -628,6 +621,16 @@ impl GPU {
             }
         }
         self.LCDC = byte
+    }
+
+    pub fn write_stat(&mut self, byte: u8) {
+        //only keep bytes 3-6
+        let data = (byte & 0xF8) | 0x80;
+        self.STAT = data;
+    }
+
+    pub fn read_stat(&mut self) -> u8 {
+        self.STAT | 0x80
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {
