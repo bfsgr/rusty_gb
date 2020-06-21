@@ -83,7 +83,6 @@ pub struct GPU {
     frame_cycles: usize,
 
     sprites: [Sprite; 40],
-
     tile_cache: [Tile; 384],
 
     lock_vram: bool,

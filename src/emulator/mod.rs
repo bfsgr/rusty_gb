@@ -179,9 +179,9 @@ impl Gameboy {
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
-        self.cpu.interrupts(&mut self.bus);
+        let int_cycles = self.cpu.interrupts(&mut self.bus);
 
-        // if int_cylces != 0 { return int_cylces; }
+        if int_cycles != 0 { return int_cycles; }
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
