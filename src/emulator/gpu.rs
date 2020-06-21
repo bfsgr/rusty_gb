@@ -612,6 +612,8 @@ impl GPU {
             self.lcd_y = 0;
             self.STAT = 0x80;
             self.mode = Mode::HBlank;
+            self.scanline_cycles = 0;
+            self.frame_cycles = 0;
         }
         if byte.test_bit(7) && !self.enabled() {
             if self.lcd_y == self.lycompare { 
