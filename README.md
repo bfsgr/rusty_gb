@@ -5,12 +5,12 @@
 - [X] 256 sub instruction set (0xCB prefix)
 - [X] Pass all [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests
 - [ ] Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) instrs timming tests
-- [ ] Review hardcoded cycles and interrupts cycles
+- [X] Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) halt bug test
 
 ## Bus
 - [X] Address Space
 - [X] Redirect R/W to correct module
-- [ ] Review OAM_DMA
+- [X] Review OAM_DMA
 
 ## GPU
 - [X] Basic background and window drawing (Sprites and BG priority not working properly yet)
