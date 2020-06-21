@@ -11,8 +11,6 @@ mod bus;
 mod timer;
 mod joypad;
 
-use std::thread;
-use std::time::{Duration, Instant};
 
 const DEBUG_FLAG: bool = false;
 
@@ -46,13 +44,11 @@ impl Gameboy {
 
         self.screen = vec![0;WIDTH*HEIGHT];
 
-        let duration = Duration::new(0, 16600000); 
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
 
             let mut cycles_now = 0;
 
-            let start = Instant::now();
 
             while cycles_now < MAXCYCLES { 
 
@@ -117,11 +113,6 @@ impl Gameboy {
                 let screen = &mut self.screen;
                 //run the rest of the system
                 self.bus.run_system(cycles, screen);
-
-                let elapsed = start.elapsed();
-                if elapsed < duration {
-                    thread::sleep(duration-elapsed);
-                }
 
             };  
 
