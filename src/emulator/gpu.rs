@@ -31,7 +31,7 @@ impl Default for Tile {
 #[derive(Copy, Clone)]
 struct Sprite{
     dirty: bool,
-    addr: u8,
+    addr: u16,
     x: u8,
     y: u8,
     palette: bool,
@@ -62,7 +62,7 @@ impl SpriteList {
     }
 
     fn full(&self) -> bool {
-        self.size >= 10
+        self.size >= 9
     }
 
     fn clear(&mut self) {
@@ -71,8 +71,8 @@ impl SpriteList {
     
     fn push(&mut self, x: u8) {
         if !self.full() {
-            self.sprites[self.size as usize] = x;
             self.size += 1;
+            self.sprites[self.size as usize] = x;
         }
     }
 }
@@ -471,8 +471,8 @@ impl GPU {
                 false => self.ob_palette0
             };
 
-            let mut t1 = self.vram[ ( sprite.addr * 16 + py * 2 ) as usize];
-            let mut t2 = self.vram[ ( sprite.addr * 16 + py * 2 + 1 ) as usize];
+            let mut t1 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 ) as usize];
+            let mut t2 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 + 1 ) as usize];
 
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
@@ -537,7 +537,7 @@ impl GPU {
 
         current.y = self.oam[index];
         current.x = self.oam[index+1];
-        current.addr = self.oam[index+2];
+        current.addr = self.oam[index+2] as u16;
 
         
         let flags = self.oam[index+3];

@@ -232,15 +232,6 @@ impl Gameboy {
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
             }   
                
-            if pc == 0x0F15 || pc == 0x344 {
-                print!("");
-            }
-            
-            let ret = CPU::decode(0xC9, false);
-            
-            if ret == instruction {
-                print!("")
-            }
             
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
