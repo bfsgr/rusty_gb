@@ -31,7 +31,7 @@ impl Default for Tile {
 #[derive(Copy, Clone)]
 struct Sprite{
     dirty: bool,
-    addr: u8,
+    addr: u16,
     x: u8,
     y: u8,
     palette: bool,
@@ -62,7 +62,7 @@ impl SpriteList {
     }
 
     fn full(&self) -> bool {
-        self.size >= 10
+        self.size >= 9
     }
 
     fn clear(&mut self) {
@@ -71,8 +71,8 @@ impl SpriteList {
     
     fn push(&mut self, x: u8) {
         if !self.full() {
-            self.sprites[self.size as usize] = x;
             self.size += 1;
+            self.sprites[self.size as usize] = x;
         }
     }
 }
@@ -83,7 +83,6 @@ pub struct GPU {
     frame_cycles: usize,
 
     sprites: [Sprite; 40],
-
     tile_cache: [Tile; 384],
 
     lock_vram: bool,
@@ -167,8 +166,6 @@ impl GPU {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     self.set_mode(Mode::VBlank);
-                    self.lock_vram = false;
-                    self.lock_oam = false;
                     interrupt_handler.request(Interrupt::VBlank);
                     *screen = self.display.clone();
                     //update interrupt flag
@@ -180,8 +177,6 @@ impl GPU {
                     self.frame_cycles = 0;
                     self.scanline_cycles = 0;
                     self.lcd_y = 0;
-                    self.lock_vram = false;
-                    self.lock_oam = false;
                     //compare LY to LYC
                     self.line_compare(interrupt_handler);
                     self.set_mode(Mode::Oam);
@@ -194,29 +189,18 @@ impl GPU {
                         if cur_mode != Mode::Oam {
                             self.set_mode(Mode::Oam);
                             interrupt_status = self.STAT.test_bit(5);
-
-                            self.lock_oam = true;
-                            self.lock_vram = false;
                         }
                     },
                     OAM_SEARCH ..= TRANSFER_CYCLES => {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
                             self.set_mode(Mode::Transfer);
-
-                            self.lock_vram = true;
-                            self.lock_oam = true;
-
                             self.draw();
                         }
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
                         if cur_mode != Mode::HBlank {
                             self.set_mode(Mode::HBlank);
-
-                            self.lock_vram = false;
-                            self.lock_oam = false;
-
                             interrupt_status = self.STAT.test_bit(3);
                         }
 
@@ -487,8 +471,8 @@ impl GPU {
                 false => self.ob_palette0
             };
 
-            let mut t1 = self.vram[ ( sprite.addr * 16 + py * 2 ) as usize];
-            let mut t2 = self.vram[ ( sprite.addr * 16 + py * 2 + 1 ) as usize];
+            let mut t1 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 ) as usize];
+            let mut t2 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 + 1 ) as usize];
 
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
@@ -553,7 +537,7 @@ impl GPU {
 
         current.y = self.oam[index];
         current.x = self.oam[index+1];
-        current.addr = self.oam[index+2];
+        current.addr = self.oam[index+2] as u16;
 
         
         let flags = self.oam[index+3];
@@ -594,18 +578,26 @@ impl GPU {
         match mode {
             Mode::HBlank => {
                 self.STAT = save & 0xFC;
+                self.lock_vram = false;
+                self.lock_oam = false;
             },
             Mode::VBlank => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(0);
+                self.lock_vram = false;
+                self.lock_oam = false;
             },
             Mode::Oam => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(1);
+                self.lock_oam = true;
+                self.lock_vram = false;
             },
             Mode::Transfer => {
                 self.STAT.set_bit(0);
                 self.STAT.set_bit(1);
+                self.lock_vram = true;
+                self.lock_oam = true;
             }
         }
         self.mode = mode;
@@ -619,6 +611,8 @@ impl GPU {
             self.lcd_y = 0;
             self.STAT = 0x80;
             self.mode = Mode::HBlank;
+            self.scanline_cycles = 0;
+            self.frame_cycles = 0;
         }
         if byte.test_bit(7) && !self.enabled() {
             if self.lcd_y == self.lycompare { 
@@ -628,6 +622,16 @@ impl GPU {
             }
         }
         self.LCDC = byte
+    }
+
+    pub fn write_stat(&mut self, byte: u8) {
+        //only keep bytes 3-6
+        let data = (byte & 0xF8) | 0x80;
+        self.STAT = data;
+    }
+
+    pub fn read_stat(&mut self) -> u8 {
+        self.STAT | 0x80
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) -> Response {

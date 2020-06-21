@@ -11,8 +11,6 @@ mod bus;
 mod timer;
 mod joypad;
 
-use std::thread;
-use std::time::{Duration, Instant};
 
 const DEBUG_FLAG: bool = false;
 
@@ -46,13 +44,11 @@ impl Gameboy {
 
         self.screen = vec![0;WIDTH*HEIGHT];
 
-        let duration = Duration::new(0, 16600000); 
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
 
             let mut cycles_now = 0;
 
-            let start = Instant::now();
 
             while cycles_now < MAXCYCLES { 
 
@@ -117,11 +113,6 @@ impl Gameboy {
                 let screen = &mut self.screen;
                 //run the rest of the system
                 self.bus.run_system(cycles, screen);
-
-                let elapsed = start.elapsed();
-                if elapsed < duration {
-                    thread::sleep(duration-elapsed);
-                }
 
             };  
 
@@ -188,9 +179,9 @@ impl Gameboy {
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
     fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
-        self.cpu.interrupts(&mut self.bus);
+        let int_cycles = self.cpu.interrupts(&mut self.bus);
 
-        // if int_cylces != 0 { return int_cylces; }
+        if int_cycles != 0 { return int_cycles; }
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
@@ -241,15 +232,6 @@ impl Gameboy {
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
             }   
                
-            if pc == 0x0F15 || pc == 0x344 {
-                print!("");
-            }
-            
-            let ret = CPU::decode(0xC9, false);
-            
-            if ret == instruction {
-                print!("")
-            }
             
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 

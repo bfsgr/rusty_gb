@@ -49,7 +49,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => self.gpu.write_lcdc(byte),
-                    STAT => self.gpu.STAT = byte | 0x80,
+                    STAT => self.gpu.write_stat(byte),
                     SCY => self.gpu.scroll_y = byte,
                     SCX => self.gpu.scroll_x = byte,
                     LY => self.gpu.lcd_y = byte,
@@ -88,7 +88,7 @@ impl Bus {
             Module::IO => {
                 match addr {
                     LCDC => { Response::Byte( self.gpu.LCDC ) },
-                    STAT => { Response::Byte( self.gpu.STAT | 0x80 ) },
+                    STAT => { Response::Byte( self.gpu.read_stat() ) },
                     SCY => { Response::Byte( self.gpu.scroll_y ) },
                     SCX => { Response::Byte( self.gpu.scroll_x ) },
                     LY => { Response::Byte( self.gpu.lcd_y ) },

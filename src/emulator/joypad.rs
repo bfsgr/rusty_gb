@@ -7,7 +7,7 @@ pub struct Joypad {
     JOYP: u8
 }
 
-impl Default for Joypad { fn default() -> Self { Joypad{ JOYP: 0x3F } } }
+impl Default for Joypad { fn default() -> Self { Joypad{ JOYP: 0xFF } } }
 
 impl Joypad {
     pub fn up(&self)  -> Interrupt{     
@@ -69,7 +69,9 @@ impl Joypad {
 
     pub fn write(&mut self, byte: u8) {
         //clears bits 7,6,3,2,1 and 0 (only bits 4 and 5 are W)
-        self.JOYP = byte & !0xCF;
+        let data = byte & 0x30;
+        self.JOYP |= data;
+
     }
     pub fn read(&self) -> u8 {
         self.JOYP
