@@ -488,7 +488,7 @@ impl GPU {
 
             let drawn = self.to_rgb(pixel, palette);
 
-            self.display[ (LY * 160 + sprite.x + px) as usize ] = drawn;
+            self.display[ ((LY as u16) * 160 + (sprite.x as u16) + (px as u16)) as usize ] = drawn;
         }
         
     }
