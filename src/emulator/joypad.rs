@@ -10,57 +10,65 @@ pub struct Joypad {
 impl Default for Joypad { fn default() -> Self { Joypad{ JOYP: 0xFF } } }
 
 impl Joypad {
-    pub fn up(&self)  -> Interrupt{     
+    pub fn up(&mut self)  -> Interrupt{     
         if !self.JOYP.test_bit(4) {
+            self.JOYP.reset_bit(2);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn left(&self)  -> Interrupt{
+    pub fn left(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(4) {
+            self.JOYP.reset_bit(1);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn right(&self)  -> Interrupt{
+    pub fn right(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(4) {
+            self.JOYP.reset_bit(0);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn down(&self)  -> Interrupt{
+    pub fn down(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(4) {
+            self.JOYP.reset_bit(3);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn start(&self)  -> Interrupt{
+    pub fn start(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(5) {
+            self.JOYP.reset_bit(3);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn select(&self)  -> Interrupt{
+    pub fn select(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(5) {
+            self.JOYP.reset_bit(2);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn btn_a(&self)  -> Interrupt{
+    pub fn btn_a(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(5) {
+            self.JOYP.reset_bit(0);
             Interrupt::Joypad
         } else {
             Interrupt::None
         }
     }
-    pub fn btn_b(&self)  -> Interrupt{
+    pub fn btn_b(&mut self)  -> Interrupt{
         if !self.JOYP.test_bit(5) {
+            self.JOYP.reset_bit(1);
             Interrupt::Joypad
         } else {
             Interrupt::None
