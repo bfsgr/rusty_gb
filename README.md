@@ -1,36 +1,19 @@
 # Rusty GB - Gameboy Emulator
+This is a side project I decided to make to learn Rust and more about emulation and OS's. This project doesn't aim to be optimized or acuterate.
+## What's working
+- [X] CPU
+* Pass all [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests
+* Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) halt bug test
+* Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) instrs timming tests
 
-## CPU
-- [X] 256 basic instruction set
-- [X] 256 sub instruction set (0xCB prefix)
-- [X] Pass all [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests
-- [ ] Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) instrs timming tests
-- [X] Pass [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) halt bug test
+- [X] GPU
+- [X] Timer
 
-## Bus
-- [X] Address Space
-- [X] Redirect R/W to correct module
-- [X] Review OAM_DMA
+* **Cartrigbe types**
+  - [X] MCB1 (Only battery support missing)
+  - [ ] MCB2
+  
+- [X] Sound Controller
+- [X] Joypad
 
-## GPU
-- [X] Basic background and window drawing
-- [X] Interrupt triggers
-- [X] BG priority
-- [X] Sprites
-
-## Timer
-- [X] Implemented completely
-- [X] Interrupt triggers
-
-## Cartrigbe
-- [X] MCB1 (Only battery support missing)
-- [ ] MCB2
-
-
-## Sound Controller
-- [ ] Basic implementation
-
-## Joypad
-- [X] Basic implementation
-- [X] Interrupt triggers
 
