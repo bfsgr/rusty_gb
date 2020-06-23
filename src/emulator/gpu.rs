@@ -492,10 +492,10 @@ impl GPU {
 
     fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
         let colors = [
-			0xEEEEEE, // 0 White
-			0x999999, // 1 Light Gray
-			0x666666, // 2 Dark Gray
-			0x222222, // 3 Black
+			0xE0F8D0, // 0 White
+			0x346856, // 1 Light Gray
+			0x88C070, // 2 Dark Gray
+			0x081820, // 3 Black
         ];
 
 		let shade = match pixel {
