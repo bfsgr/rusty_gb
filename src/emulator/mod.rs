@@ -12,6 +12,8 @@ mod timer;
 mod joypad;
 
 use joypad::Joypad;
+use std::thread;
+use std::time::{Duration, Instant};
 
 const DEBUG_FLAG: bool = false;
 
@@ -45,12 +47,15 @@ impl Gameboy {
 
         self.screen = vec![0;WIDTH*HEIGHT];
 
-
+		let frame = Duration::new(0, 16600000); // 16.6 ms as nanoseconds
+        
+        
         while window.is_open() && !window.is_key_down(Key::Escape) {
-
+            
             let mut cycles_now = 0;
-
-
+            
+            
+            let start = Instant::now();
             while cycles_now < MAXCYCLES { 
 
                 if window.is_key_pressed(Key::D, KeyRepeat::Yes) {
@@ -67,7 +72,14 @@ impl Gameboy {
                 self.bus.run_system(cycles, screen);
                 
                 Gameboy::get_input(&window, &mut self.bus.joypad, &mut self.bus.interrupts);
+
             };  
+            
+            let elapsed = start.elapsed();
+            if elapsed < frame {
+                thread::sleep(frame - elapsed);
+            }
+            
             
             // render next frame, this is VBLANK
             let up = window.update_with_buffer(&self.screen, WIDTH, HEIGHT);
