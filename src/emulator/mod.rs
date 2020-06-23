@@ -139,7 +139,7 @@ impl Gameboy {
             WindowOptions {
                 borderless: false,
                 resize: false,
-                scale: minifb::Scale::X2,
+                scale: minifb::Scale::X4,
                 scale_mode: minifb::ScaleMode::AspectRatioStretch,
                 title: true,
                 topmost: false
