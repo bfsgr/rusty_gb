@@ -13,10 +13,10 @@
 - [X] Review OAM_DMA
 
 ## GPU
-- [X] Basic background and window drawing (Sprites and BG priority not working properly yet)
+- [X] Basic background and window drawing
 - [X] Interrupt triggers
-- [ ] BG priority
-- [ ] Sprites
+- [X] BG priority
+- [X] Sprites
 
 ## Timer
 - [X] Implemented completely
