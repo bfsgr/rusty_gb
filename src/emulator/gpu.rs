@@ -28,12 +28,12 @@ impl Default for Tile {
     fn default() -> Self { Tile { dirty: true, data: [0; 16]} }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Sprite{
     dirty: bool,
     addr: u16,
-    x: u8,
-    y: u8,
+    x: i16,
+    y: i16,
     palette: bool,
     x_flip: bool,
     y_flip: bool,
@@ -43,37 +43,6 @@ struct Sprite{
 impl Default for Sprite {
     fn default() -> Self {
         Sprite { dirty: true, addr: 0, x: 0, y: 0, palette: false, x_flip: false, y_flip: false, priority: false}
-    }
-}
-
-//should be easier to just use a Vec, but I avoid using heap structures
-struct SpriteList{
-    sprites: [u8; 10],
-    size: i8
-}
-
-impl Default for SpriteList {
-    fn default() -> Self { SpriteList {sprites: [0;10], size: -1 } }
-}
-
-impl SpriteList {
-    fn empty(&self) -> bool {
-        self.size == -1
-    }
-
-    fn full(&self) -> bool {
-        self.size >= 9
-    }
-
-    fn clear(&mut self) {
-        self.size = -1;
-    }
-    
-    fn push(&mut self, x: u8) {
-        if !self.full() {
-            self.size += 1;
-            self.sprites[self.size as usize] = x;
-        }
     }
 }
 
@@ -434,63 +403,84 @@ impl GPU {
         }
     }
     
-    fn paint_sprites(&mut self, visible: SpriteList, priority: &mut Vec<bool>){
+    fn paint_sprites(&mut self, visible: Vec<Sprite>, priority: &mut Vec<bool>){
 
-        //Max vertical size of a sprite
-        let max_size = match self.LCDC.test_bit(2) {
-            true => 16,
-            false => 8
-        };
+        let ly = self.lcd_y;
+        let tall = self.LCDC.test_bit(2);
 
-        let LY = self.lcd_y;
+        for sprite in visible.iter().rev() {
+            let sx = sprite.x;
+            let sy = sprite.y;
 
-        
+            let y = ly.wrapping_sub(sy as u8) % 8;
 
-        for i in 0 .. visible.size {
-         
-            if self.sprites[ visible.sprites[i as usize] as usize].dirty {
-                self.update_sprite( visible.sprites[i as usize] as usize )
-            }
+            let py = match sprite.y_flip {
+                true =>  { ((y as i8 - 7) * -1) as u8 },
+                false => y
+            };
 
-            let sprite = self.sprites[ visible.sprites[i as usize] as usize] ;
-
-            let mut py = LY.wrapping_sub(sprite.y) % max_size;
-
-            if sprite.y_flip {
-                py = ((py as i16 - max_size as i16) * -1) as u8
-            }
+            let id = match tall {
+                true => {
+                    if ly.wrapping_sub(sy as u8) < 8 {
+                        if sprite.y_flip {
+                            sprite.addr | 1
+                        } else {
+                            sprite.addr & 0xFE
+                        }
+                    } else {
+                        if sprite.y_flip {
+                            sprite.addr & 0xFE
+                        } else {
+                            sprite.addr | 1
+                        }
+                    }
+                },
+                false => sprite.addr
+            };
             
-            let mut px = sprite.x % 8; 
 
-            if sprite.x_flip {
-                px = ((px as i16 - 8) * - 1 ) as u8;
+            if self.tile_cache[id as usize].dirty {
+                self.update_tile(id as usize, id*16);
             }
+
+            let tile = self.tile_cache[id as usize];
 
             let palette = match sprite.palette {
                 true => self.ob_palette1,
-                false => self.ob_palette0
+                false => self.ob_palette0,
             };
 
-            let mut t1 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 ) as usize];
-            let mut t2 = self.vram[ ( sprite.addr * 16 + (py as u16) * 2 + 1 ) as usize];
+            for i in 0..8 {
+                let actual_x = ((sx + i) as i16) as u8; 
 
-            t1 = GPU::reverse_order(t1);
-            t2 = GPU::reverse_order(t2);
+                if actual_x >= 160 { continue; }
 
-            let b1 = t1.test_bit(px);
-            let b0 = t2.test_bit(px);
+                let px = match sprite.x_flip {
+                    true => ((i as i8 - 7) * -1) as u8,
+                    false => i as u8
+                };
 
-            let pixel = (b1 as u8) << 1 | b0 as u8; //>
+                let mut t1 = tile.data[(py*2) as usize];    
+                let mut t2 = tile.data[(py*2+1) as usize];
+    
+                t1 = GPU::reverse_order(t1);
+                t2 = GPU::reverse_order(t2);
+                
+                let b1 = t1.test_bit(px);   
+                let b0 = t2.test_bit(px);
 
-            if pixel == 0 { continue; };
+                let pixel = (b1 as u8) << 1 | b0 as u8; //>
 
-            if sprite.priority && priority[px as usize] { continue; }
+                if pixel == 0 { continue; }
 
-            let drawn = self.to_rgb(pixel, palette);
+                let drawn = self.to_rgb(pixel, palette);
 
-            self.display[ (LY * 160 + sprite.x + px) as usize ] = drawn;
+                if sprite.priority && priority[actual_x as usize] { continue; }
+    
+                self.display[(ly as u16 * 160 + actual_x as u16) as usize] = drawn;
+            }
+
         }
-        
     }
 
     fn reverse_order(mut b: u8) -> u8{
@@ -502,10 +492,10 @@ impl GPU {
 
     fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
         let colors = [
-			0xEEEEEE, // 0 White
-			0x999999, // 1 Light Gray
-			0x666666, // 2 Dark Gray
-			0x222222, // 3 Black
+			0xE0F8D0, // 0 White
+			0x346856, // 1 Light Gray
+			0x88C070, // 2 Dark Gray
+			0x081820, // 3 Black
         ];
 
 		let shade = match pixel {
@@ -535,8 +525,8 @@ impl GPU {
         //Adjust index to oam address
         index *= 4;
 
-        current.y = self.oam[index];
-        current.x = self.oam[index+1];
+        current.y = self.oam[index] as i16 - 16;
+        current.x = self.oam[index+1] as i16 - 8;
         current.addr = self.oam[index+2] as u16;
 
         
@@ -550,23 +540,26 @@ impl GPU {
         current.dirty = false;
     }
 
-    fn search_oam(&mut self) -> SpriteList { 
-        let sprite_max: u8 = match self.LCDC.test_bit(2) {
+    fn search_oam(&mut self) -> Vec<Sprite> { 
+        let sprite_max: i16 = match self.LCDC.test_bit(2) {
             true => 15,
             false => 7
         };
 
-        let mut visible_sprites = SpriteList::default();
+        let mut visible_sprites: Vec<Sprite> = vec![];
 
-        for i in 0..40 {
+        for i in 0..40 {    
 
+            
             if self.sprites[i].dirty {
                 self.update_sprite(i as usize);
             }
+            
+            let sprite = self.sprites[i];
 
-            if self.sprites[i].x != 0 && self.lcd_y + sprite_max <= self.sprites[i].y && self.sprites[i].x != 160 && !visible_sprites.full() {
+            if sprite.x + 8 >= 0 && self.lcd_y as i16 >= sprite.y as i16 && self.lcd_y as i16 <= sprite.y as i16 + sprite_max && sprite.x < 160 && visible_sprites.len() < 11 {
                 
-                visible_sprites.push(i as u8);
+                visible_sprites.push(self.sprites[i]);
             }
 
         }
