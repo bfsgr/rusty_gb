@@ -32,8 +32,8 @@ impl Default for Tile {
 struct Sprite{
     dirty: bool,
     addr: u16,
-    x: u8,
-    y: u8,
+    x: i16,
+    y: i16,
     palette: bool,
     x_flip: bool,
     y_flip: bool,
@@ -412,7 +412,7 @@ impl GPU {
             let sx = sprite.x;
             let sy = sprite.y;
 
-            let y = ly.wrapping_sub(sy) % 8;
+            let y = ly.wrapping_sub(sy as u8) % 8;
 
             let py = match sprite.y_flip {
                 true =>  { ((y as i8 - 7) * -1) as u8 },
@@ -421,7 +421,7 @@ impl GPU {
 
             let id = match tall {
                 true => {
-                    if ly.wrapping_sub(sy) < 8 {
+                    if ly.wrapping_sub(sy as u8) < 8 {
                         if sprite.y_flip {
                             sprite.addr | 1
                         } else {
@@ -451,13 +451,13 @@ impl GPU {
             };
 
             for i in 0..8 {
-                let actual_x = sx + i;
+                let actual_x = ((sx + i) as i16) as u8; 
 
                 if actual_x >= 160 { continue; }
 
                 let px = match sprite.x_flip {
                     true => ((i as i8 - 7) * -1) as u8,
-                    false => i
+                    false => i as u8
                 };
 
                 let mut t1 = tile.data[py as usize];    
@@ -525,8 +525,8 @@ impl GPU {
         //Adjust index to oam address
         index *= 4;
 
-        current.y = self.oam[index];
-        current.x = self.oam[index+1];
+        current.y = self.oam[index] as i16 - 16;
+        current.x = self.oam[index+1] as i16 - 8;
         current.addr = self.oam[index+2] as u16;
 
         
@@ -541,7 +541,7 @@ impl GPU {
     }
 
     fn search_oam(&mut self) -> Vec<Sprite> { 
-        let sprite_max: u8 = match self.LCDC.test_bit(2) {
+        let sprite_max: i16 = match self.LCDC.test_bit(2) {
             true => 15,
             false => 7
         };
@@ -557,7 +557,7 @@ impl GPU {
             
             let sprite = self.sprites[i];
 
-            if sprite.x > 8 && self.lcd_y >= sprite.y && self.lcd_y <= sprite.y + sprite_max && sprite.x < 160 && visible_sprites.len() < 11 {
+            if sprite.x + 8 >= 0 && self.lcd_y as i16 >= sprite.y as i16 && self.lcd_y as i16 <= sprite.y as i16 + sprite_max && sprite.x < 160 && visible_sprites.len() < 11 {
                 
                 visible_sprites.push(self.sprites[i]);
             }
