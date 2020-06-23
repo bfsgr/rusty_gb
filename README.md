@@ -4,7 +4,7 @@ This is a side project I decided to make to learn Rust and more about emulation 
 - [X] CPU
 - [X] GPU
 - [X] Timer
-- [X] Sound Controller
+- [ ] Sound
 - [X] Joypad
 - [X] MCB1 (Only battery support missing)
 - [ ] MCB2
