@@ -46,37 +46,6 @@ impl Default for Sprite {
     }
 }
 
-//should be easier to just use a Vec, but I avoid using heap structures
-struct SpriteList{
-    sprites: [Sprite; 10],
-    size: i8
-}
-
-impl Default for SpriteList {
-    fn default() -> Self { SpriteList {sprites: [Sprite::default();10], size: -1 } }
-}
-
-impl SpriteList {
-    fn empty(&self) -> bool {
-        self.size == -1
-    }
-
-    fn full(&self) -> bool {
-        self.size >= 9
-    }
-
-    fn clear(&mut self) {
-        self.size = -1;
-    }
-    
-    fn push(&mut self, x: Sprite) {
-        if !self.full() {
-            self.size += 1;
-            self.sprites[self.size as usize] = x;
-        }
-    }
-}
-
 pub struct GPU {
     pub mode: Mode,
     scanline_cycles: usize,
@@ -434,11 +403,10 @@ impl GPU {
         }
     }
     
-    fn paint_sprites(&mut self, visible: SpriteList, _priority: &mut Vec<bool>){
-        if visible.size != -1 {
+    fn paint_sprites(&mut self, visible: Vec<Sprite>, _priority: &mut Vec<bool>){
+        if visible.len() > 0 {
             println!("LY: {}\n", self.lcd_y);
-            println!("SIZE: {}\n", visible.size);
-            println!("{:x?}\n", visible.sprites)
+            println!("{:x?}\n", visible)
         }
         
     }
@@ -500,13 +468,13 @@ impl GPU {
         current.dirty = false;
     }
 
-    fn search_oam(&mut self) -> SpriteList { 
+    fn search_oam(&mut self) -> Vec<Sprite> { 
         let sprite_max: u8 = match self.LCDC.test_bit(2) {
             true => 16,
             false => 8
         };
 
-        let mut visible_sprites = SpriteList::default();
+        let mut visible_sprites: Vec<Sprite> = vec![];
 
         for i in 0..40 {    
 
@@ -517,7 +485,7 @@ impl GPU {
             
             let sprite = self.sprites[i];
 
-            if sprite.x > 8 && self.lcd_y >= sprite.y && self.lcd_y <= sprite.y + sprite_max && sprite.x < 160 && !visible_sprites.full() {
+            if sprite.x > 8 && self.lcd_y >= sprite.y && self.lcd_y <= sprite.y + sprite_max && sprite.x < 160 && visible_sprites.len() < 11 {
                 
                 visible_sprites.push(self.sprites[i]);
             }
