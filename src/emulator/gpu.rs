@@ -460,8 +460,8 @@ impl GPU {
                     false => i as u8
                 };
 
-                let mut t1 = tile.data[py as usize];    
-                let mut t2 = tile.data[(py+1) as usize];
+                let mut t1 = tile.data[(py*2) as usize];    
+                let mut t2 = tile.data[(py*2+1) as usize];
     
                 t1 = GPU::reverse_order(t1);
                 t2 = GPU::reverse_order(t2);
