@@ -81,47 +81,84 @@ impl Gameboy {
     }
 
     fn get_input(window: &Window, joypad: &mut Joypad, interrupts: &mut InterruptHandler) {
-        if window.is_key_pressed(Key::Up, KeyRepeat::No) || window.is_key_pressed(Key::G, KeyRepeat::No) {
-            let up = joypad.up(true);
-            let select = joypad.select(true);
+        if window.is_key_pressed(Key::Up, KeyRepeat::Yes)  {
+            let int = joypad.up(true);
 
-            if up == Interrupt::Joypad || select == Interrupt::Joypad { 
+            if int == Interrupt::Joypad { 
                 interrupts.request(Interrupt::Joypad);
             }
+
         } else {
             joypad.up(false);
         }
-        if window.is_key_pressed(Key::Left, KeyRepeat::No) || window.is_key_pressed(Key::X, KeyRepeat::No) {
-            let left = joypad.left(true);
-            let btn_b = joypad.btn_b(true);
+        if window.is_key_pressed(Key::Down, KeyRepeat::Yes)  {
+            let int = joypad.down(true);
 
-            if left == Interrupt::Joypad || btn_b == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.left(false);
-        }
-        if window.is_key_pressed(Key::Right, KeyRepeat::No) || window.is_key_pressed(Key::Z, KeyRepeat::No){
-            let right = joypad.right(true);
-            let btn_a = joypad.btn_a(true);
-
-            if right == Interrupt::Joypad || btn_a == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.right(false);
-        }
-        if window.is_key_pressed(Key::Down, KeyRepeat::No) || window.is_key_pressed(Key::F, KeyRepeat::No)  {
-            let down = joypad.down(true);
-            let start = joypad.start(true);
-
-            if down == Interrupt::Joypad || start == Interrupt::Joypad { 
+            if int == Interrupt::Joypad { 
                 interrupts.request(Interrupt::Joypad);
             }
         } else {
             joypad.down(false);
         }
 
+        if window.is_key_pressed(Key::Left, KeyRepeat::Yes)  {
+            let int = joypad.left(true);
+
+            if int == Interrupt::Joypad { 
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.left(false);
+        }
+
+        if window.is_key_pressed(Key::Right, KeyRepeat::Yes)  {
+            let int = joypad.right(true);
+
+            if int == Interrupt::Joypad { 
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.right(false);
+        }
+
+        if window.is_key_pressed(Key::F, KeyRepeat::Yes)  {
+            let int = joypad.start(true);
+
+            if int == Interrupt::Joypad { 
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.start(false);
+        }
+
+        if window.is_key_pressed(Key::Z, KeyRepeat::Yes)  {
+            let int = joypad.btn_a(true);
+
+            if int == Interrupt::Joypad { 
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.btn_a(false);
+        }
+
+        if window.is_key_pressed(Key::X, KeyRepeat::Yes)  {
+            let int = joypad.btn_b(true);
+
+            if int == Interrupt::Joypad { 
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.btn_b(false);
+        }
+
+        if window.is_key_pressed(Key::G, KeyRepeat::Yes) {
+            let select = joypad.select(true);
+            if select == Interrupt::Joypad {
+                interrupts.request(Interrupt::Joypad);
+            }
+        } else {
+            joypad.select(false);
+        }
     }
 
     fn interrupt_running(&self) -> bool {
