@@ -403,12 +403,84 @@ impl GPU {
         }
     }
     
-    fn paint_sprites(&mut self, visible: Vec<Sprite>, _priority: &mut Vec<bool>){
-        if visible.len() > 0 {
-            println!("LY: {}\n", self.lcd_y);
-            println!("{:x?}\n", visible)
+    fn paint_sprites(&mut self, visible: Vec<Sprite>, priority: &mut Vec<bool>){
+
+        let ly = self.lcd_y;
+        let tall = self.LCDC.test_bit(2);
+
+        for sprite in visible.iter().rev() {
+            let sx = sprite.x;
+            let sy = sprite.y;
+
+            let y = ly.wrapping_sub(sy) % 8;
+
+            let py = match sprite.y_flip {
+                true =>  { ((y as i8 - 7) * -1) as u8 },
+                false => y
+            };
+
+            let id = match tall {
+                true => {
+                    if ly.wrapping_sub(sy) < 8 {
+                        if sprite.y_flip {
+                            sprite.addr | 1
+                        } else {
+                            sprite.addr & 0xFE
+                        }
+                    } else {
+                        if sprite.y_flip {
+                            sprite.addr & 0xFE
+                        } else {
+                            sprite.addr | 1
+                        }
+                    }
+                },
+                false => sprite.addr
+            };
+            
+
+            if self.tile_cache[id as usize].dirty {
+                self.update_tile(id as usize, id*16);
+            }
+
+            let tile = self.tile_cache[id as usize];
+
+            let palette = match sprite.palette {
+                true => self.ob_palette1,
+                false => self.ob_palette0,
+            };
+
+            for i in 0..8 {
+                let actual_x = sx + i;
+
+                if actual_x >= 160 { continue; }
+
+                let px = match sprite.x_flip {
+                    true => ((i as i8 - 7) * -1) as u8,
+                    false => i
+                };
+
+                let mut t1 = tile.data[py as usize];    
+                let mut t2 = tile.data[(py+1) as usize];
+    
+                t1 = GPU::reverse_order(t1);
+                t2 = GPU::reverse_order(t2);
+                
+                let b1 = t1.test_bit(px);   
+                let b0 = t2.test_bit(px);
+
+                let pixel = (b1 as u8) << 1 | b0 as u8; //>
+
+                if pixel == 0 { continue; }
+
+                let drawn = self.to_rgb(pixel, palette);
+
+                if sprite.priority && priority[actual_x as usize] { continue; }
+    
+                self.display[(ly as u16 * 160 + actual_x as u16) as usize] = drawn;
+            }
+
         }
-        
     }
 
     fn reverse_order(mut b: u8) -> u8{
@@ -470,8 +542,8 @@ impl GPU {
 
     fn search_oam(&mut self) -> Vec<Sprite> { 
         let sprite_max: u8 = match self.LCDC.test_bit(2) {
-            true => 16,
-            false => 8
+            true => 15,
+            false => 7
         };
 
         let mut visible_sprites: Vec<Sprite> = vec![];
