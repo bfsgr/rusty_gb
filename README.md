@@ -1,5 +1,5 @@
 # Rusty GB - Gameboy Emulator
-This is a side project I decided to make to learn Rust and more about emulation and OS's. This project doesn't aim to be optimized or acuterate.
+This is a side project I decided to make to learn Rust and more about emulation and OS's. This project doesn't aim to be optimized or accurate.
 ## What's working
 - [X] CPU
 - [X] GPU
