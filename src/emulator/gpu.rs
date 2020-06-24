@@ -304,8 +304,8 @@ impl GPU {
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
             
-            let b1 = t1.test_bit(px);   
-            let b0 = t2.test_bit(px);
+            let b1 = t2.test_bit(px);   
+            let b0 = t1.test_bit(px);
 
             let pixel = (b1 as u8) << 1 | b0 as u8; //>
             
@@ -324,8 +324,14 @@ impl GPU {
         let palette = self.bg_palette;
 
         let WY = self.window_y;
-        let WX = self.window_x;
+        //pixels 0..=7 aren't visible
+        let WX = self.window_x.wrapping_sub(7);
 
+        let LY = self.lcd_y;
+
+        //window does not appear in this row
+        if LY < WY || WY > 143 { return (); }
+        if WX > 159 { return (); }
         //tile map address base
         let tile_map_addr = match self.LCDC.test_bit(6) {
             true => 0x9C00,
@@ -338,15 +344,10 @@ impl GPU {
             false => 0x9000
         };
 
-        let LY = self.lcd_y;
 
         let buffer: u32 = LY as u32 * 160;
 
-        let row = LY / 8;
-
-        //window does not appear in this row
-        if LY < WY || WY > 143 { return (); }
-        if WX > 159 { return (); }
+        let row = (LY - WY) / 8;
 
         for i in WX..160 {
 
@@ -389,8 +390,8 @@ impl GPU {
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
             
-            let b1 = t1.test_bit(px);   
-            let b0 = t2.test_bit(px);
+            let b1 = t2.test_bit(px);   
+            let b0 = t1.test_bit(px);
 
             let pixel = (b1 as u8) << 1 | b0 as u8; //>
             
@@ -407,6 +408,7 @@ impl GPU {
 
         let ly = self.lcd_y;
         let tall = self.LCDC.test_bit(2);
+        let buffer = ly as u32 * 160;
 
         for sprite in visible.iter().rev() {
             let sx = sprite.x;
@@ -466,8 +468,8 @@ impl GPU {
                 t1 = GPU::reverse_order(t1);
                 t2 = GPU::reverse_order(t2);
                 
-                let b1 = t1.test_bit(px);   
-                let b0 = t2.test_bit(px);
+                let b1 = t2.test_bit(px);   
+                let b0 = t1.test_bit(px);
 
                 let pixel = (b1 as u8) << 1 | b0 as u8; //>
 
@@ -477,7 +479,7 @@ impl GPU {
 
                 if sprite.priority && priority[actual_x as usize] { continue; }
     
-                self.display[(ly as u16 * 160 + actual_x as u16) as usize] = drawn;
+                self.display[(buffer + actual_x as u32) as usize] = drawn;
             }
 
         }
@@ -493,8 +495,8 @@ impl GPU {
     fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
         let colors = [
 			0xE0F8D0, // 0 White
-			0x346856, // 1 Light Gray
-			0x88C070, // 2 Dark Gray
+			0x88C070, // 1 Light Gray
+			0x346856, // 2 Dark Gray
 			0x081820, // 3 Black
         ];
 
