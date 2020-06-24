@@ -304,8 +304,8 @@ impl GPU {
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
             
-            let b1 = t1.test_bit(px);   
-            let b0 = t2.test_bit(px);
+            let b1 = t2.test_bit(px);   
+            let b0 = t1.test_bit(px);
 
             let pixel = (b1 as u8) << 1 | b0 as u8; //>
             
@@ -390,8 +390,8 @@ impl GPU {
             t1 = GPU::reverse_order(t1);
             t2 = GPU::reverse_order(t2);
             
-            let b1 = t1.test_bit(px);   
-            let b0 = t2.test_bit(px);
+            let b1 = t2.test_bit(px);   
+            let b0 = t1.test_bit(px);
 
             let pixel = (b1 as u8) << 1 | b0 as u8; //>
             
@@ -468,8 +468,8 @@ impl GPU {
                 t1 = GPU::reverse_order(t1);
                 t2 = GPU::reverse_order(t2);
                 
-                let b1 = t1.test_bit(px);   
-                let b0 = t2.test_bit(px);
+                let b1 = t2.test_bit(px);   
+                let b0 = t1.test_bit(px);
 
                 let pixel = (b1 as u8) << 1 | b0 as u8; //>
 
@@ -495,8 +495,8 @@ impl GPU {
     fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
         let colors = [
 			0xE0F8D0, // 0 White
-			0x346856, // 1 Light Gray
-			0x88C070, // 2 Dark Gray
+			0x88C070, // 1 Light Gray
+			0x346856, // 2 Dark Gray
 			0x081820, // 3 Black
         ];
 
