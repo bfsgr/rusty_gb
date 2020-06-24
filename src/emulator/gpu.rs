@@ -408,6 +408,7 @@ impl GPU {
 
         let ly = self.lcd_y;
         let tall = self.LCDC.test_bit(2);
+        let buffer = ly as u32 * 160;
 
         for sprite in visible.iter().rev() {
             let sx = sprite.x;
@@ -478,7 +479,7 @@ impl GPU {
 
                 if sprite.priority && priority[actual_x as usize] { continue; }
     
-                self.display[(ly as u16 * 160 + actual_x as u16) as usize] = drawn;
+                self.display[(buffer + actual_x as u32) as usize] = drawn;
             }
 
         }
