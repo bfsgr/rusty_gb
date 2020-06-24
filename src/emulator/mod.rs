@@ -93,7 +93,7 @@ impl Gameboy {
     }
 
     fn get_input(window: &Window, joypad: &mut Joypad, interrupts: &mut InterruptHandler) {
-        if window.is_key_pressed(Key::Up, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::Up)  {
             let int = joypad.up(true);
 
             if int == Interrupt::Joypad { 
@@ -103,7 +103,7 @@ impl Gameboy {
         } else {
             joypad.up(false);
         }
-        if window.is_key_pressed(Key::Down, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::Down)  {
             let int = joypad.down(true);
 
             if int == Interrupt::Joypad { 
@@ -113,7 +113,7 @@ impl Gameboy {
             joypad.down(false);
         }
 
-        if window.is_key_pressed(Key::Left, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::Left)  {
             let int = joypad.left(true);
 
             if int == Interrupt::Joypad { 
@@ -123,7 +123,7 @@ impl Gameboy {
             joypad.left(false);
         }
 
-        if window.is_key_pressed(Key::Right, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::Right)  {
             let int = joypad.right(true);
 
             if int == Interrupt::Joypad { 
@@ -133,7 +133,7 @@ impl Gameboy {
             joypad.right(false);
         }
 
-        if window.is_key_pressed(Key::F, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::F)  {
             let int = joypad.start(true);
 
             if int == Interrupt::Joypad { 
@@ -143,7 +143,7 @@ impl Gameboy {
             joypad.start(false);
         }
 
-        if window.is_key_pressed(Key::Z, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::Z)  {
             let int = joypad.btn_a(true);
 
             if int == Interrupt::Joypad { 
@@ -153,7 +153,7 @@ impl Gameboy {
             joypad.btn_a(false);
         }
 
-        if window.is_key_pressed(Key::X, KeyRepeat::Yes)  {
+        if window.is_key_down(Key::X)  {
             let int = joypad.btn_b(true);
 
             if int == Interrupt::Joypad { 
@@ -163,7 +163,7 @@ impl Gameboy {
             joypad.btn_b(false);
         }
 
-        if window.is_key_pressed(Key::G, KeyRepeat::Yes) {
+        if window.is_key_down(Key::G) {
             let select = joypad.select(true);
             if select == Interrupt::Joypad {
                 interrupts.request(Interrupt::Joypad);
@@ -171,10 +171,6 @@ impl Gameboy {
         } else {
             joypad.select(false);
         }
-    }
-
-    fn interrupt_running(&self) -> bool {
-        self.bus.interrupts.enable & 0x00FF != 0
     }
 
     fn create_window() -> Window {
