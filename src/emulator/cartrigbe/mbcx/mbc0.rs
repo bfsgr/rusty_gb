@@ -12,6 +12,7 @@ impl MBC for MBC0 {
         self.data[addr as usize]
     }
     fn load(&mut self, _: String, _: u8, _: u8, _: u8, data: Vec<u8> ) {
+        if data.len() != 0x8000 { panic!("Wrong data size for MBC0") }
         self.data = data;
     }
 }
