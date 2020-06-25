@@ -18,10 +18,14 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn parse(&mut self, data: &Vec<u8>){
+    pub fn parse(&mut self, data: &Vec<u8>) -> (String, u8, u8, u8) {
 
         for i in 0x0134..=0x0143{
-            self.title.push(data[i] as char)
+            let c = data[i];
+            match c {
+                0 => {},
+                _ => self.title.push(data[i] as char)
+            }
         }
 
         for i in 0x013F..=0x0142 {
@@ -41,16 +45,12 @@ impl Header {
         self.global_checksum = data[0x014E] as u16 | (data[0x014F] as u16) << 8; //>
 
         self.validate(data);
+
+        (self.title.clone(), self.cartrigbe_type, self.rom_size, self.ram_size)
     }
 
     fn validate(&self, data: &Vec<u8>) {
         if (self.GCB_flag & 0xC0 ) == 0xC0 { panic!("Game is GameBoy Color only") }
-
-        if self.cartrigbe_type > 2 { panic!("Emulator only supports cartrigbe up to MCB1+RAM") }
-
-        if self.ram_size != 0 && self.cartrigbe_type != 2 { 
-            panic!("RAM size and cartrigbe type doesn't match")
-        }
 
         let mut x: u8 = 0;
 
