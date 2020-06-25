@@ -4,7 +4,7 @@ mod cpu;
 mod gpu;
 mod memory;
 mod io_constants;
-mod cartrigbe;
+mod cartridge;
 mod interrupt;
 mod bit_utils;
 mod bus;

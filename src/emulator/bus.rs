@@ -3,7 +3,7 @@ use super::io_constants::{*};
 use super::gpu::{*};
 use super::memory::{*};
 use super::timer::{*};
-use super::cartrigbe::{*};
+use super::cartridge::{*};
 use super::joypad::{*};
 use super::cpu::registers::Response;
 use super::cpu::registers::Value;
