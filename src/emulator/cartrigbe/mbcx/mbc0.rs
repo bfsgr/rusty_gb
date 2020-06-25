@@ -6,10 +6,7 @@ pub struct MBC0 {
 }
 
 impl MBC for MBC0 {
-    fn write(&mut self, addr: u16, byte: u8) {
-        if addr > 0x7FFF { return (); }
-        self.data[addr as usize] = byte;
-    }
+    fn write(&mut self, _addr: u16, _byte: u8) {}
     fn read(&self, addr: u16) -> u8 {
         if addr > 0x7FFF { return 0xFF; }
         self.data[addr as usize]
