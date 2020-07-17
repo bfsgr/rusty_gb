@@ -35,6 +35,19 @@ pub fn rom_to_size(code: u8) -> usize {
     }
 }   
 
+pub fn ram_to_size(code: u8) -> usize {
+    match code {
+        0 => 0,
+        1 => 0x800,
+        2 => 0x2000,
+        3 => 0x8000,
+        4 => 0x20000,
+        5 => 0x10000,
+        
+        _ => { unreachable!("Invalid ROM size code: {:x}", code) }
+    }
+}   
+
 pub fn fix_rom_bank(rom_bank: u8) -> u8 {
     match rom_bank {
         0 | 0x20 | 0x40 | 0x60 => rom_bank + 1,

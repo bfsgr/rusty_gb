@@ -7,16 +7,17 @@ use header::Header;
 use std::fs::File;
 use std::io::Read;
 use super::cpu::registers::Response;
+use std::fmt::{Display, Formatter, Result};
 
-pub struct Cartrigbe {
+pub struct Cartridge {
     header: Header,
     controller: Box<dyn MBC>,
     bios_control: u8,
 }
 
-impl Default for Cartrigbe {
+impl Default for Cartridge {
     fn default() -> Self {
-        Cartrigbe { 
+        Cartridge { 
             header: Header::default(),
             controller: Box::new(MBC0::default()),
             bios_control: 0,
@@ -24,7 +25,7 @@ impl Default for Cartrigbe {
     }
 }
 
-impl Cartrigbe {
+impl Cartridge {
     pub fn insert(&mut self, fname: String) {
         let file = File::open(fname);
 
@@ -47,10 +48,12 @@ impl Cartrigbe {
         match info.1 {
             0 => {},
             1 ..= 3 => { self.controller = Box::new(MBC1::default()) }
-            _ => unreachable!("Cartrigbe type not suported")
+            _ => unreachable!("Cartridge type not suported")
         }
 
-        self.controller.load(info.0, info.1, info.2, info.3, data)
+        self.controller.load(info.0, info.1, info.2, info.3, data);
+
+        println!("{}", self);
     }
 
     pub fn write_byte(&mut self, addr: u16, byte: u8) {
@@ -67,6 +70,23 @@ impl Cartrigbe {
 
     pub fn bios_control(&mut self, byte: u8) {
         self.bios_control = byte;
+    }
+}
+
+impl Display for Cartridge {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f,
+"Title: {}
+Type: {:x}
+ROM: {:x}
+RAM: {:x}
+",
+self.header.title,
+self.header.cartridge_type,
+self.header.rom_size,
+self.header.ram_size,
+
+        )
     }
 }
 

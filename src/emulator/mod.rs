@@ -41,7 +41,7 @@ impl Gameboy {
     //main loop
     pub fn start(&mut self){
 
-        let mut debug = false;
+        let mut debug = true;
 
         let mut window = Gameboy::create_window();
 

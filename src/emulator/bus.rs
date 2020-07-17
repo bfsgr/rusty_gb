@@ -13,7 +13,7 @@ pub use super::interrupt::{*};
 pub struct Bus {
     memory: Memory,
     pub gpu: GPU,
-    cartrigbe: Cartrigbe,
+    cartrigbe: Cartridge,
     pub interrupts: InterruptHandler,
     timer: Timer,
     pub joypad: Joypad,

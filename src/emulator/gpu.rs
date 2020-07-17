@@ -601,7 +601,7 @@ impl GPU {
     pub fn write_lcdc(&mut self, byte: u8) {
         if !byte.test_bit(7) && self.enabled() {
             if self.mode != Mode::VBlank {
-                panic!("Turned LCD off outside of Vblank")
+                // panic!("Turned LCD off outside of Vblank")
             }
             self.lcd_y = 0;
             self.STAT = 0x80;

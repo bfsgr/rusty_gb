@@ -1,8 +1,12 @@
 use super::super::mbcx::{*};
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
 
 #[derive(Default)]
 pub struct MBC1 {
     title: String,
+    battery: bool,
     mode: Mode,
     ram_on: bool,
     rom_bank: u8,
@@ -33,7 +37,7 @@ impl MBC for MBC1 {
             },
             0x4000 ..= 0x5FFF => {
                 if self.mode == Mode::RAM {
-                    self.ram_bank = byte & 3; 
+                    self.ram_bank = byte;
                 } else {
                     self.rom_bank = self.rom_bank & !0xE0;
                     byte = (byte & 0x3) << 5; //>
@@ -108,13 +112,53 @@ impl MBC for MBC1 {
                 if ram_size != 0 { panic!("RAM size and cartrigbe type doesn't match") }
                 if size != data.len() { panic!("Data size and doesn't match header info") }
             },
-            2 => {},
-            3 => {},
+            2 => {
+                let size = rom_to_size(rom_size);
+                let rsize = ram_to_size(ram_size);
+                if size != data.len() { panic!("Data size and doesn't match header info") }
+                self.sram = vec![0; rsize];
+            },
+            3 => {
+                let size = rom_to_size(rom_size);
+                let rsize = ram_to_size(ram_size);
+                if size != data.len() { panic!("Data size and doesn't match header info") }
+                self.try_load(rsize);
+                self.battery = true;
+            },
             _ => { panic!("Wrong type for MBC1: {:x}", ctype); }
         };
         
         self.rom_bank = 1;
         self.title = title;
         self.data = data;
+    }
+}
+
+impl MBC1 {
+    fn try_load(&mut self, ram_size: usize) {
+        let mut name = self.title.clone();
+        name.push_str(".sav");
+        let file = File::open(name);
+
+        match file {
+            Ok(mut file) => {
+                let _ = file.read_to_end(&mut self.sram);
+                if ram_size != self.sram.len() { panic!("Save has wrong size") }
+            },
+            Err(_) => {
+                self.sram = vec![0; ram_size];
+            }
+        }
+    }
+}
+
+impl Drop for MBC1 {
+    fn drop(&mut self) {
+        if self.battery {
+            let mut name = self.title.clone();
+            name.push_str(".sav");
+            let mut file = File::create(name).unwrap();
+            file.write_all(&self.sram).unwrap();
+        }
     }
 }
