@@ -6,7 +6,7 @@ This is a side project I decided to make to learn Rust and more about emulation 
 - [X] Timer
 - [ ] Sound
 - [X] Joypad
-- [X] MCB1 (SRAM support currently broken)
+- [X] MCB1
 - [ ] MCB2
 
 ## Accuracy 
