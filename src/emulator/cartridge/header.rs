@@ -2,13 +2,13 @@
 
 #[derive(Default)]
 pub struct Header {
-    title: String,
+    pub title: String,
     manufacturer_code: String,
-    cartrigbe_type: u8,
+    pub cartridge_type: u8,
     license_code: u16,
     GCB_flag: u8,
     SGB_flag: u8,
-    rom_size: u8,
+    pub rom_size: u8,
     pub ram_size: u8,
     jp_flag: u8,
     old_license: u8,
@@ -34,7 +34,7 @@ impl Header {
 
         self.GCB_flag = data[0x0143];
         self.SGB_flag = data[0x0146];
-        self.cartrigbe_type = data[0x0147];
+        self.cartridge_type = data[0x0147];
         self.rom_size = data[0x0148];
         self.ram_size = data[0x0149];
         self.jp_flag = data[0x014A];
@@ -46,7 +46,7 @@ impl Header {
 
         self.validate(data);
 
-        (self.title.clone(), self.cartrigbe_type, self.rom_size, self.ram_size)
+        (self.title.clone(), self.cartridge_type, self.rom_size, self.ram_size)
     }
 
     fn validate(&self, data: &Vec<u8>) {
