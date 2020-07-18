@@ -19,7 +19,7 @@ impl MBC for MBC1 {
     fn write(&mut self, addr: u16, mut byte: u8) {
         match addr {
             0 ..= 0x1FFF => {
-                if (byte & 0xA0) == 0xA0 {
+                if (byte & 0x0A) == 0x0A {
                     self.ram_on = true;
                 } else {
                     self.ram_on = false;
