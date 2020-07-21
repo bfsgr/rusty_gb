@@ -1,10 +1,11 @@
 pub mod mbc0;
 pub mod mbc1;
+use super::header::Header;
 
 pub trait MBC {
     fn write(&mut self, addr: u16, byte: u8);
     fn read(&self, addr: u16) -> u8;
-    fn load(&mut self, title: String, ctype: u8, rom: u8, ram: u8, data: Vec<u8> );
+    fn load(&mut self, data: Vec<u8>, header: Header );
 }
 #[derive(PartialEq)]
 pub enum Mode {

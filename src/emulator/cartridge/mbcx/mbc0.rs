@@ -11,7 +11,7 @@ impl MBC for MBC0 {
         if addr > 0x7FFF { return 0xFF; }
         self.data[addr as usize]
     }
-    fn load(&mut self, _: String, _: u8, _: u8, _: u8, data: Vec<u8> ) {
+    fn load(&mut self, data: Vec<u8>, _: Header ) {
         if data.len() != 0x8000 { panic!("Wrong data size for MBC0") }
         self.data = data;
     }
