@@ -56,6 +56,7 @@ pub struct GPU {
 
     lock_vram: bool,
     lock_oam: bool,
+    skip_frame: bool,
 
     pub LCDC: u8,           //0xFF40     (R/W)
     pub STAT: u8,           //0xFF41     (R/W)
@@ -86,6 +87,7 @@ impl Default for GPU {
             frame_cycles: 0,
             lock_vram: false,
             lock_oam: false,
+            skip_frame: true,
             sprites: [Sprite::default(); 40],
             tile_cache: [Tile::default(); 384],
             LCDC: 0,           //0xFF40     (R/W)
@@ -143,6 +145,7 @@ impl GPU {
                 }
                 //frame_cycles are bigger than the Vblank period, reset everything
                 if self.frame_cycles > VBLANK_CYCLES {
+                    self.skip_frame = false;
                     self.frame_cycles = 0;
                     self.scanline_cycles = 0;
                     self.lcd_y = 0;
@@ -164,7 +167,9 @@ impl GPU {
                         //Transfer period
                         if cur_mode != Mode::Transfer {
                             self.set_mode(Mode::Transfer);
-                            self.draw();
+                            if !self.skip_frame {
+                                self.draw();
+                            }
                         }
                     },
                     TRANSFER_CYCLES ..= HBLANK_CYCLES => {
@@ -615,6 +620,7 @@ impl GPU {
             } else {
                 self.STAT.reset_bit(2)
             }
+            self.skip_frame = true;
         }
         self.LCDC = byte
     }
