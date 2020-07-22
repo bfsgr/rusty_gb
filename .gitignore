@@ -7,3 +7,4 @@ cpu_instrs
 cpu_instrs.asm
 trace.log
 test_roms
+*.sav
