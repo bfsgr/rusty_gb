@@ -2507,7 +2507,7 @@ impl Instruction {
 
     //0xD9
     pub fn RETI(_operands: [u8; 2], registers: &mut Registers, mem: &mut Bus) -> u8 {
-        mem.enable_interrupts();
+        mem.interrupts.master = true;
         let pointer = Instruction::pop_from_stack(registers, mem);
         registers.PC( Action::Write(pointer) ); 
         return 16;

@@ -40,7 +40,7 @@ impl Gameboy {
     //main loop
     pub fn start(&mut self){
 
-        let mut debug = false;
+        let mut debug = true;
 
         let mut window = Gameboy::create_window();
 
@@ -273,9 +273,7 @@ impl Gameboy {
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
             }   
 
-            if pc == 0x26BE {
-                print!("");
-            }
+
             
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 
