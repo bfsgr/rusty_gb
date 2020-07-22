@@ -249,7 +249,7 @@ impl Instruction {
 
         registers.D(Action::Write(val as u16));
 
-        return 8;
+        return 4;
     }   
 
     //0x16

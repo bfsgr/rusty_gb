@@ -15,7 +15,6 @@ use joypad::Joypad;
 use std::thread;
 use std::time::{Duration, Instant};
 
-const DEBUG_FLAG: bool = false;
 
 use cpu::{*};
 use cpu::registers::{*};
@@ -273,7 +272,10 @@ impl Gameboy {
                 let oprnds = Bus::to_short(operands);
                 println!("{:#10x}: {}\r\t\t\t{:#10x}", pc, instruction.disassembly, oprnds);
             }   
-               
+
+            if pc == 0x26BE {
+                print!("");
+            }
             
             let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
 

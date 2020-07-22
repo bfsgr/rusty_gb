@@ -36,13 +36,17 @@ impl MBC for MBC1 {
                 self.rom_bank = fix_rom_bank(self.rom_bank);
             },
             0x4000 ..= 0x5FFF => {
-                if self.mode == Mode::RAM {
+                //only enable banking ram if ram size is 32kb or higher
+                if self.mode == Mode::RAM && self.header.ram_size > 2 {
                     self.ram_bank = byte;
                 } else {
-                    self.rom_bank = self.rom_bank & !0xE0;
-                    byte = (byte & 0x3) << 5; //>
-                    self.rom_bank |= byte;
-                    self.rom_bank = fix_rom_bank(self.rom_bank);
+                    //only enable rom banking if rom size is 1mb or higher
+                    if self.header.rom_size > 4 {
+                        self.rom_bank = self.rom_bank & !0xE0;
+                        byte = (byte & 0x3) << 5; //>
+                        self.rom_bank |= byte;
+                        self.rom_bank = fix_rom_bank(self.rom_bank);
+                    }
                 }
             },            
             0x6000 ..= 0x7FFF => {
