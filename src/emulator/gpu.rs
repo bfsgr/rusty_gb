@@ -380,7 +380,7 @@ impl GPU {
 
             let cache = self.tile_cache[ id ];
 
-            let py = ((LY % 8) * 2) as u16;
+            let py = (((LY-WY) % 8) * 2) as u16;
             let px = i % 8;
 
             let mut t1 = cache.data[py as usize];    
