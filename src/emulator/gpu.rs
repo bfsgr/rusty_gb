@@ -54,8 +54,6 @@ pub struct GPU {
     sprites: [Sprite; 40],
     tile_cache: [Tile; 384],
 
-    lock_vram: bool,
-    lock_oam: bool,
     skip_frame: bool,
 
     pub LCDC: u8,           //0xFF40     (R/W)
@@ -85,8 +83,6 @@ impl Default for GPU {
             mode: Mode::Oam,
             scanline_cycles: 0,
             frame_cycles: 0,
-            lock_vram: false,
-            lock_oam: false,
             skip_frame: true,
             sprites: [Sprite::default(); 40],
             tile_cache: [Tile::default(); 384],
@@ -576,26 +572,18 @@ impl GPU {
         match mode {
             Mode::HBlank => {
                 self.STAT = save & 0xFC;
-                self.lock_vram = false;
-                self.lock_oam = false;
             },
             Mode::VBlank => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(0);
-                self.lock_vram = false;
-                self.lock_oam = false;
             },
             Mode::Oam => {
                 self.STAT = save & 0xFC;
                 self.STAT.set_bit(1);
-                self.lock_oam = true;
-                self.lock_vram = false;
             },
             Mode::Transfer => {
                 self.STAT.set_bit(0);
                 self.STAT.set_bit(1);
-                self.lock_vram = true;
-                self.lock_oam = true;
             }
         }
         self.mode = mode;
@@ -639,19 +627,15 @@ impl GPU {
 
         match into {
             Region::VRAM(x) => {
-                if !self.lock_vram {
-                    self.vram[x] = byte;
+                self.vram[x] = byte;
 
-                    if x < 0x1800 {
-                        self.tile_cache[ (x/16) as usize].dirty = true;
-                    }
+                if x < 0x1800 {
+                    self.tile_cache[ (x/16) as usize].dirty = true;
                 }
             }
             Region::OAM(x) => {
-                if !self.lock_oam {
-                    self.sprites[x/4].dirty = true;
-                    self.oam[x] = byte
-                }
+                self.sprites[x/4].dirty = true;
+                self.oam[x] = byte
             }
         }
 
@@ -663,18 +647,10 @@ impl GPU {
 
         match from {
             Region::VRAM(x) => {
-                if !self.lock_vram {
-                    return Response::Byte( self.vram[x] as u8 );
-                } else {
-                    return Response::Byte( 0xFF );
-                }
+                return Response::Byte( self.vram[x] as u8 );
             }
             Region::OAM(x) => {
-                if !self.lock_oam {
-                    return Response::Byte( self.oam[x] as u8 );
-                } else {
-                    return Response::Byte( 0xFF );
-                }
+                return Response::Byte( self.oam[x] as u8 );
             }
         }
     }
