@@ -329,14 +329,12 @@ impl GPU {
         let palette = self.bg_palette;
 
         let WY = self.window_y;
-        //pixels 0..=7 aren't visible
-        let WX = self.window_x.wrapping_sub(7);
 
         let LY = self.lcd_y;
 
         //window does not appear in this row
         if LY < WY || WY > 143 { return (); }
-        if WX > 159 { return (); }
+        // if WX > 159 { return (); }
         //tile map address base
         let tile_map_addr = match self.LCDC.test_bit(6) {
             true => 0x9C00,
@@ -354,7 +352,7 @@ impl GPU {
 
         let row = (LY - WY) / 8;
 
-        for i in WX..160 {
+        for i in 0..160 {
 
             let column = i/8;
 
