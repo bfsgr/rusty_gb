@@ -1,6 +1,6 @@
 [package]
 name = "rusty_gb"
-version = "1.0.2"
+version = "1.0.3"
 authors = ["bfsgr <bfsgr.code@protonmail.com>"]
 edition = "2018"
 
