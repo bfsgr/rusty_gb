@@ -10,5 +10,7 @@ fn main(){
 
     system.insert(args[1].to_string());
     
-    system.start();
+    let debug = args.contains(&"-d".to_string());
+
+    system.start(debug);
 }

@@ -21,7 +21,7 @@ use cpu::registers::{*};
 use bus::{*};
 
 
-use minifb::{Key, Window, WindowOptions, KeyRepeat};
+use minifb::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -38,9 +38,7 @@ pub struct Gameboy {
 
 impl Gameboy {
     //main loop
-    pub fn start(&mut self){
-
-        let mut debug = false;
+    pub fn start(&mut self, debug: bool){
 
         let mut window = Gameboy::create_window();
 
@@ -56,10 +54,6 @@ impl Gameboy {
             
             let start = Instant::now();
             while cycles_now < MAXCYCLES { 
-
-                if window.is_key_pressed(Key::D, KeyRepeat::Yes) {
-                    if debug { debug = false } else { debug = true };
-                }
 
                 //execute the instruction pointed by PC
                 let cycles = self.cpu_inst(debug);
