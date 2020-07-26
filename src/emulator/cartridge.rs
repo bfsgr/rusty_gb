@@ -3,6 +3,7 @@ mod mbcx;
 use mbcx::{*};
 use mbcx::mbc0::MBC0;
 use mbcx::mbc1::MBC1;
+use mbcx::mbc2::MBC2;
 use header::Header;
 use std::fs::File;
 use std::io::Read;
@@ -45,6 +46,7 @@ impl Cartridge {
         match head.cartridge_type {
             0 => {},
             1 ..= 3 => { self.controller = Box::new(MBC1::default()) }
+            5 ..= 6 => { self.controller = Box::new(MBC2::default()) }
             _ => unreachable!("Cartridge type not suported")
         }
 
