@@ -4,6 +4,7 @@ use mbcx::{*};
 use mbcx::mbc0::MBC0;
 use mbcx::mbc1::MBC1;
 use mbcx::mbc2::MBC2;
+use mbcx::mbc3::MBC3;
 use header::Header;
 use std::fs::File;
 use std::io::Read;
@@ -47,7 +48,8 @@ impl Cartridge {
             0 => {},
             1 ..= 3 => { self.controller = Box::new(MBC1::default()) }
             5 ..= 6 => { self.controller = Box::new(MBC2::default()) }
-            _ => unreachable!("Cartridge type not suported")
+            0x11 ..= 0x13 => { self.controller = Box::new(MBC3::default()) }
+            _ => unimplemented!("Cartridge type not suported")
         }
 
         self.controller.load(data, head);

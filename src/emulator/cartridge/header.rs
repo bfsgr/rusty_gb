@@ -57,6 +57,7 @@ impl Header {
         match self.cartridge_type {
             3 => true,
             6 => true,
+            0x13 => true,
             _ => false
         }
     }
