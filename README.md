@@ -7,7 +7,8 @@ This is a side project I decided to make to learn Rust and more about emulation 
 - [ ] Sound
 - [X] Joypad
 - [X] MCB1
-- [ ] MCB2
+- [X] MCB2
+- [X] MCB3 (still without timer)
 
 ## Accuracy 
 * [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests
