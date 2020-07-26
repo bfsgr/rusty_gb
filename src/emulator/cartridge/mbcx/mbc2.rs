@@ -25,6 +25,7 @@ impl MBC for MBC2 {
             0x2000 ..= 0x3FFF => {
                 if (addr & 0x100) == 0x100 {
                     self.rom_bank = byte & 0x0F;
+                    if self.rom_bank == 0 { self.rom_bank = 1};
                 }
             },
             0xA000 ..= 0xA1FF => {
