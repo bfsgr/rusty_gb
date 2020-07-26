@@ -56,6 +56,7 @@ impl Header {
     pub fn has_battery(&self) -> bool {
         match self.cartridge_type {
             3 => true,
+            6 => true,
             _ => false
         }
     }

@@ -86,7 +86,7 @@ impl MBC for MBC1 {
                 } else {
                     adjusted = (addr - 0x4000) as usize
                 }
-                return self.data[adjusted as usize];
+                return self.data[adjusted];
             }
 
             0xA000 ..= 0xBFFF => {
@@ -104,7 +104,7 @@ impl MBC for MBC1 {
                 self.sram[offset]
             }
 
-            _ => { panic!("Wrong cartrigbe address") }
+            _ => { panic!("Wrong cartridge address") }
         }   
 
     }
