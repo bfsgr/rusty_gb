@@ -25,7 +25,7 @@ impl MBC for MBC3 {
                 }
             },
             0x2000 ..= 0x3FFF => {
-                self.rom_bank = byte;
+                self.rom_bank = byte & 0x7F;
                 if self.rom_bank == 0 { self.rom_bank = 1 };
             },
             0x4000 ..= 0x5FFF => {
@@ -40,7 +40,7 @@ impl MBC for MBC3 {
             //SRAM
             0xA000 ..= 0xBFFF => {
                 if !self.ram_timer_on { return (); }
-                match byte {
+                match self.ram_bank {
                     0 ..= 3 => {
                         let adjusted = (0x2000 * self.ram_bank as usize) + (addr - 0xA000) as usize;
                         self.sram[adjusted] = byte;
