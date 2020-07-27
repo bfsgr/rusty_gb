@@ -129,7 +129,7 @@ impl GPU {
             let mut interrupt_status = false;
             
             //if frame_cycles is bigger than 65664 it's VBLANK period
-            if self.frame_cycles > FRAME_CYCLES {
+            if self.frame_cycles >= FRAME_CYCLES {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     self.set_mode(Mode::VBlank);
