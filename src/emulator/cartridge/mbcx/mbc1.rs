@@ -58,6 +58,7 @@ impl MBC for MBC1 {
             },            
             //SRAM
             0xA000 ..= 0xBFFF => {
+                if self.header.ram_size == 0 { return () }
                 if !self.ram_on { return (); }
 
                 let offset;
@@ -90,7 +91,7 @@ impl MBC for MBC1 {
             }
 
             0xA000 ..= 0xBFFF => {
-                if !self.ram_on {
+                if !self.ram_on || self.header.ram_size == 0 {
                     return 0xFF;
                 }
                 let offset;

@@ -158,7 +158,7 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn run_system(&mut self, cycles: u8, screen: &mut Vec<u32>) {
+    pub fn run_system(&mut self, cycles: u8, screen: &mut Vec<(u8,u8,u8,u8)>) {
         self.gpu.step(cycles, &mut self.interrupts, screen);
         self.timer.step(cycles, &mut self.interrupts);
     }

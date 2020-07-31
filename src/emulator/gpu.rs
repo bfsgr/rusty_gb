@@ -74,7 +74,7 @@ pub struct GPU {
     pub spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
     vram: [u8;0x2000],
     oam: [u8; 0xA0],
-    pub display: Vec<u32>
+    pub display: Vec<(u8,u8,u8,u8)>
 }
 
 impl Default for GPU {
@@ -104,7 +104,7 @@ impl Default for GPU {
             spt_data: 0,       //0xFF6B     (R/W) (GB Color only)
             vram: [0; 0x2000],
             oam: [0; 0xA0],
-            display: vec![0; 160*146]
+            display: vec![(0,0,0,0); 160*146]
         }
     }
 }
@@ -115,7 +115,7 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
+    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<(u8,u8,u8,u8)>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -398,7 +398,6 @@ impl GPU {
             let drawn = self.to_rgb(pixel, palette);
 
             priority[i as usize] = pixel != 0;
-
             self.display[(buffer + i as u32) as usize] = drawn;
         }
     }
@@ -491,7 +490,7 @@ impl GPU {
         b
     }
 
-    fn to_rgb(&self, pixel: u8, palette: u8) -> u32{
+    fn to_rgb(&self, pixel: u8, palette: u8) -> (u8,u8,u8,u8) {
         let colors = [
 			0xE0F8D0, // 0 White
 			0x88C070, // 1 Light Gray
@@ -506,7 +505,9 @@ impl GPU {
 			3 => (palette & 0b11000000) >> 6,
 			_ => panic!("Invalid pixel number")
 		};
-		colors[shade as usize]
+        let decoded = colors[shade as usize];
+        
+        return (((decoded & 0xFF0000) >> 16) as u8, ((decoded & 0x00FF00) >> 8) as u8, ((decoded & 0x0000FF)) as u8, 0xFF)
     }
 
     fn update_tile(&mut self, id: usize, raw_addr: u16) {

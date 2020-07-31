@@ -11,17 +11,14 @@ mod bus;
 mod timer;
 mod joypad;
 
-use joypad::Joypad;
-use std::thread;
-use std::time::{Duration, Instant};
+// use joypad::Joypad;
+// use std::thread;
+// use std::time::{Duration, Instant};
 
 
 use cpu::{*};
 use cpu::registers::{*};
 use bus::{*};
-
-
-use minifb::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
@@ -29,164 +26,31 @@ const HEIGHT: usize = 144;
 //max cycles after vblank, when this value is reached we draw the actual screen
 const MAXCYCLES: u32 = 66576;
 
-#[derive(Default)]
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
-    screen: Vec<u32>
+    pub screen: Vec<(u8,u8,u8,u8)>
+}
+
+impl Default for Gameboy {
+    fn default() -> Self { Self{ cpu: CPU::default(), bus: Bus::default(), screen: vec![(0,0,0,0); WIDTH*HEIGHT]} }
 }
 
 impl Gameboy {
     //main loop
     pub fn start(&mut self, debug: bool){
+        let mut cycles_now = 0;            
+        while cycles_now < MAXCYCLES { 
 
-        let mut window = Gameboy::create_window();
-
-        self.screen = vec![0;WIDTH*HEIGHT];
-
-		let frame = Duration::new(0, 16600000); // 16.6 ms as nanoseconds
-        
-        
-        while window.is_open() && !window.is_key_down(Key::Escape) {
+            //execute the instruction pointed by PC
+            let cycles = self.cpu_inst(debug);
+            //update current cycles
+            cycles_now += cycles as u32;
             
-            let mut cycles_now = 0;
-            
-            
-            let start = Instant::now();
-            while cycles_now < MAXCYCLES { 
-
-                //execute the instruction pointed by PC
-                let cycles = self.cpu_inst(debug);
-                //update current cycles
-                cycles_now += cycles as u32;
-                
-                let screen = &mut self.screen;
-                //run the rest of the system
-                self.bus.run_system(cycles, screen);
-                
-                Gameboy::get_input(&window, &mut self.bus.joypad, &mut self.bus.interrupts);
-
-            };  
-            
-            let elapsed = start.elapsed();
-            if elapsed < frame {
-                thread::sleep(frame - elapsed);
-            }
-            
-            
-            // render next frame, this is VBLANK
-            let up = window.update_with_buffer(&self.screen, WIDTH, HEIGHT);
-            match up {
-                Err(up) => println!("{}", up),
-                _  => {},
-            }
-        }
-
-        println!("{}\n{}", self.cpu.registers, self.bus.interrupts);
-    }
-
-    fn get_input(window: &Window, joypad: &mut Joypad, interrupts: &mut InterruptHandler) {
-        if window.is_key_down(Key::Up)  {
-            let int = joypad.up(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-
-        } else {
-            joypad.up(false);
-        }
-        if window.is_key_down(Key::Down)  {
-            let int = joypad.down(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.down(false);
-        }
-
-        if window.is_key_down(Key::Left)  {
-            let int = joypad.left(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.left(false);
-        }
-
-        if window.is_key_down(Key::Right)  {
-            let int = joypad.right(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.right(false);
-        }
-
-        if window.is_key_down(Key::F)  {
-            let int = joypad.start(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.start(false);
-        }
-
-        if window.is_key_down(Key::Z)  {
-            let int = joypad.btn_a(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.btn_a(false);
-        }
-
-        if window.is_key_down(Key::X)  {
-            let int = joypad.btn_b(true);
-
-            if int == Interrupt::Joypad { 
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.btn_b(false);
-        }
-
-        if window.is_key_down(Key::G) {
-            let select = joypad.select(true);
-            if select == Interrupt::Joypad {
-                interrupts.request(Interrupt::Joypad);
-            }
-        } else {
-            joypad.select(false);
-        }
-    }
-
-    fn create_window() -> Window {
-        let win = Window::new(
-            "Rusty GB",
-            WIDTH,
-            HEIGHT,
-            WindowOptions {
-                borderless: false,
-                resize: false,
-                scale: minifb::Scale::X4,
-                scale_mode: minifb::ScaleMode::AspectRatioStretch,
-                title: true,
-                topmost: false
-            },
-        )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
-        });
-
-        // win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-
-        return win;
+            let screen = &mut self.screen;
+            //run the rest of the system
+            self.bus.run_system(cycles, screen);
+        };  
     }
 
     //get an opcode byte and convert it into an Instruction object
