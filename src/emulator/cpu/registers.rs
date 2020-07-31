@@ -73,7 +73,6 @@ pub enum Response {
     None,
     Byte(u8),
     Short(u16),
-    State(bool),
 }
 
 pub trait Value<T> {
@@ -97,19 +96,6 @@ impl Value<u16> for Response {
         }
     }
 }
-
-impl Value<bool> for Response {
-    fn value(self) -> bool {
-        match self {
-            Response::State(x) => x,
-            _ => panic!("Error on consume response")
-        }
-    }
-}
-
-
-
-
 
 impl Registers {
     pub fn AF(&mut self, wr: Action) -> Response {
