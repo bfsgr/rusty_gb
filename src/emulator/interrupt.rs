@@ -16,6 +16,7 @@ impl Default for EI {
 
 
 #[derive(Copy, Clone, PartialEq)]
+#[allow(dead_code)] //Serial will be used when we implement it
 pub enum Interrupt {
     VBlank,
     LCDC,

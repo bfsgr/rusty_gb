@@ -1,3 +1,5 @@
+#![allow(dead_code)] //unused constants will be used when sound is implemented
+
 pub const JOYP: u16   = 0xFF00; // Joypad info
 
 pub const SB: u16   = 0xFF01; // Serial transfer data

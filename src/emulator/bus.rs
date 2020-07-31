@@ -134,7 +134,7 @@ impl Bus {
             0xA000 ..= 0xBFFF => Module::Cartrigbe,   
             0xC000 ..= 0xFDFF => Module::Memory,    
             0xFE00 ..= 0xFE9F => Module::GPU,     
-            0xFEA0 ..= 0xFEFF => Module::Memory,
+            0xFEA0 ..= 0xFEFF => Module::Unusable,
             TMA | TIMA | DIV | TAC => Module::Timer,
             0xFF00 ..= 0xFF7F => Module::IO, 
             0xFF80 ..= 0xFFFE => Module::Memory,   
