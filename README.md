@@ -9,6 +9,7 @@ This is a side project I decided to make to learn Rust and more about emulation 
 - [X] MCB1
 - [X] MCB2
 - [X] MCB3 (still without timer)
+- [ ] MCB5
 
 ## Accuracy 
 * [blargg-gb](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) cpu_instrs tests
