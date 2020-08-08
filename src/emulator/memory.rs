@@ -2,7 +2,6 @@
 
 use super::cpu::registers::Response;
 
-//TODO, remove echo field, all logic will convert addresses in echo to wram
 pub struct Memory {
     wram: [u8; 0x2000], //Internal RAM
     hram: [u8; 0x7F],   //High Ram (Stack)

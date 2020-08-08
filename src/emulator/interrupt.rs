@@ -38,11 +38,11 @@ pub enum InterruptVector {
 
 #[derive(Default)]
 pub struct InterruptHandler  {
-    pub master: bool,               //reduntant from memory field interrupt switch
+    pub master: bool,
     pub halt_bug: bool,
     pub ei_key: EI,
-    pub enable: u8,             //reduntant from memory 0xFFFF
-    pub requests: u8,           //reduntant from memory field 0xFF0F
+    pub enable: u8,
+    pub requests: u8,
 }
 
 impl Display for InterruptHandler {

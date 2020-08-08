@@ -26,8 +26,6 @@ fn create_window() -> Window {
         panic!("{}", e);
     });
 
-    // win.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-
     return win;
 }
 

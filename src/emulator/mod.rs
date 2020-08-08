@@ -12,8 +12,6 @@ use cpu::{*};
 use cpu::registers::{*};
 use bus::{*};
 
-//max cycles after vblank, when this value is reached we draw the actual screen
-
 #[derive(Default)]
 pub struct Gameboy {
     cpu: CPU,
