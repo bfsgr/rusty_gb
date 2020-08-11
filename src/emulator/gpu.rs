@@ -115,15 +115,15 @@ enum Region {
 }
 
 impl GPU {
-    pub fn step(&mut self, cycles_made: u8, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
+    pub fn step(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
             let cur_mode = self.mode;
 
             //sync the internal cycles
-            self.scanline_cycles += cycles_made as usize;
-            self.frame_cycles += cycles_made as usize;
+            self.scanline_cycles += 1;
+            self.frame_cycles += 1;
             
             //flag for interrupt request
             let mut interrupt_status = false;

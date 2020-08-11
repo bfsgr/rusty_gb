@@ -16,6 +16,7 @@ use bus::{*};
 pub struct Gameboy {
     cpu: CPU,
     bus: Bus,
+    inst: Instruction,
     pub screen: Vec<u32>
 }
 
@@ -38,15 +39,14 @@ macro_rules! jp_input {
 
 impl Gameboy {
     //main loop
-    pub fn run(&mut self, debug: bool) -> u8{
+    pub fn tick(&mut self, debug: bool){
         //execute the instruction pointed by PC
-        let cycles = self.cpu_inst(debug);
+        self.cpu_inst(debug);
         
         let screen = &mut self.screen;
         //run the rest of the system
-        self.bus.run_system(cycles, screen);
+        self.bus.run_system( screen);
 
-        return cycles;
     }
 
     jp_input!(up, down, left, right, btn_a, btn_b, start, select);
@@ -73,10 +73,10 @@ impl Gameboy {
     }
 
     //execute instruction pointed by PC, increment it as needed, return number of cycles it took and if an IO write was made
-    fn cpu_inst(&mut self, debug_flag: bool) -> u8 {
+    fn cpu_inst(&mut self, debug_flag: bool){
         let int_cycles = self.cpu.interrupts(&mut self.bus);
 
-        if int_cycles != 0 { return int_cycles; }
+        if int_cycles != 0 { return (); }
         
         if !self.bus.halt_cpu {
             let pc = self.cpu.PC();
@@ -129,14 +129,7 @@ impl Gameboy {
 
 
             
-            let cycles = instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
-
-
-            return cycles;
-
-
-        } else {
-            return 4;
+           instruction.execute(operands, &mut self.cpu.registers, &mut self.bus);
         }
     }
 

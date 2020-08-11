@@ -158,9 +158,9 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn run_system(&mut self, cycles: u8, screen: &mut Vec<u32>) {
-        self.gpu.step(cycles, &mut self.interrupts, screen);
-        self.timer.step(cycles, &mut self.interrupts);
+    pub fn run_system(&mut self, screen: &mut Vec<u32>) {
+        self.gpu.step(&mut self.interrupts, screen);
+        self.timer.step(4, &mut self.interrupts);
     }
     //maybe not an optimal solution, performs the dma all at once. The rom will wait 160 cycles either way
     fn perform_dma(&mut self) {

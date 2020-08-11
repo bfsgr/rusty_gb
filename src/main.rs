@@ -74,8 +74,9 @@ fn main(){
         let start = Instant::now();
         let mut cycles_now = 0;
         while cycles_now < MAXCYCLES { 
-            cycles_now += system.run(debug) as u32;
+            system.tick(debug);
             get_input(&window, &mut system);
+            cycles_now += 1;
         }
 
         let elapsed = start.elapsed();

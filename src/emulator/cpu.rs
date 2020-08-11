@@ -47,7 +47,6 @@ impl CPU {
         if bus.interrupts.master || bus.halt_cpu {
             
             let call_inst = CPU::decode(0xCD, false);
-            let f = call_inst.function;
 
             let vec = bus.interrupts.get_vec();
 
@@ -81,7 +80,7 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0040, 0x00]; 
 
-                    f( vector , &mut self.registers, bus );
+                    call_inst.execute( vector , &mut self.registers, bus );
                     
                 },
                 InterruptVector::LCDC => {
@@ -89,28 +88,28 @@ impl CPU {
 
                     let vector: [u8; 2] = [0x0048, 0x00]; 
 
-                    f( vector , &mut self.registers, bus );
+                    call_inst.execute( vector , &mut self.registers, bus );
                 },
                 InterruptVector::Timer => {
                     bus.interrupts.requests.reset_bit(2);
 
                     let vector: [u8; 2] = [0x0050, 0x00]; 
 
-                    f( vector , &mut self.registers, bus);
+                    call_inst.execute( vector , &mut self.registers, bus );
                 },
                 InterruptVector::Serial => {
                     bus.interrupts.requests.reset_bit(3);
 
                     let vector: [u8; 2] = [0x0058, 0x00]; 
 
-                    f( vector , &mut self.registers, bus);
+                    call_inst.execute( vector , &mut self.registers, bus );
                 },
                 InterruptVector::Joypad => {
                     bus.interrupts.requests.reset_bit(4);
 
                     let vector: [u8; 2] = [0x0060, 0x00]; 
 
-                    f( vector , &mut self.registers, bus);
+                    call_inst.execute( vector , &mut self.registers, bus );
                 },
                 _ => unreachable!("This should never happen"),
             }
