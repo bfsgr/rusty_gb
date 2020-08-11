@@ -4,6 +4,7 @@ use crate::emulator::cpu::{*};
 use crate::emulator::bus::{Bus};
 use std::fmt;
 use std::mem::transmute;
+use std::collections::VecDeque;
 
 pub const ZERO_FLAG: u8 = 0;
 pub const NEGATIVE_FLAG: u8 = 1;
@@ -15,6 +16,7 @@ pub struct Instruction {
     pub disassembly: &'static str,
     pub function: fn([u8;2], &mut Registers, &mut Bus), 
     pub args: u8,
+    pub cycles: u8
 }
 
 impl fmt::Display for Instruction {
@@ -25,7 +27,7 @@ impl fmt::Display for Instruction {
 
 impl Default for Instruction {
     fn default() -> Self {
-        Self { disassembly: "NOP", function: Self::NOP, args: 0 }
+        Self { disassembly: "NOP", function: Self::NOP, args: 0, cycles: 1 }
     }
 }
 
@@ -38,10 +40,10 @@ impl PartialEq for Instruction {
             //transmute fn item to fn pointer, which implements PartialEq
             let a: fn([u8;2], *mut Registers, *mut Bus) = transmute(self.function as fn([u8;2], &mut Registers, &mut Bus));
             let b: fn([u8;2], *mut Registers, *mut Bus) = transmute(other.function as fn([u8;2], &mut Registers, &mut Bus));
-            
             //compare and return
             return a == b;
         }
+            
     }
 }
 
