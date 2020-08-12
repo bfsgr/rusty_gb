@@ -2,13 +2,11 @@
 This is a side project I decided to make to learn Rust and more about emulation and OS's. This project doesn't aim to be optimized or accurate.
 ## What's working
 - [X] CPU
-- [X] GPU
+- [X] PPU
 - [X] Timer
 - [ ] Sound
 - [X] Joypad
-- [X] MCB1
-- [X] MCB2
-- [X] MCB3 (still without timer)
+- [X] MCB1, MCB2 and MCB3 (without RTC)
 - [ ] MCB5
 
 ## Accuracy 
