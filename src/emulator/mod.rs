@@ -42,9 +42,8 @@ impl Gameboy {
         //execute the instruction pointed by PC
         let cycles = self.cpu_inst(debug);
         
-        let screen = &mut self.screen;
         //run the rest of the system
-        self.bus.run_system(cycles, screen);
+        self.bus.run_system(cycles, &mut self.screen);
 
         return cycles;
     }
