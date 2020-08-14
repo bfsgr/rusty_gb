@@ -1,32 +1,16 @@
 #![allow(non_snake_case)]
 
-use crate::emulator::cpu::{*};
-use crate::emulator::bus::{Bus};
-use instructions::{*};
+use crate::emulator::cpu::registers::*;
+use super::instructions::*;
+use crate::emulator::bit_utils::BitUtils;
+
+pub const ZERO_FLAG: u8 = 0;
+pub const NEGATIVE_FLAG: u8 = 1;
+pub const HALFCARRY_FLAG: u8 = 2;
+pub const CARRY_FLAG: u8 = 3;
 
 impl Instruction {
 //Generic functions
-
-    //Stack management functions
-    pub fn push_to_stack(registers: &mut Registers, mem: &mut Bus, short: u16){
-        let sp: u16 = registers.SP(Action::Read).value();
-
-        mem.write_byte(sp.wrapping_sub(1), (short >> 8) as u8); 
-        mem.write_byte(sp.wrapping_sub(2), short as u8);
-
-        registers.SP( Action::Write(sp.wrapping_sub(2)) );
-    }
-
-    pub fn pop_from_stack(registers: &mut Registers, mem: &mut Bus) -> u16 {
-        let sp: u16 = registers.SP(Action::Read).value();
-        registers.SP(Action::Write(sp+2));
-
-
-        let b1: u8 = mem.read_byte(sp).value();
-        let b2: u8 = mem.read_byte(sp.wrapping_add(1)).value();
-        
-        b1 as u16 | (b2 as u16) << 8 //>
-    }
 
     //Generic increment function for 8 bit registers. 
     pub fn INC(registers: &mut Registers, mut val: u8) -> u8{

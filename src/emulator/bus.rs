@@ -158,7 +158,7 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn run_system(&mut self, screen: &mut Vec<u32>) {
+    pub fn tick(&mut self, screen: &mut Vec<u32>) {
         self.gpu.step(&mut self.interrupts, screen);
         self.timer.step(4, &mut self.interrupts);
     }

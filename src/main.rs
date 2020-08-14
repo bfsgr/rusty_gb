@@ -61,8 +61,6 @@ fn main(){
 
     system.insert(args[1].to_string());
     
-    let debug = args.contains(&"-d".to_string());
-
     let mut window = create_window();
 
     let frame = Duration::new(0, 16600000); // 16.6 ms as nanoseconds
@@ -74,9 +72,9 @@ fn main(){
         let start = Instant::now();
         let mut cycles_now = 0;
         while cycles_now < MAXCYCLES { 
-            system.tick(debug);
-            get_input(&window, &mut system);
+            system.tick();
             cycles_now += 1;
+            get_input(&window, &mut system);
         }
 
         let elapsed = start.elapsed();

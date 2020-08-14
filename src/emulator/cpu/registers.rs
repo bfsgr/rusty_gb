@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 const ZERO_FLAG: u8 = 0b10000000;
 const NEGATIVE_FLAG: u8 = 0b01000000;
 const HALFCARRY_FLAG: u8 = 0b00100000;
