@@ -12,10 +12,10 @@ impl Decoder {
             match (opcode & 0xC0) >> 6 {
                 0 => {
                     match opcode & 7 {
-                        0 => Self::table0((opcode & 0x38) >> 3),
-                        1 => Self::table1((opcode & 0x38) >> 3),
-                        2 => Self::table2( (opcode & 0x38) >> 3),
-                        3 => { Ok(Instruction::holder()) },
+                        0 => Self::x0z0((opcode & 0x38) >> 3),
+                        1 => Self::x0z1((opcode & 0x38) >> 3),
+                        2 => Self::x0z2( (opcode & 0x38) >> 3),
+                        3 => Self::x0z3( (opcode & 0x38) >> 3),
                         4 => { Ok(Instruction::holder()) },
                         5 => { Ok(Instruction::holder()) },
                         6 => { Ok(Instruction::holder()) },
@@ -543,7 +543,7 @@ impl Decoder {
         }
     }
 
-    fn table0(data: u8) -> Result<Instruction, String> {
+    fn x0z0(data: u8) -> Result<Instruction, String> {
         match data {
             0 => {
                 //NOP
@@ -654,7 +654,7 @@ impl Decoder {
 
     }
 
-    fn table1(data: u8) -> Result<Instruction, String> {
+    fn x0z1(data: u8) -> Result<Instruction, String> {
 
         match data {
             0 => {
@@ -763,7 +763,7 @@ impl Decoder {
 
     }
 
-    fn table2(data: u8) -> Result<Instruction, String> {
+    fn x0z2(data: u8) -> Result<Instruction, String> {
 
         match data {
             0 => {
@@ -867,4 +867,111 @@ impl Decoder {
         }
 
     }
+
+    fn x0z3(data: u8) -> Result<Instruction, String> {
+
+        match data {
+            0 => {
+                //NOP
+                Ok(Instruction::new(
+                    "INC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "DEC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "INC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "DEC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "INC HL",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_HL);
+                        o
+                    },
+                    2
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "DEC HL",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_HL);
+                        o
+                    },
+                    2
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "INC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "DEC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    
 }

@@ -398,8 +398,8 @@ impl Instruction {
         bus.write_byte(de, a);
     }
     
-    INC_rr!(INC_BC, BC, INC_DE, DE, INC_HL, HL);
-    DEC_rr!(DEC_BC, BC, DEC_DE, DE, DEC_HL, HL);
+    INC_rr!(INC_BC, BC, INC_DE, DE, INC_HL, HL, INC_SP, SP);
+    DEC_rr!(DEC_BC, BC, DEC_DE, DE, DEC_HL, HL, DEC_SP, SP);
     
     pub fn write_dHL_to_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let hl: u16 = registers.HL( Action::Read ).value();
