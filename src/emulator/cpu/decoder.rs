@@ -16,10 +16,10 @@ impl Decoder {
                         1 => Self::x0z1((opcode & 0x38) >> 3),
                         2 => Self::x0z2( (opcode & 0x38) >> 3),
                         3 => Self::x0z3( (opcode & 0x38) >> 3),
-                        4 => { Ok(Instruction::holder()) },
-                        5 => { Ok(Instruction::holder()) },
-                        6 => { Ok(Instruction::holder()) },
-                        7 => { Ok(Instruction::holder()) },
+                        4 => Self::x0z4( (opcode & 0x38) >> 3),
+                        5 => Self::x0z5( (opcode & 0x38) >> 3),
+                        6 => Self::x0z6( (opcode & 0x38) >> 3),
+                        7 => Self::x0z7( (opcode & 0x38) >> 3),
                         _ => Err("Opcode not found".to_owned())
                     }
                 },
@@ -972,6 +972,179 @@ impl Decoder {
         }
 
     }
+  
+    fn x0z4(data: u8) -> Result<Instruction, String> {
 
-    
+        match data {
+            0 => Ok(atomic!("INC B", INC_B)),
+            1 => Ok(atomic!("INC C", INC_C)),
+            2 => Ok(atomic!("INC D", INC_D)),
+            3 => Ok(atomic!("INC E", INC_E)),
+            4 => Ok(atomic!("INC H", INC_H)),
+            5 => Ok(atomic!("INC L", INC_L)),
+            6 => {
+                Ok(Instruction::new(
+                    "INC (HL)",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::read_bus_with_HL);
+                        o.push_back(Instruction::inc_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => Ok(atomic!("INC A", INC_A)),
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+  
+    fn x0z5(data: u8) -> Result<Instruction, String> {
+
+        match data {
+            0 => Ok(atomic!("DEC B", DEC_B)),
+            1 => Ok(atomic!("DEC C", DEC_C)),
+            2 => Ok(atomic!("DEC D", DEC_D)),
+            3 => Ok(atomic!("DEC E", DEC_E)),
+            4 => Ok(atomic!("DEC H", DEC_H)),
+            5 => Ok(atomic!("DEC L", DEC_L)),
+            6 => {
+                Ok(Instruction::new(
+                    "DEC (HL)",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::read_bus_with_HL);
+                        o.push_back(Instruction::dec_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => Ok(atomic!("DEC A", DEC_A)),
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn x0z6(data: u8) -> Result<Instruction, String> {
+
+        match data {
+            0 => {
+                //NOP
+                Ok(Instruction::new(
+                    "LD B,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_B_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "LD C,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_C_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "LD D,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_D_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "LD E,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_E_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "LD H,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_H_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "LD L,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_L_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "LD (HL),n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::write_buffer_to_dHL);
+                        o
+                    },
+                    3
+                )) 
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "LD A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::write_A_with_buffer_u8);
+                        o
+                    },
+                    2
+                )) 
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn x0z7(data: u8) -> Result<Instruction, String> {
+        match data {
+            0 => Ok(atomic!("RLC A", RLC_A)),
+            1 => Ok(atomic!("RRC A", RRC_A)),
+            2 => Ok(atomic!("RL A", RL_A)),
+            3 => Ok(atomic!("RR_A", RR_A)),
+            4 => Ok(atomic!("DAA", DAA)),
+            5 => Ok(atomic!("CPL", NOT_A)),
+            6 => Ok(atomic!("SCF", SCF)),
+            7 => Ok(atomic!("CCF", CCF)),
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
 }

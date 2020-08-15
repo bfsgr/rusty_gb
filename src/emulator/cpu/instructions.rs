@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 use super::Bus;
 use super::registers::{Action, Registers, Value};
-use super::generic::{CARRY_FLAG, ZERO_FLAG};
+use super::generic::*;
 use std::fmt;
 
 pub struct Instruction {
@@ -39,6 +39,7 @@ macro_rules! read_bus_with_rr {
                 let rr: u16 = registers.$rr( Action::Read ).value();
                 let val: u8 = bus.read_byte(rr).value();
                 inst.buffer_u8.push(val);
+                inst.buffer_u16 = rr;
             }
         )*
     }
@@ -152,6 +153,20 @@ macro_rules! DEC_rr {
         )*
     }
 }
+
+macro_rules! INC_DEC {
+    ( $( $name:ident, $op:ident ,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+                let mut reg: u8 = registers.$r( Action::Read ).value();
+                reg = Instruction::$op(registers, reg);
+                registers.$r( Action::Write(reg as u16) );
+            }
+        )*
+    }
+} 
+
+
 
 
 
@@ -405,6 +420,107 @@ impl Instruction {
         let hl: u16 = registers.HL( Action::Read ).value();
         let val: u8 = bus.read_byte(hl).value();
         registers.A( Action::Write(val as u16 ));
+    }
+
+    INC_DEC!(
+        INC_A, INC, A,  DEC_A, DEC, A,
+        INC_B, INC, B,  DEC_B, DEC, B,
+        INC_C, INC, C,  DEC_C, DEC, C,
+        INC_D, INC, D,  DEC_D, DEC, D,
+        INC_E, INC, E,  DEC_E, DEC, E,
+        INC_H, INC, H,  DEC_H, DEC, H,
+        INC_L, INC, L,  DEC_L, DEC, L
+    );
+
+    pub fn inc_buffer_u8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::INC(registers, val);
+        bus.write_byte(inst.buffer_u16, val);
+    }
+
+    pub fn dec_buffer_u8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::DEC(registers, val);
+        bus.write_byte(inst.buffer_u16, val);
+    }
+
+    pub fn write_buffer_to_dHL(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val = inst.buffer_u8.pop().unwrap();
+        let hl: u16 = registers.HL( Action::Read ).value();
+        bus.write_byte(hl, val);
+    }
+
+    pub fn RLC_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A(Action::Read).value();
+        A = Instruction::RL(registers, A, false, false);
+        registers.A(Action::Write(A as u16));
+    }
+
+    pub fn RRC_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+        A = Instruction::RR(registers, A, false, false);
+        registers.A( Action::Write(A as u16) );  
+    }
+
+    pub fn RL_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+        A = Instruction::RL(registers, A, true, false);
+        registers.A( Action::Write(A as u16) );
+    }
+
+    pub fn RR_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+        A = Instruction::RR(registers, A, true, false);
+        registers.A( Action::Write(A as u16) );
+    }
+
+    pub fn DAA(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+        let mut adjust: u8 = if registers.test_flag(CARRY_FLAG) { 0x60 } else { 0x00 };
+        if registers.test_flag(HALFCARRY_FLAG) { adjust |= 0x06; };
+        if !registers.test_flag(NEGATIVE_FLAG) {
+            if (A & 0x0F) > 0x09 { adjust |= 0x06 };
+            if A > 0x99 { adjust |= 0x60 };
+            A = A.wrapping_add(adjust);
+        } else {
+            A = A.wrapping_sub(adjust);
+        }
+        registers.clear_flag(HALFCARRY_FLAG);
+        if A == 0 {
+            registers.set_flag(ZERO_FLAG);
+        } else {
+            registers.clear_flag(ZERO_FLAG);
+        }
+        if adjust >= 0x60 {
+            registers.set_flag(CARRY_FLAG)
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+        registers.A( Action::Write(A as u16) );
+    }
+
+    pub fn NOT_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let A: u8 = registers.A(Action::Read).value();
+        registers.A( Action::Write(!A as u16) );
+        registers.set_flag(HALFCARRY_FLAG);
+        registers.set_flag(NEGATIVE_FLAG);
+    }
+
+    pub fn SCF(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){  
+        registers.set_flag(CARRY_FLAG);
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
+    }
+
+    pub fn CCF(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let bit = registers.test_flag(CARRY_FLAG) as u8;
+        if (bit ^ 1) == 1 {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG)
+        }
+        registers.clear_flag(HALFCARRY_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
     }
 
 }

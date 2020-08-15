@@ -146,9 +146,9 @@ impl Bus {
         self.cartrigbe.insert(file_name);
     }
 
-    pub fn to_short(bytes: [u8; 2]) -> u16 {
-        bytes[0] as u16 | (bytes[1] as u16) << 8 //>
-    }
+    // pub fn to_short(bytes: [u8; 2]) -> u16 {
+    //     bytes[0] as u16 | (bytes[1] as u16) << 8 //>
+    // }
 
     pub fn enable_interrupts(&mut self){
         self.interrupts.ei_key = EI::Requested;
