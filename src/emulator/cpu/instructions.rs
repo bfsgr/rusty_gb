@@ -523,6 +523,26 @@ impl Instruction {
         registers.clear_flag(NEGATIVE_FLAG);
     }
 
+    pub fn sum_ff00_to_C(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let c: u8 = registers.C( Action::Read ).value();
+        inst.buffer_u16 = c as u16 + 0xFF00;
+    }
+
+    pub fn sum_ff00_to_b8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u8 = inst.buffer_u8.pop().unwrap();
+        inst.buffer_u16 = val as u16 + 0xFF00;
+    }
+    
+    pub fn read_b16_write_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u8 = bus.read_byte(inst.buffer_u16).value();
+        registers.A(Action::Write( val as u16) );
+    }
+    
+    pub fn write_A_to_b16(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u8 =  registers.A(Action::Read ).value();
+        bus.write_byte(inst.buffer_u16, val);
+    }
+
 }
 
 #[macro_export]
@@ -536,6 +556,22 @@ macro_rules! atomic {
                 o
             },
             1
+        )
+    }
+}
+
+#[macro_export]
+macro_rules! subset_atomic {
+    ( $name:expr,$func:ident ) => {
+        Instruction::new(
+            $name,
+            {
+                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                o.push_back(Instruction::nop);
+                o.push_back(Instruction::$func);
+                o
+            },
+            2
         )
     }
 }

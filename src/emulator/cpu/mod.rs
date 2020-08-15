@@ -3,6 +3,7 @@ use registers::*;
 mod instructions;
 pub mod decoder;
 mod generic;
+mod subops;
 
 use super::Bus;
 use decoder::Decoder;

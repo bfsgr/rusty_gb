@@ -23,19 +23,13 @@ impl Decoder {
                         _ => Err("Opcode not found".to_owned())
                     }
                 },
-                1 => {
-                    //LD and HALT
-                    Self::match_load(((opcode & 0x38) >> 3, opcode & 7))
-                },
-                2 => {
-                    //ALU
-                    Self::match_alu(((opcode & 0x38) >> 3, opcode & 7))
-                },
+                1 => Self::match_load(((opcode & 0x38) >> 3, opcode & 7)),
+                2 => Self::match_alu(((opcode & 0x38) >> 3, opcode & 7)),
                 3 => {
                     match opcode & 7 {
-                        0 => { Ok(Instruction::holder()) },
+                        0 => Self::x3z0( (opcode & 0x38) >> 3),
                         1 => { Ok(Instruction::holder()) },
-                        2 => { Ok(Instruction::holder()) },
+                        2 => Self::x3z2( (opcode & 0x38) >> 3),
                         3 => { Ok(Instruction::holder()) },
                         4 => { Ok(Instruction::holder()) },
                         5 => { Ok(Instruction::holder()) },
@@ -48,7 +42,13 @@ impl Decoder {
             }
 
         } else {
-            Err("0xCB not implemented".to_owned())
+            match (opcode & 0xC0) >> 6 {
+                0 => { Ok(Instruction::holder()) }, //rotates, swaps and shifts
+                1 => Self::decode_bit(((opcode & 0x38) >> 3, opcode & 7)), //test bit
+                2 => { Ok(Instruction::holder()) }, //reset bit
+                3 => { Ok(Instruction::holder()) }, //set bit
+                _ => Err("Opcode not found".to_owned())
+            }
         }
 
         // return Ok(Instruction::holder());
@@ -335,7 +335,6 @@ impl Decoder {
             _ => Err("Instruction not found".to_owned()),
         }
     }
-
 
     fn match_alu(data: (u8,u8)) -> Result<Instruction, String> {
         match data.0 {
@@ -1143,6 +1142,329 @@ impl Decoder {
             5 => Ok(atomic!("CPL", NOT_A)),
             6 => Ok(atomic!("SCF", SCF)),
             7 => Ok(atomic!("CCF", CCF)),
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn x3z2(data: u8) -> Result<Instruction, String> {
+        //THIS TABLE IS INCOMPLETE
+        match data {
+            0 => {
+                //NOP
+                Ok(Instruction::new(
+                    "INC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "DEC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "INC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "DEC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "LD (FF00+C),A",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::sum_ff00_to_C);
+                        o.push_back(Instruction::read_b16_write_A);
+                        o
+                    },
+                    2
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "DEC HL",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_HL);
+                        o
+                    },
+                    2
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "INC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "DEC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+    
+    fn x3z0(data: u8) -> Result<Instruction, String> {
+        //THIS TABLE IS INCOMPLETE
+        match data {
+            0 => {
+                //NOP
+                Ok(Instruction::new(
+                    "INC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "DEC BC",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_BC);
+                        o
+                    },
+                    2
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "INC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "DEC DE",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_DE);
+                        o
+                    },
+                    2
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "LD (FF00+n),A",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::sum_ff00_to_b8);
+                        o.push_back(Instruction::write_A_to_b16);
+                        o
+                    },
+                    3
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "DEC HL",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_HL);
+                        o
+                    },
+                    2
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "INC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::INC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "DEC SP",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::DEC_SP);
+                        o
+                    },
+                    2
+                )) 
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn decode_bit(data: (u8,u8)) -> Result<Instruction, String> {
+        match data.0 {
+            //bit 0,r
+            0 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 0,B", BIT_0B)),
+                    1 => Ok(subset_atomic!("BIT 0,C", BIT_0C)),
+                    2 => Ok(subset_atomic!("BIT 0,D", BIT_0D)),
+                    3 => Ok(subset_atomic!("BIT 0,E", BIT_0E)),
+                    4 => Ok(subset_atomic!("BIT 0,H", BIT_0H)),
+                    5 => Ok(subset_atomic!("BIT 0,L", BIT_0L)),
+                    6 => Ok(subset_atomic!("BIT 0,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 0,A", BIT_0A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            1 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 1,B", BIT_1B)),
+                    1 => Ok(subset_atomic!("BIT 1,C", BIT_1C)),
+                    2 => Ok(subset_atomic!("BIT 1,D", BIT_1D)),
+                    3 => Ok(subset_atomic!("BIT 1,E", BIT_1E)),
+                    4 => Ok(subset_atomic!("BIT 1,H", BIT_1H)),
+                    5 => Ok(subset_atomic!("BIT 1,L", BIT_1L)),
+                    6 => Ok(subset_atomic!("BIT 1,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 1,A", BIT_1A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            2 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 2,B", BIT_2B)),
+                    1 => Ok(subset_atomic!("BIT 2,C", BIT_2C)),
+                    2 => Ok(subset_atomic!("BIT 2,D", BIT_2D)),
+                    3 => Ok(subset_atomic!("BIT 2,E", BIT_2E)),
+                    4 => Ok(subset_atomic!("BIT 2,H", BIT_2H)),
+                    5 => Ok(subset_atomic!("BIT 2,L", BIT_2L)),
+                    6 => Ok(subset_atomic!("BIT 2,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 2,A", BIT_2A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            3 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 3,B", BIT_3B)),
+                    1 => Ok(subset_atomic!("BIT 3,C", BIT_3C)),
+                    2 => Ok(subset_atomic!("BIT 3,D", BIT_3D)),
+                    3 => Ok(subset_atomic!("BIT 3,E", BIT_3E)),
+                    4 => Ok(subset_atomic!("BIT 3,H", BIT_3H)),
+                    5 => Ok(subset_atomic!("BIT 3,L", BIT_3L)),
+                    6 => Ok(subset_atomic!("BIT 3,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 3,A", BIT_3A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            4 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 4,B", BIT_4B)),
+                    1 => Ok(subset_atomic!("BIT 4,C", BIT_4C)),
+                    2 => Ok(subset_atomic!("BIT 4,D", BIT_4D)),
+                    3 => Ok(subset_atomic!("BIT 4,E", BIT_4E)),
+                    4 => Ok(subset_atomic!("BIT 4,H", BIT_4H)),
+                    5 => Ok(subset_atomic!("BIT 4,L", BIT_4L)),
+                    6 => Ok(subset_atomic!("BIT 4,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 4,A", BIT_4A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            5 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 5,B", BIT_5B)),
+                    1 => Ok(subset_atomic!("BIT 5,C", BIT_5C)),
+                    2 => Ok(subset_atomic!("BIT 5,D", BIT_5D)),
+                    3 => Ok(subset_atomic!("BIT 5,E", BIT_5E)),
+                    4 => Ok(subset_atomic!("BIT 5,H", BIT_5H)),
+                    5 => Ok(subset_atomic!("BIT 5,L", BIT_5L)),
+                    6 => Ok(subset_atomic!("BIT 5,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 5,A", BIT_5A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            6 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 6,B", BIT_6B)),
+                    1 => Ok(subset_atomic!("BIT 6,C", BIT_6C)),
+                    2 => Ok(subset_atomic!("BIT 6,D", BIT_6D)),
+                    3 => Ok(subset_atomic!("BIT 6,E", BIT_6E)),
+                    4 => Ok(subset_atomic!("BIT 6,H", BIT_6H)),
+                    5 => Ok(subset_atomic!("BIT 6,L", BIT_6L)),
+                    6 => Ok(subset_atomic!("BIT 6,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 6,A", BIT_6A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            7 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("BIT 7,B", BIT_7B)),
+                    1 => Ok(subset_atomic!("BIT 7,C", BIT_7C)),
+                    2 => Ok(subset_atomic!("BIT 7,D", BIT_7D)),
+                    3 => Ok(subset_atomic!("BIT 7,E", BIT_7E)),
+                    4 => Ok(subset_atomic!("BIT 7,H", BIT_7H)),
+                    5 => Ok(subset_atomic!("BIT 7,L", BIT_7L)),
+                    6 => Ok(subset_atomic!("BIT 7,(HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("BIT 7,A", BIT_7A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
             _ => { Err("Instruction not found".to_owned()) },
         }
 
