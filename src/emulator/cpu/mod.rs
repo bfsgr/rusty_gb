@@ -29,7 +29,7 @@ impl CPU {
             self.instruction.tick(&mut self.registers, bus);
         } else {
             //fetch pc, decode, append and tick instruction
-            let data =self.fetch(bus);
+            let data = self.fetch(bus);
             self.instruction = Decoder::decode(data.0, data.1).unwrap();
             self.instruction.tick(&mut self.registers, bus);
             println!("{}", self.instruction)
@@ -39,7 +39,7 @@ impl CPU {
     fn fetch(&mut self, bus: &mut Bus) -> (u8, bool) {
         let pc: u16 = self.registers.PC( Action::Read ).value();
         print!("{:#10x}: ", pc);
-        
+
         self.registers.PC( Action::Increment(1) );
 
         let mut opcode: u8 = bus.read_byte(pc).value();

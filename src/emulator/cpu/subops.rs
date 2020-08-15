@@ -9,6 +9,34 @@ use crate::emulator::Bus;
 //     return 8;
 // }
 
+macro_rules! RL_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus) {
+                let mut val: u8 = registers.$r( Action::Read ).value();
+
+                val = Instruction::RL(registers, val, true, true);
+        
+                registers.$r( Action::Write(val as u16) );
+            }
+        )*
+    }
+}
+
+macro_rules! RLC_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus) {
+                let mut val: u8 = registers.$r( Action::Read ).value();
+
+                val = Instruction::RL(registers, val, false, true);
+        
+                registers.$r( Action::Write(val as u16) );
+            }
+        )*
+    }
+}
+
 macro_rules! bit_nr {
     ( $( $name:ident,$num:expr,$r:ident ),* ) => {
         $( 
@@ -21,6 +49,9 @@ macro_rules! bit_nr {
 }
 
 impl Instruction {
+    RLC_r!( RLC_B, B, RLC_C, C, RLC_D, D, RLC_E, E, RLC_H, H, RLC_L, L, RLC_A_CB, A);
+    RL_r!( RL_B, B, RL_C, C, RL_D, D, RL_E, E, RL_H, H, RL_L, L, RL_A_CB, A);
+
     bit_nr!(
         BIT_0B, 0, B,  BIT_0C, 0, C, BIT_0D, 0, D,  BIT_0E, 0, E, BIT_0H, 0, H,  BIT_0L, 0, L, BIT_0A, 0, A,
         BIT_1B, 1, B,  BIT_1C, 1, C, BIT_1D, 1, D,  BIT_1E, 1, E, BIT_1H, 1, H,  BIT_1L, 1, L, BIT_1A, 1, A,
