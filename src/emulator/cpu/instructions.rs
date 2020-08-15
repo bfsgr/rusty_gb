@@ -607,7 +607,7 @@ impl Instruction {
         registers.PC( Action::Write( inst.buffer_u16 ) );
     }
 
-    pub fn JP_HL(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+    pub fn JP_HL(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let hl: u16 = registers.HL( Action::Read ).value();
         registers.PC( Action::Write( hl ) ); 
     }
@@ -616,6 +616,7 @@ impl Instruction {
         registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
         Self::write_B_with_buffer_u8(inst, registers, bus);
+        registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_D(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
@@ -633,7 +634,7 @@ impl Instruction {
         Self::write_A_with_buffer_u8(inst, registers, bus);
     }
 
-    pub fn write_F_with_buffer_u8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+    pub fn write_F_with_buffer_u8(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let val = inst.buffer_u8.pop().unwrap();
         registers.AF( Action::Write( (val & 0xF0) as u16 )  );
     }
@@ -649,7 +650,7 @@ impl Instruction {
 
 
 
-    pub fn add_sp_dd(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+    pub fn add_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let SP: u16 = registers.SP(Action::Read).value();
 
         let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;
@@ -674,7 +675,7 @@ impl Instruction {
         registers.SP( Action::Write(result) );
     }
 
-    pub fn ldhl_sp_dd(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+    pub fn ldhl_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let SP: u16 = registers.SP(Action::Read).value();
 
         let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;

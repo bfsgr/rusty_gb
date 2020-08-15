@@ -31,8 +31,10 @@ impl CPU {
             //fetch pc, decode, append and tick instruction
             let data = self.fetch(bus);
             self.instruction = Decoder::decode(data.0, data.1).unwrap();
+    
+            println!("{}", self.instruction);
+
             self.instruction.tick(&mut self.registers, bus);
-            println!("{}", self.instruction)
         }
     }
 
