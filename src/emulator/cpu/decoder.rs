@@ -33,7 +33,7 @@ impl Decoder {
                         3 => { Ok(Instruction::holder()) },
                         4 => { Ok(Instruction::holder()) },
                         5 => Self::x3z5( (opcode & 0x38) >> 3),
-                        6 => { Ok(Instruction::holder()) },
+                        6 => Self::x3z6( (opcode & 0x38) >> 3),
                         7 => { Ok(Instruction::holder()) },
                         _ => Err("Opcode not found".to_owned())
                     }
@@ -1550,6 +1550,117 @@ impl Decoder {
                 )) 
             },
             7 => Err("Removed Opcode".to_owned()),
+            _ => Err("Instruction not found".to_owned()),
+        }
+
+    }
+    
+    fn x3z6(data: u8) -> Result<Instruction, String> {
+        match data {
+            0 => {
+                Ok(Instruction::new(
+                    "ADD A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::add_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "ADC A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::adc_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "SUB A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::sub_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "SBC A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::sbc_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "AND A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::and_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "XOR A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::xor_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "OR A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::or_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "CP A,n",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::cp_with_buffer);
+
+                        o
+                    },
+                    2
+                )) 
+            },
             _ => Err("Instruction not found".to_owned()),
         }
 

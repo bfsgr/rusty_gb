@@ -32,7 +32,7 @@ impl CPU {
             let data = self.fetch(bus);
             self.instruction = Decoder::decode(data.0, data.1).unwrap();
     
-            println!("{}", self.instruction);
+            // println!("{}", self.instruction);
 
             self.instruction.tick(&mut self.registers, bus);
         }
@@ -40,7 +40,7 @@ impl CPU {
 
     fn fetch(&mut self, bus: &mut Bus) -> (u8, bool) {
         let pc: u16 = self.registers.PC( Action::Read ).value();
-        print!("{:#10x}: ", pc);
+        // print!("{:#10x}: ", pc);
 
         self.registers.PC( Action::Increment(1) );
 
