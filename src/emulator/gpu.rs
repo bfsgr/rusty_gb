@@ -4,11 +4,11 @@ use super::interrupt::{*};
 use super::bit_utils::{*};
 use super::cpu::registers::{Response};
 
-const OAM_SEARCH: usize = 80;
-const TRANSFER_CYCLES: usize = 252;
-const HBLANK_CYCLES: usize = 456;
-const FRAME_CYCLES: usize = 456 * 146;
-const VBLANK_CYCLES: usize = FRAME_CYCLES + 456 * 10;
+const OAM_SEARCH: usize = 19;
+const TRANSFER_CYCLES: usize = 63;
+const HBLANK_CYCLES: usize = 115;
+const FRAME_CYCLES: usize = 115 * 145;
+const VBLANK_CYCLES: usize = FRAME_CYCLES + 115 * 10;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -592,7 +592,8 @@ impl GPU {
     pub fn write_lcdc(&mut self, byte: u8) {
         if !byte.test_bit(7) && self.enabled() {
             if self.mode != Mode::VBlank {
-                panic!("Turned LCD off outside of Vblank")
+                // panic!("Turned LCD off outside of Vblank")
+                println!("WARN: Turned LCD off outside of vblank")
             }
             self.lcd_y = 0;
             self.STAT = 0x80;
