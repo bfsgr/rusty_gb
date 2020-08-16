@@ -32,6 +32,96 @@ macro_rules! RLC_r{
     }
 }
 
+macro_rules! RRC_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+        
+                val = Instruction::RR(registers, val, false, true);
+        
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
+macro_rules! RR_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+        
+                val = Instruction::RR(registers, val, true, true);
+        
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
+macro_rules! SLA_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+        
+                val = Instruction::SL(val, registers);
+        
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
+macro_rules! SRA_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+        
+                val = Instruction::SR(val, true, registers);
+        
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
+macro_rules! SRL_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+        
+                val = Instruction::SR(val, false, registers);
+        
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
+macro_rules! SWAP_r{
+    ( $( $name:ident,$r:ident ),* ) => {
+        $( 
+            pub fn $name(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+                let mut val: u8 = registers.$r( Action::Read ).value();
+                
+                val = Instruction::SWAP(val, registers);
+                
+                registers.$r( Action::Write(val as u16) );
+        
+            }
+        )*
+    }
+}
+
 macro_rules! bit_nr {
     ( $( $name:ident,$num:expr,$r:ident ),* ) => {
         $( 
@@ -44,8 +134,17 @@ macro_rules! bit_nr {
 }
 
 impl Instruction {
+    RRC_r!( RRC_B, B, RRC_C, C, RRC_D, D, RRC_E, E, RRC_H, H, RRC_L, L, RRC_A_CB, A);
+    RR_r!( RR_B, B, RR_C, C, RR_D, D, RR_E, E, RR_H, H, RR_L, L, RR_A_CB, A);
+
     RLC_r!( RLC_B, B, RLC_C, C, RLC_D, D, RLC_E, E, RLC_H, H, RLC_L, L, RLC_A_CB, A);
     RL_r!( RL_B, B, RL_C, C, RL_D, D, RL_E, E, RL_H, H, RL_L, L, RL_A_CB, A);
+
+    SLA_r!( SLA_B, B, SLA_C, C, SLA_D, D, SLA_E, E, SLA_H, H, SLA_L, L, SLA_A, A );
+    SRA_r!( SRA_B, B, SRA_C, C, SRA_D, D, SRA_E, E, SRA_H, H, SRA_L, L, SRA_A, A );
+    SRL_r!( SRL_B, B, SRL_C, C, SRL_D, D, SRL_E, E, SRL_H, H, SRL_L, L, SRL_A, A );
+
+    SWAP_r!( SWAP_B, B, SWAP_C, C, SWAP_D, D, SWAP_E, E, SWAP_H, H, SWAP_L, L, SWAP_A, A);
 
     bit_nr!(
         BIT_0B, 0, B,  BIT_0C, 0, C, BIT_0D, 0, D,  BIT_0E, 0, E, BIT_0H, 0, H,  BIT_0L, 0, L, BIT_0A, 0, A,

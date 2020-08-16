@@ -1319,7 +1319,7 @@ impl Decoder {
                         o.push_back(Instruction::read_bus_with_SP);
                         o.push_back(Instruction::INC_SP);
                         o.push_back(Instruction::finish_ret);
-                        o.push_back(Instruction::enable_interrupts);
+                        o.push_back(Instruction::ei);
                         o
                     },
                     4
@@ -1358,7 +1358,7 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::nop);
-                        o.push_back(Instruction::ld_hl_sp);
+                        o.push_back(Instruction::ld_sp_hl);
                         o
                     },
                     2
@@ -1896,10 +1896,6 @@ impl Decoder {
 
     }
 
-
-    
-
-
     fn decode_bit(data: (u8,u8)) -> Result<Instruction, String> {
         match data.0 {
             //bit 0,r
@@ -2028,7 +2024,19 @@ impl Decoder {
                     _ => { Err("Instruction not found".to_owned()) },
                 }
             },
-            1 => Err("Instruction not found".to_owned()),
+            1 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RRC B", RRC_B)),
+                    1 => Ok(subset_atomic!("RRC C", RRC_C)),
+                    2 => Ok(subset_atomic!("RRC D", RRC_D)),
+                    3 => Ok(subset_atomic!("RRC E", RRC_E)),
+                    4 => Ok(subset_atomic!("RRC H", RRC_H)),
+                    5 => Ok(subset_atomic!("RRC L", RRC_L)),
+                    6 => Ok(subset_atomic!("RRC (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("RRC A", RRC_A_CB)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
             2 => {
                 match data.1 {
                     0 => Ok(subset_atomic!("RL B", RL_B)),
@@ -2042,11 +2050,71 @@ impl Decoder {
                     _ => { Err("Instruction not found".to_owned()) },
                 }
             },
-            3 => Err("Instruction not found".to_owned()),
-            4 => Err("Instruction not found".to_owned()),
-            5 => Err("Instruction not found".to_owned()),
-            6 => Err("Instruction not found".to_owned()),
-            7 => Err("Instruction not found".to_owned()),
+            3 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RR B", RR_B)),
+                    1 => Ok(subset_atomic!("RR C", RR_C)),
+                    2 => Ok(subset_atomic!("RR D", RR_D)),
+                    3 => Ok(subset_atomic!("RR E", RR_E)),
+                    4 => Ok(subset_atomic!("RR H", RR_H)),
+                    5 => Ok(subset_atomic!("RR L", RR_L)),
+                    6 => Ok(subset_atomic!("RR (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("RR A", RR_A_CB)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            4 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SLA B", SLA_B)),
+                    1 => Ok(subset_atomic!("SLA C", SLA_C)),
+                    2 => Ok(subset_atomic!("SLA D", SLA_D)),
+                    3 => Ok(subset_atomic!("SLA E", SLA_E)),
+                    4 => Ok(subset_atomic!("SLA H", SLA_H)),
+                    5 => Ok(subset_atomic!("SLA L", SLA_L)),
+                    6 => Ok(subset_atomic!("SLA (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("SLA A", SLA_A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            5 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SRA B", SRA_B)),
+                    1 => Ok(subset_atomic!("SRA C", SRA_C)),
+                    2 => Ok(subset_atomic!("SRA D", SRA_D)),
+                    3 => Ok(subset_atomic!("SRA E", SRA_E)),
+                    4 => Ok(subset_atomic!("SRA H", SRA_H)),
+                    5 => Ok(subset_atomic!("SRA L", SRA_L)),
+                    6 => Ok(subset_atomic!("SRA (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("SRA A", SRA_A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            6 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SWAP B", SWAP_B)),
+                    1 => Ok(subset_atomic!("SWAP C", SWAP_C)),
+                    2 => Ok(subset_atomic!("SWAP D", SWAP_D)),
+                    3 => Ok(subset_atomic!("SWAP E", SWAP_E)),
+                    4 => Ok(subset_atomic!("SWAP H", SWAP_H)),
+                    5 => Ok(subset_atomic!("SWAP L", SWAP_L)),
+                    6 => Ok(subset_atomic!("SWAP (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("SWAP A", SWAP_A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            7 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SRL B", SRL_B)),
+                    1 => Ok(subset_atomic!("SRL C", SRL_C)),
+                    2 => Ok(subset_atomic!("SRL D", SRL_D)),
+                    3 => Ok(subset_atomic!("SRL E", SRL_E)),
+                    4 => Ok(subset_atomic!("SRL H", SRL_H)),
+                    5 => Ok(subset_atomic!("SRL L", SRL_L)),
+                    6 => Ok(subset_atomic!("SRL (HL)", nop)), //define after
+                    7 => Ok(subset_atomic!("SRL A", SRL_A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
             _ => { Err("Instruction not found".to_owned()) },
         }
 

@@ -219,7 +219,20 @@ impl Instruction {
     }
 
     pub fn nop(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
-    pub fn halt(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
+    pub fn halt(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        if !bus.interrupts.master{
+            if (bus.interrupts.enable & bus.interrupts.requests & 0x1F) == 0 {
+                bus.interrupts.halt_bug = false;
+                bus.halt_cpu = true;
+            } else {
+                bus.halt_cpu = true;
+                bus.interrupts.halt_bug = true;
+            }
+        } else {
+            bus.halt_cpu = true;
+            bus.interrupts.halt_bug = false;
+        }
+    }
     pub fn stop(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
     
     write_r_in_dHL!(
@@ -585,6 +598,13 @@ impl Instruction {
 
         bus.write_byte(sp, (val >> 8) as u8);
     }
+
+    pub fn write_PC_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u16 =  registers.PC(Action::Read ).value();
+        let sp: u16 = registers.SP( Action::Read ).value();
+
+        bus.write_byte(sp, val as u8);
+    }
     
     pub fn finish_ret(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let sp: u16 = registers.SP( Action::Read ).value();
@@ -649,13 +669,17 @@ impl Instruction {
         bus.enable_interrupts();
     }
 
+    pub fn ei(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.interrupts.master = true;
+    }
+
     pub fn disable_interrupts(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
         bus.disable_interrupts();
     }
 
-    pub fn ld_hl_sp(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let sp: u16 = registers.SP( Action::Read ).value();
-        registers.HL( Action::Write(sp) );
+    pub fn ld_sp_hl(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let hl: u16 = registers.HL( Action::Read ).value();
+        registers.SP(Action::Write(hl) );
     }
 
     pub fn rst_0(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
@@ -718,6 +742,51 @@ impl Instruction {
         registers.PC( Action::Write(0x38) );
     }
 
+    pub fn load_40(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.PC(Action::Write(0x40));
+        if bus.halt_cpu {
+            inst.operations.push_back(Instruction::unhalt);
+            inst.cycles += 1;
+        }
+    }
+
+    pub fn load_48(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.PC(Action::Write(0x48));
+        if bus.halt_cpu {
+            inst.operations.push_back(Instruction::unhalt);
+            inst.cycles += 1;
+        }
+    }
+
+    pub fn load_50(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.PC(Action::Write(0x50));
+        if bus.halt_cpu {
+            inst.operations.push_back(Instruction::unhalt);
+            inst.cycles += 1;
+        }
+    }
+
+    pub fn load_58(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.PC(Action::Write(0x58));
+        if bus.halt_cpu {
+            inst.operations.push_back(Instruction::unhalt);
+            inst.cycles += 1;
+        }
+    }
+    
+    pub fn load_60(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.PC(Action::Write(0x60));
+        if bus.halt_cpu {
+            inst.operations.push_back(Instruction::unhalt);
+            inst.cycles += 1;
+        }
+    }
+
+    pub fn unhalt(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.halt_cpu = false;
+    }
+
+
 
 
     pub fn add_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
@@ -744,6 +813,8 @@ impl Instruction {
 
         registers.SP( Action::Write(result) );
     }
+
+
 
     pub fn ldhl_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let SP: u16 = registers.SP(Action::Read).value();
