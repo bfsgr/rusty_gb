@@ -39,7 +39,11 @@ impl CPU {
                 //fetch pc, decode, append and tick instruction
                 let data = self.fetch(bus);
                 self.instruction = Decoder::decode(data.0, data.1).unwrap();
-        
+                
+                if self.instruction.disassembly == "HOLDER" {
+                    panic!("Opcode: {:x}, CB:{}", data.0, data.1);
+                }
+
                 // println!("{}", self.instruction);
     
                 self.instruction.tick(&mut self.registers, bus);

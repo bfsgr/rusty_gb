@@ -45,8 +45,8 @@ impl Decoder {
             match (opcode & 0xC0) >> 6 {
                 0 => Self::decode_rss(((opcode & 0x38) >> 3, opcode & 7)), //test bit
                 1 => Self::decode_bit(((opcode & 0x38) >> 3, opcode & 7)), //test bit
-                2 => { Ok(Instruction::holder()) }, //reset bit
-                3 => { Ok(Instruction::holder()) }, //set bit
+                2 => Self::decode_res(((opcode & 0x38) >> 3, opcode & 7)), //test bit
+                3 => Self::decode_set(((opcode & 0x38) >> 3, opcode & 7)), //test bit
                 _ => Err("Opcode not found".to_owned())
             }
         }
@@ -1918,7 +1918,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 0,E", BIT_0E)),
                     4 => Ok(subset_atomic!("BIT 0,H", BIT_0H)),
                     5 => Ok(subset_atomic!("BIT 0,L", BIT_0L)),
-                    6 => Ok(subset_atomic!("BIT 0,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 0,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_0_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 0,A", BIT_0A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1931,7 +1944,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 1,E", BIT_1E)),
                     4 => Ok(subset_atomic!("BIT 1,H", BIT_1H)),
                     5 => Ok(subset_atomic!("BIT 1,L", BIT_1L)),
-                    6 => Ok(subset_atomic!("BIT 1,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 1,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_1_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 1,A", BIT_1A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1944,7 +1970,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 2,E", BIT_2E)),
                     4 => Ok(subset_atomic!("BIT 2,H", BIT_2H)),
                     5 => Ok(subset_atomic!("BIT 2,L", BIT_2L)),
-                    6 => Ok(subset_atomic!("BIT 2,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 2,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_2_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 2,A", BIT_2A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1957,7 +1996,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 3,E", BIT_3E)),
                     4 => Ok(subset_atomic!("BIT 3,H", BIT_3H)),
                     5 => Ok(subset_atomic!("BIT 3,L", BIT_3L)),
-                    6 => Ok(subset_atomic!("BIT 3,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 3,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_3_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 3,A", BIT_3A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1970,7 +2022,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 4,E", BIT_4E)),
                     4 => Ok(subset_atomic!("BIT 4,H", BIT_4H)),
                     5 => Ok(subset_atomic!("BIT 4,L", BIT_4L)),
-                    6 => Ok(subset_atomic!("BIT 4,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 4,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_4_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 4,A", BIT_4A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1983,7 +2048,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 5,E", BIT_5E)),
                     4 => Ok(subset_atomic!("BIT 5,H", BIT_5H)),
                     5 => Ok(subset_atomic!("BIT 5,L", BIT_5L)),
-                    6 => Ok(subset_atomic!("BIT 5,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 5,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_5_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 5,A", BIT_5A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -1996,7 +2074,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 6,E", BIT_6E)),
                     4 => Ok(subset_atomic!("BIT 6,H", BIT_6H)),
                     5 => Ok(subset_atomic!("BIT 6,L", BIT_6L)),
-                    6 => Ok(subset_atomic!("BIT 6,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 6,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_6_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 6,A", BIT_6A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2009,7 +2100,20 @@ impl Decoder {
                     3 => Ok(subset_atomic!("BIT 7,E", BIT_7E)),
                     4 => Ok(subset_atomic!("BIT 7,H", BIT_7H)),
                     5 => Ok(subset_atomic!("BIT 7,L", BIT_7L)),
-                    6 => Ok(subset_atomic!("BIT 7,(HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "BIT 7,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::bit_7_buffer);
+        
+                                o
+                            },
+                            3
+                        ))
+                    },
                     7 => Ok(subset_atomic!("BIT 7,A", BIT_7A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2030,7 +2134,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("RLC E", RLC_E)),
                     4 => Ok(subset_atomic!("RLC H", RLC_H)),
                     5 => Ok(subset_atomic!("RLC L", RLC_L)),
-                    6 => Ok(subset_atomic!("RLC (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "RLC (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::rlc_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("RLC A", RLC_A_CB)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2043,7 +2161,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("RRC E", RRC_E)),
                     4 => Ok(subset_atomic!("RRC H", RRC_H)),
                     5 => Ok(subset_atomic!("RRC L", RRC_L)),
-                    6 => Ok(subset_atomic!("RRC (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "RRC (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::rrc_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("RRC A", RRC_A_CB)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2056,7 +2188,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("RL E", RL_E)),
                     4 => Ok(subset_atomic!("RL H", RL_H)),
                     5 => Ok(subset_atomic!("RL L", RL_L)),
-                    6 => Ok(subset_atomic!("RL (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "RL (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::rl_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("RL A", RL_A_CB)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2069,7 +2215,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("RR E", RR_E)),
                     4 => Ok(subset_atomic!("RR H", RR_H)),
                     5 => Ok(subset_atomic!("RR L", RR_L)),
-                    6 => Ok(subset_atomic!("RR (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "RR (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::rr_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("RR A", RR_A_CB)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2082,7 +2242,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("SLA E", SLA_E)),
                     4 => Ok(subset_atomic!("SLA H", SLA_H)),
                     5 => Ok(subset_atomic!("SLA L", SLA_L)),
-                    6 => Ok(subset_atomic!("SLA (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "SLA (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::sla_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("SLA A", SLA_A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2095,7 +2269,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("SRA E", SRA_E)),
                     4 => Ok(subset_atomic!("SRA H", SRA_H)),
                     5 => Ok(subset_atomic!("SRA L", SRA_L)),
-                    6 => Ok(subset_atomic!("SRA (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "SRA (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::sra_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("SRA A", SRA_A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2108,7 +2296,21 @@ impl Decoder {
                     3 => Ok(subset_atomic!("SWAP E", SWAP_E)),
                     4 => Ok(subset_atomic!("SWAP H", SWAP_H)),
                     5 => Ok(subset_atomic!("SWAP L", SWAP_L)),
-                    6 => Ok(subset_atomic!("SWAP (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "SWAP (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::swap_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("SWAP A", SWAP_A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
@@ -2121,8 +2323,470 @@ impl Decoder {
                     3 => Ok(subset_atomic!("SRL E", SRL_E)),
                     4 => Ok(subset_atomic!("SRL H", SRL_H)),
                     5 => Ok(subset_atomic!("SRL L", SRL_L)),
-                    6 => Ok(subset_atomic!("SRL (HL)", nop)), //define after
+                    6 => {
+                        Ok(Instruction::new(
+                            "SRL (HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::srl_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
                     7 => Ok(subset_atomic!("SRL A", SRL_A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn decode_res(data: (u8,u8)) -> Result<Instruction, String> {
+        match data.0 {
+            //bit 0,r
+            0 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 0,B", RES_0B)),
+                    1 => Ok(subset_atomic!("RES 0,C", RES_0C)),
+                    2 => Ok(subset_atomic!("RES 0,D", RES_0D)),
+                    3 => Ok(subset_atomic!("RES 0,E", RES_0E)),
+                    4 => Ok(subset_atomic!("RES 0,H", RES_0H)),
+                    5 => Ok(subset_atomic!("RES 0,L", RES_0L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 0,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_0_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 0,A", RES_0A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            1 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 1,B", RES_1B)),
+                    1 => Ok(subset_atomic!("RES 1,C", RES_1C)),
+                    2 => Ok(subset_atomic!("RES 1,D", RES_1D)),
+                    3 => Ok(subset_atomic!("RES 1,E", RES_1E)),
+                    4 => Ok(subset_atomic!("RES 1,H", RES_1H)),
+                    5 => Ok(subset_atomic!("RES 1,L", RES_1L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 1,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_1_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 1,A", RES_1A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            2 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 2,B", RES_2B)),
+                    1 => Ok(subset_atomic!("RES 2,C", RES_2C)),
+                    2 => Ok(subset_atomic!("RES 2,D", RES_2D)),
+                    3 => Ok(subset_atomic!("RES 2,E", RES_2E)),
+                    4 => Ok(subset_atomic!("RES 2,H", RES_2H)),
+                    5 => Ok(subset_atomic!("RES 2,L", RES_2L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 2,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_2_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 2,A", RES_2A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            3 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 3,B", RES_3B)),
+                    1 => Ok(subset_atomic!("RES 3,C", RES_3C)),
+                    2 => Ok(subset_atomic!("RES 3,D", RES_3D)),
+                    3 => Ok(subset_atomic!("RES 3,E", RES_3E)),
+                    4 => Ok(subset_atomic!("RES 3,H", RES_3H)),
+                    5 => Ok(subset_atomic!("RES 3,L", RES_3L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 3,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_3_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 3,A", RES_3A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            4 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 4,B", RES_4B)),
+                    1 => Ok(subset_atomic!("RES 4,C", RES_4C)),
+                    2 => Ok(subset_atomic!("RES 4,D", RES_4D)),
+                    3 => Ok(subset_atomic!("RES 4,E", RES_4E)),
+                    4 => Ok(subset_atomic!("RES 4,H", RES_4H)),
+                    5 => Ok(subset_atomic!("RES 4,L", RES_4L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 4,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_4_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 4,A", RES_4A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            5 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 5,B", RES_5B)),
+                    1 => Ok(subset_atomic!("RES 5,C", RES_5C)),
+                    2 => Ok(subset_atomic!("RES 5,D", RES_5D)),
+                    3 => Ok(subset_atomic!("RES 5,E", RES_5E)),
+                    4 => Ok(subset_atomic!("RES 5,H", RES_5H)),
+                    5 => Ok(subset_atomic!("RES 5,L", RES_5L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 5,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_5_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 5,A", RES_5A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            6 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 6,B", RES_6B)),
+                    1 => Ok(subset_atomic!("RES 6,C", RES_6C)),
+                    2 => Ok(subset_atomic!("RES 6,D", RES_6D)),
+                    3 => Ok(subset_atomic!("RES 6,E", RES_6E)),
+                    4 => Ok(subset_atomic!("RES 6,H", RES_6H)),
+                    5 => Ok(subset_atomic!("RES 6,L", RES_6L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 0,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_6_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 6,A", RES_6A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            7 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("RES 7,B", RES_7B)),
+                    1 => Ok(subset_atomic!("RES 7,C", RES_7C)),
+                    2 => Ok(subset_atomic!("RES 7,D", RES_7D)),
+                    3 => Ok(subset_atomic!("RES 7,E", RES_7E)),
+                    4 => Ok(subset_atomic!("RES 7,H", RES_7H)),
+                    5 => Ok(subset_atomic!("RES 7,L", RES_7L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "RES 7,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::res_7_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("RES 7,A", RES_7A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn decode_set(data: (u8,u8)) -> Result<Instruction, String> {
+        match data.0 {
+            //bit 0,r
+            0 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 0,B", SET_0B)),
+                    1 => Ok(subset_atomic!("SET 0,C", SET_0C)),
+                    2 => Ok(subset_atomic!("SET 0,D", SET_0D)),
+                    3 => Ok(subset_atomic!("SET 0,E", SET_0E)),
+                    4 => Ok(subset_atomic!("SET 0,H", SET_0H)),
+                    5 => Ok(subset_atomic!("SET 0,L", SET_0L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 0,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_0_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 0,A", SET_0A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            1 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 1,B", SET_1B)),
+                    1 => Ok(subset_atomic!("SET 1,C", SET_1C)),
+                    2 => Ok(subset_atomic!("SET 1,D", SET_1D)),
+                    3 => Ok(subset_atomic!("SET 1,E", SET_1E)),
+                    4 => Ok(subset_atomic!("SET 1,H", SET_1H)),
+                    5 => Ok(subset_atomic!("SET 1,L", SET_1L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 1,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_1_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 1,A", SET_1A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            2 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 2,B", SET_2B)),
+                    1 => Ok(subset_atomic!("SET 2,C", SET_2C)),
+                    2 => Ok(subset_atomic!("SET 2,D", SET_2D)),
+                    3 => Ok(subset_atomic!("SET 2,E", SET_2E)),
+                    4 => Ok(subset_atomic!("SET 2,H", SET_2H)),
+                    5 => Ok(subset_atomic!("SET 2,L", SET_2L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 2,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_2_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 2,A", SET_2A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            3 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 3,B", SET_3B)),
+                    1 => Ok(subset_atomic!("SET 3,C", SET_3C)),
+                    2 => Ok(subset_atomic!("SET 3,D", SET_3D)),
+                    3 => Ok(subset_atomic!("SET 3,E", SET_3E)),
+                    4 => Ok(subset_atomic!("SET 3,H", SET_3H)),
+                    5 => Ok(subset_atomic!("SET 3,L", SET_3L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 3,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_3_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 3,A", SET_3A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            4 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 4,B", SET_4B)),
+                    1 => Ok(subset_atomic!("SET 4,C", SET_4C)),
+                    2 => Ok(subset_atomic!("SET 4,D", SET_4D)),
+                    3 => Ok(subset_atomic!("SET 4,E", SET_4E)),
+                    4 => Ok(subset_atomic!("SET 4,H", SET_4H)),
+                    5 => Ok(subset_atomic!("SET 4,L", SET_4L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 4,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_4_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 4,A", SET_4A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            5 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 5,B", SET_5B)),
+                    1 => Ok(subset_atomic!("SET 5,C", SET_5C)),
+                    2 => Ok(subset_atomic!("SET 5,D", SET_5D)),
+                    3 => Ok(subset_atomic!("SET 5,E", SET_5E)),
+                    4 => Ok(subset_atomic!("SET 5,H", SET_5H)),
+                    5 => Ok(subset_atomic!("SET 5,L", SET_5L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 5,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_5_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 5,A", SET_5A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            6 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 6,B", SET_6B)),
+                    1 => Ok(subset_atomic!("SET 6,C", SET_6C)),
+                    2 => Ok(subset_atomic!("SET 6,D", SET_6D)),
+                    3 => Ok(subset_atomic!("SET 6,E", SET_6E)),
+                    4 => Ok(subset_atomic!("SET 6,H", SET_6H)),
+                    5 => Ok(subset_atomic!("SET 6,L", SET_6L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 6,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_6_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 6,A", SET_6A)),
+                    _ => { Err("Instruction not found".to_owned()) },
+                }
+            },
+            7 => {
+                match data.1 {
+                    0 => Ok(subset_atomic!("SET 7,B", SET_7B)),
+                    1 => Ok(subset_atomic!("SET 7,C", SET_7C)),
+                    2 => Ok(subset_atomic!("SET 7,D", SET_7D)),
+                    3 => Ok(subset_atomic!("SET 7,E", SET_7E)),
+                    4 => Ok(subset_atomic!("SET 7,H", SET_7H)),
+                    5 => Ok(subset_atomic!("SET 7,L", SET_7L)),
+                    6 => {
+                        Ok(Instruction::new(
+                            "SET 7,(HL)",
+                            {
+                                let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                                o.push_back(Instruction::read_bus_with_HL);
+                                o.push_back(Instruction::set_7_buffer);
+                                o.push_back(Instruction::nop);
+                                o.push_back(Instruction::write_b8_to_b16);
+        
+                                o
+                            },
+                            4
+                        ))
+                    },
+                    7 => Ok(subset_atomic!("SET 7,A", SET_7A)),
                     _ => { Err("Instruction not found".to_owned()) },
                 }
             },

@@ -5,6 +5,7 @@ use super::Bus;
 use super::registers::{Action, Registers, Value};
 use super::generic::*;
 use std::fmt;
+use crate::emulator::bit_utils::BitUtils;
 
 pub struct Instruction {
     pub disassembly: &'static str,
@@ -174,6 +175,37 @@ macro_rules! INC_DEC {
                 let mut reg: u8 = registers.$r( Action::Read ).value();
                 reg = Instruction::$op(registers, reg);
                 registers.$r( Action::Write(reg as u16) );
+            }
+        )*
+    }
+} 
+
+macro_rules! res_buffer {
+    ( $( $name:ident, $bit:expr ),* ) => {
+        $( 
+            pub fn $name(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
+                inst.buffer_u8[0].reset_bit($bit);
+            }
+        )*
+    }
+} 
+
+macro_rules! set_buffer {
+    ( $( $name:ident, $bit:expr ),* ) => {
+        $( 
+            pub fn $name(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
+                inst.buffer_u8[0].set_bit($bit);
+            }
+        )*
+    }
+} 
+
+macro_rules! bit_buffer {
+    ( $( $name:ident, $bit:expr ),* ) => {
+        $( 
+            pub fn $name(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+                let val = inst.buffer_u8.pop().unwrap();
+                Instruction::BIT(val, $bit, registers);
             }
         )*
     }
@@ -839,6 +871,91 @@ impl Instruction {
         registers.clear_flag(NEGATIVE_FLAG);
 
         registers.HL( Action::Write(result) );
+    }
+
+    res_buffer!(
+        res_0_buffer, 0,
+        res_1_buffer, 1,
+        res_2_buffer, 2,
+        res_3_buffer, 3,
+        res_4_buffer, 4,
+        res_5_buffer, 5,
+        res_6_buffer, 6,
+        res_7_buffer, 7
+    );
+
+    set_buffer!(
+        set_0_buffer, 0,
+        set_1_buffer, 1,
+        set_2_buffer, 2,
+        set_3_buffer, 3,
+        set_4_buffer, 4,
+        set_5_buffer, 5,
+        set_6_buffer, 6,
+        set_7_buffer, 7
+    );
+
+    bit_buffer!(
+        bit_0_buffer, 0,
+        bit_1_buffer, 1,
+        bit_2_buffer, 2,
+        bit_3_buffer, 3,
+        bit_4_buffer, 4,
+        bit_5_buffer, 5,
+        bit_6_buffer, 6,
+        bit_7_buffer, 7
+    );
+
+    pub fn rlc_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::RL(registers, val, false, true);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn rl_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::RL(registers, val, true, true);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn rrc_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::RR(registers, val, false, true);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn rr_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::RR(registers, val, true, true);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn sla_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::SL(val, registers);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn sra_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::SR(val, true,  registers);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn srl_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::SR(val, false,  registers);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn swap_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let mut val = inst.buffer_u8.pop().unwrap();
+        val = Instruction::SWAP(val, registers);
+        inst.buffer_u8.push(val);
+    }
+
+    pub fn write_b8_to_b16(inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.write_byte(inst.buffer_u16, inst.buffer_u8.pop().unwrap());
     }
 
 }
