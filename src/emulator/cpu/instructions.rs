@@ -620,18 +620,24 @@ impl Instruction {
     }
 
     pub fn finish_pop_D(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
         Self::write_D_with_buffer_u8(inst, registers, bus);
+        registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_H(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
         Self::write_H_with_buffer_u8(inst, registers, bus);
+        registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
         Self::write_A_with_buffer_u8(inst, registers, bus);
+        registers.SP( Action::Increment(1) );
     }
 
     pub fn write_F_with_buffer_u8(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
@@ -643,9 +649,73 @@ impl Instruction {
         bus.enable_interrupts();
     }
 
+    pub fn disable_interrupts(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.disable_interrupts();
+    }
+
     pub fn ld_hl_sp(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let sp: u16 = registers.SP( Action::Read ).value();
         registers.HL( Action::Write(sp) );
+    }
+
+    pub fn rst_0(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0) );
+    }
+
+    pub fn rst_8(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(8) );
+    }
+
+    pub fn rst_10(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x10) );
+    }
+    pub fn rst_18(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x18) );
+    }
+    pub fn rst_20(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x20) );
+    }
+    pub fn rst_28(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x28) );
+    }
+    pub fn rst_30(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x30) );
+    }
+
+    pub fn rst_38(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let sp: u16 = registers.SP( Action::Read ).value();
+        let pc: u16 = registers.PC( Action::Read ).value();
+
+        bus.write_byte(sp, pc as u8);
+        registers.PC( Action::Write(0x38) );
     }
 
 

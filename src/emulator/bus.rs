@@ -112,19 +112,19 @@ impl Bus {
 
     }
 
-    pub fn write_short(&mut self, addr: u16, short: u16) {
-        let b1 = Bus::classify(addr);
-        let b2 = Bus::classify(addr+1);
+    // pub fn write_short(&mut self, addr: u16, short: u16) {
+    //     let b1 = Bus::classify(addr);
+    //     let b2 = Bus::classify(addr+1);
 
-        if b1 == b2 {
+    //     if b1 == b2 {
 
-            self.write_byte(addr, short as u8);
-            self.write_byte(addr + 1, (short >> 8) as u8 );
+    //         self.write_byte(addr, short as u8);
+    //         self.write_byte(addr + 1, (short >> 8) as u8 );
 
-        } else {
-            panic!("Tried to write short along different modules")
-        }
-    }
+    //     } else {
+    //         panic!("Tried to write short along different modules")
+    //     }
+    // }
 
 
     fn classify(address: u16) -> Module{

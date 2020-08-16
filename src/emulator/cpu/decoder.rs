@@ -30,11 +30,11 @@ impl Decoder {
                         0 => Self::x3z0( (opcode & 0x38) >> 3),
                         1 => Self::x3z1( (opcode & 0x38) >> 3),
                         2 => Self::x3z2( (opcode & 0x38) >> 3),
-                        3 => { Ok(Instruction::holder()) },
-                        4 => { Ok(Instruction::holder()) },
+                        3 => Self::x3z3( (opcode & 0x38) >> 3),
+                        4 => Self::x3z4( (opcode & 0x38) >> 3),
                         5 => Self::x3z5( (opcode & 0x38) >> 3),
                         6 => Self::x3z6( (opcode & 0x38) >> 3),
-                        7 => { Ok(Instruction::holder()) },
+                        7 => Self::x3z7( (opcode & 0x38) >> 3),
                         _ => Err("Opcode not found".to_owned())
                     }
                 },
@@ -1304,7 +1304,7 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::read_bus_with_SP);
-                        o.push_back(Instruction::write_C_with_buffer_u8);
+                        o.push_back(Instruction::write_E_with_buffer_u8);
                         o.push_back(Instruction::finish_pop_D);
                         o
                     },
@@ -1469,6 +1469,109 @@ impl Decoder {
                 )) 
             },
             _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+    
+    fn x3z3(data: u8) -> Result<Instruction, String> {
+        match data {
+            0 => {
+                Ok(Instruction::new(
+                    "JP nn",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::load_short);
+                        o.push_back(Instruction::nop);
+                        o.push_back(Instruction::jp_nn);
+                        o
+                    },
+                    4
+                )) 
+            },
+            1 => Err("0xCB prefix".to_owned()),
+            2 => Err("Removed Opcode".to_owned()),
+            3 => Err("Removed Opcode".to_owned()),
+            4 => Err("Removed Opcode".to_owned()),
+            5 => Err("Removed Opcode".to_owned()),
+            6 => Ok(atomic!("DI", disable_interrupts)),
+            7 => Ok(atomic!("EI", enable_interrupts)),
+            _ => { Err("Instruction not found".to_owned()) },
+        }
+
+    }
+
+    fn x3z4(data: u8) -> Result<Instruction, String> {
+        match data {
+            0 => {
+                Ok(Instruction::new(
+                    "CALL NZ,nn",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::load_short);
+                        o.push_back(Instruction::compare_nz);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::finish_call);
+                        o
+                    },
+                    6
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "CALL Z,nn",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::load_short);
+                        o.push_back(Instruction::compare_z);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::finish_call);
+                        o
+                    },
+                    6
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "CALL NC,nn",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::load_short);
+                        o.push_back(Instruction::compare_nc);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::finish_call);
+                        o
+                    },
+                    6
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "CALL C,nn",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::load_immediate);
+                        o.push_back(Instruction::load_short);
+                        o.push_back(Instruction::compare_c);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::finish_call);
+                        o
+                    },
+                    6
+                )) 
+            },
+            4 => Err("Removed Opcode".to_owned()),
+            5 => Err("Removed Opcode".to_owned()),
+            6 => Err("Removed Opcode".to_owned()),
+            7 => Err("Removed Opcode".to_owned()),
+            _ => Err("Instruction not found".to_owned()),
         }
 
     }
@@ -1659,6 +1762,133 @@ impl Decoder {
                         o
                     },
                     2
+                )) 
+            },
+            _ => Err("Instruction not found".to_owned()),
+        }
+
+    }
+
+    fn x3z7(data: u8) -> Result<Instruction, String> {
+        match data {
+            0 => {
+                Ok(Instruction::new(
+                    "RST 0",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_0);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            1 => {
+                Ok(Instruction::new(
+                    "RST 8",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_8);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            2 => {
+                Ok(Instruction::new(
+                    "RST 10",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_10);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            3 => {
+                Ok(Instruction::new(
+                    "RST 18",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_18);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            4 => {
+                Ok(Instruction::new(
+                    "RST 20",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_20);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            5 => {
+                Ok(Instruction::new(
+                    "RST 28",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_28);
+
+                        o
+                    },
+                    4
+                )) 
+            },
+            6 => {
+                Ok(Instruction::new(
+                    "RST 30",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_30);
+
+                        o
+                    },
+                    4
+                ))  
+            },
+            7 => {
+                Ok(Instruction::new(
+                    "RST 38",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::write_P_in_dSP);
+                        o.push_back(Instruction::DEC_SP);
+                        o.push_back(Instruction::rst_38);
+
+                        o
+                    },
+                    4
                 )) 
             },
             _ => Err("Instruction not found".to_owned()),

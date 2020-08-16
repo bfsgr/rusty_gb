@@ -1,13 +1,8 @@
+#![allow(non_snake_case)]
 use super::Instruction;
 use crate::emulator::cpu::registers::*;
 use crate::emulator::Bus;
 // use crate::emulator::bit_utils::BitUtils;
-
-// pub fn BIT_4H(_operands: [u8; 2], registers: &mut Registers, _mem: &mut Bus) -> u8{
-//     let val: u8 = registers.H( Action::Read ).value();
-//     Instruction::BIT(val, 4, registers);
-//     return 8;
-// }
 
 macro_rules! RL_r{
     ( $( $name:ident,$r:ident ),* ) => {
