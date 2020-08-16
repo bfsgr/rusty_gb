@@ -1433,7 +1433,7 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::sum_ff00_to_C);
-                        o.push_back(Instruction::read_b16_write_A);
+                        o.push_back(Instruction::write_A_to_b16);
                         o
                     },
                     2
@@ -1453,7 +1453,18 @@ impl Decoder {
                     4
                 )) 
             },
-            6 => Err("Removed Opcode".to_owned()),
+            6 => {
+                Ok(Instruction::new(
+                    "LD A,(FF00+C)",
+                    {
+                        let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
+                        o.push_back(Instruction::sum_ff00_to_C);
+                        o.push_back(Instruction::read_b16_write_A);
+                        o
+                    },
+                    2
+                )) 
+            },
             7 => {
                 Ok(Instruction::new(
                     "LD A,(nn)",
