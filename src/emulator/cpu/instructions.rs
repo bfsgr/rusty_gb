@@ -211,10 +211,6 @@ macro_rules! bit_buffer {
     }
 } 
 
-
-
-
-
 impl Instruction {
     pub fn tick(&mut self, registers: &mut Registers, bus: &mut Bus){
         self.cycles -= 1;
@@ -238,7 +234,12 @@ impl Instruction {
         }
     }
 
+     //================ special operations ===================//
+
+    //Not an operation
     pub fn nop(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
+
+    //Halt the cpu until an interrupt occurs
     pub fn halt(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
         if !bus.interrupts.master{
             if (bus.interrupts.enable & bus.interrupts.requests & 0x1F) == 0 {
@@ -253,34 +254,101 @@ impl Instruction {
             bus.interrupts.halt_bug = false;
         }
     }
+
+    //Special procedure to unhalt the cpu in interrupt calls
+    pub fn unhalt(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.halt_cpu = false;
+    }
+
+    //halt the cpu, turn sound and lcd off until an joyp button is pressed
     pub fn stop(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
+
+    pub fn DAA(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
+        let mut A: u8 = registers.A( Action::Read ).value();
+        let mut adjust: u8 = if registers.test_flag(CARRY_FLAG) { 0x60 } else { 0x00 };
+        if registers.test_flag(HALFCARRY_FLAG) { adjust |= 0x06; };
+        if !registers.test_flag(NEGATIVE_FLAG) {
+            if (A & 0x0F) > 0x09 { adjust |= 0x06 };
+            if A > 0x99 { adjust |= 0x60 };
+            A = A.wrapping_add(adjust);
+        } else {
+            A = A.wrapping_sub(adjust);
+        }
+        registers.clear_flag(HALFCARRY_FLAG);
+        if A == 0 {
+            registers.set_flag(ZERO_FLAG);
+        } else {
+            registers.clear_flag(ZERO_FLAG);
+        }
+        if adjust >= 0x60 {
+            registers.set_flag(CARRY_FLAG)
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+        registers.A( Action::Write(A as u16) );
+
+    }
+
+    pub fn add_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let SP: u16 = registers.SP(Action::Read).value();
+
+        let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;
+
+        let result = ((SP as i16).wrapping_add(jump)) as u16;
+
+        if (result & 0xFF) < (SP & 0xFF) {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+
+        if (result & 0xF) < (SP & 0xF) {
+            registers.set_flag(HALFCARRY_FLAG);
+        } else {
+            registers.clear_flag(HALFCARRY_FLAG);
+        }
+
+        registers.clear_flag(ZERO_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
+
+        registers.SP( Action::Write(result) );
+    }
+
+    pub fn ldhl_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let SP: u16 = registers.SP(Action::Read).value();
+
+        let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;
+
+        let result = ((SP as i16).wrapping_add(jump)) as u16;
+
+        if (result & 0xFF) < (SP & 0xFF) {
+            registers.set_flag(CARRY_FLAG);
+        } else {
+            registers.clear_flag(CARRY_FLAG);
+        }
+
+        if (result & 0xF) < (SP & 0xF) {
+            registers.set_flag(HALFCARRY_FLAG);
+        } else {
+            registers.clear_flag(HALFCARRY_FLAG);
+        }
+
+        registers.clear_flag(ZERO_FLAG);
+        registers.clear_flag(NEGATIVE_FLAG);
+
+        registers.HL( Action::Write(result) );
+    }
     
-    pub fn add_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let value = inst.buffer_u8.pop().unwrap();
-        Instruction::ADD_u8(registers, value, false)
-    }
+    //================ fetch bytes ===================//
 
-    pub fn adc_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let value = inst.buffer_u8.pop().unwrap();
-        Instruction::ADD_u8(registers, value, true)
-    }
-
-    pub fn sub_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let value = inst.buffer_u8.pop().unwrap();
-        Instruction::SUB_u8(registers, value, false)
-    }
-
-    pub fn sbc_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let value = inst.buffer_u8.pop().unwrap();
-        Instruction::SUB_u8(registers, value, true)
-    }
-
+    //Load current PC and increment PC
     pub fn load_immediate(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let pc: u16 = registers.PC(Action::Read ).value();
         inst.buffer_u8.push( bus.read_byte(pc).value() );
         registers.PC(Action::Write((pc+1) as u16));
     }
-
+    
+    //Load the current PC, increment PC, combine then into an u16 and save it into buffer_u16
     pub fn load_short(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         Self::load_immediate(inst, registers, bus);
         let high = inst.buffer_u8.pop().unwrap();
@@ -288,6 +356,8 @@ impl Instruction {
 
         inst.buffer_u16 = (high as u16) << 8 | low as u16;
     }
+
+    //============== write sp parts into memory ===================//
 
     pub fn write_sp_low(inst: &mut Instruction, registers: &mut Registers,  bus: &mut Bus){
         let sp: u16 = registers.SP(Action::Read ).value();
@@ -298,15 +368,8 @@ impl Instruction {
         let sp: u16 = registers.SP(Action::Read ).value();
         bus.write_byte(inst.buffer_u16, (sp >> 8) as u8);
     }
-    
-    pub fn inc_buffer_u16(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
-        inst.buffer_u16 = inst.buffer_u16.wrapping_add(1);
-    }
 
-    pub fn jp_nn(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        registers.PC(Action::Write(inst.buffer_u16));
-    }
-
+    //============== relative and absolute jumps ===================//
 
     pub fn jr_n(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let n = inst.buffer_u8.pop().unwrap() as i8;
@@ -323,6 +386,17 @@ impl Instruction {
             Self::jr_n(inst, registers, bus);
         }
     }
+
+    pub fn jp_nn(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        registers.PC(Action::Write(inst.buffer_u16));
+    }
+
+    pub fn JP_HL(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let hl: u16 = registers.HL( Action::Read ).value();
+        registers.PC( Action::Write( hl ) ); 
+    }
+
+    //============== comparation functions ===================//
 
     pub fn compare_nz(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         if registers.test_flag(ZERO_FLAG) {
@@ -360,24 +434,10 @@ impl Instruction {
         }
     }
 
-    pub fn ld_dBC_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let a: u8 = registers.A( Action::Read ).value();
-        let bc: u16 = registers.BC( Action::Read ).value();
+    //============== inc/dec b8/b16 ===================//
 
-        bus.write_byte(bc, a);
-    }
-
-    pub fn ld_dDE_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let a: u8 = registers.A( Action::Read ).value();
-        let de: u16 = registers.DE( Action::Read ).value();
-
-        bus.write_byte(de, a);
-    }
-    
-    pub fn write_dHL_to_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let hl: u16 = registers.HL( Action::Read ).value();
-        let val: u8 = bus.read_byte(hl).value();
-        registers.A( Action::Write(val as u16 ));
+    pub fn inc_buffer_u16(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
+        inst.buffer_u16 = inst.buffer_u16.wrapping_add(1);
     }
 
     pub fn inc_buffer_u8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
@@ -392,11 +452,82 @@ impl Instruction {
         bus.write_byte(inst.buffer_u16, val);
     }
 
-    pub fn write_buffer_to_dHL(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+    //============== special writes ===================//
+
+    pub fn write_dHL_in_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let hl: u16 = registers.HL( Action::Read ).value();
+        let val: u8 = bus.read_byte(hl).value();
+        registers.A( Action::Write(val as u16 ));
+    }
+
+    pub fn write_b8_in_dHL(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let val = inst.buffer_u8.pop().unwrap();
         let hl: u16 = registers.HL( Action::Read ).value();
         bus.write_byte(hl, val);
     }
+
+    pub fn write_A_in_b16(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u8 =  registers.A(Action::Read ).value();
+        bus.write_byte(inst.buffer_u16, val);
+    }
+    
+    pub fn write_F_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u16 =  registers.AF(Action::Read ).value();
+        let sp: u16 = registers.SP( Action::Read ).value();
+
+        bus.write_byte(sp, val as u8);
+    }
+
+    pub fn write_P_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u16 =  registers.PC(Action::Read ).value();
+        let sp: u16 = registers.SP( Action::Read ).value();
+
+        bus.write_byte(sp, (val >> 8) as u8);
+    }
+
+    pub fn write_PC_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u16 =  registers.PC(Action::Read ).value();
+        let sp: u16 = registers.SP( Action::Read ).value();
+
+        bus.write_byte(sp, val as u8);
+    }
+
+    pub fn write_dB16_in_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let val: u8 = bus.read_byte(inst.buffer_u16).value();
+        registers.A(Action::Write( val as u16) );
+    }
+
+    pub fn write_b8_in_F(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let val = inst.buffer_u8.pop().unwrap();
+        registers.AF( Action::Write( (val & 0xF0) as u16 )  );
+    }
+
+    pub fn write_b8_in_b16(inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
+        bus.write_byte(inst.buffer_u16, inst.buffer_u8.pop().unwrap());
+    }
+
+     //============== special loads ===================//
+
+    pub fn ld_dBC_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let a: u8 = registers.A( Action::Read ).value();
+        let bc: u16 = registers.BC( Action::Read ).value();
+
+        bus.write_byte(bc, a);
+    }
+
+    pub fn ld_dDE_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
+        let a: u8 = registers.A( Action::Read ).value();
+        let de: u16 = registers.DE( Action::Read ).value();
+
+        bus.write_byte(de, a);
+    }
+    
+    pub fn ld_sp_hl(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let hl: u16 = registers.HL( Action::Read ).value();
+        registers.SP(Action::Write(hl) );
+    }
+
+    //============== Rotates from the standard set ===================//
 
     pub fn RLC_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
         let mut A: u8 = registers.A(Action::Read).value();
@@ -422,30 +553,7 @@ impl Instruction {
         registers.A( Action::Write(A as u16) );
     }
 
-    pub fn DAA(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
-        let mut A: u8 = registers.A( Action::Read ).value();
-        let mut adjust: u8 = if registers.test_flag(CARRY_FLAG) { 0x60 } else { 0x00 };
-        if registers.test_flag(HALFCARRY_FLAG) { adjust |= 0x06; };
-        if !registers.test_flag(NEGATIVE_FLAG) {
-            if (A & 0x0F) > 0x09 { adjust |= 0x06 };
-            if A > 0x99 { adjust |= 0x60 };
-            A = A.wrapping_add(adjust);
-        } else {
-            A = A.wrapping_sub(adjust);
-        }
-        registers.clear_flag(HALFCARRY_FLAG);
-        if A == 0 {
-            registers.set_flag(ZERO_FLAG);
-        } else {
-            registers.clear_flag(ZERO_FLAG);
-        }
-        if adjust >= 0x60 {
-            registers.set_flag(CARRY_FLAG)
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
-        registers.A( Action::Write(A as u16) );
-    }
+    //============== Carry flag and complement ===================//
 
     pub fn NOT_A(_inst: &mut Instruction, registers: &mut Registers, _mem: &mut Bus){
         let A: u8 = registers.A(Action::Read).value();
@@ -471,6 +579,8 @@ impl Instruction {
         registers.clear_flag(NEGATIVE_FLAG);
     }
 
+    //============== Sum to I/O positions ===================//
+
     pub fn sum_ff00_to_C(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let c: u8 = registers.C( Action::Read ).value();
         inst.buffer_u16 = c as u16 + 0xFF00;
@@ -481,37 +591,7 @@ impl Instruction {
         inst.buffer_u16 = val as u16 + 0xFF00;
     }
     
-    pub fn read_b16_write_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let val: u8 = bus.read_byte(inst.buffer_u16).value();
-        registers.A(Action::Write( val as u16) );
-    }
-    
-    pub fn write_A_to_b16(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let val: u8 =  registers.A(Action::Read ).value();
-        bus.write_byte(inst.buffer_u16, val);
-    }
-    
-    pub fn write_F_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let val: u16 =  registers.AF(Action::Read ).value();
-        let sp: u16 = registers.SP( Action::Read ).value();
-
-        bus.write_byte(sp, val as u8);
-    }
-
-    pub fn write_P_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let val: u16 =  registers.PC(Action::Read ).value();
-        let sp: u16 = registers.SP( Action::Read ).value();
-
-        bus.write_byte(sp, (val >> 8) as u8);
-    }
-
-    pub fn write_PC_in_dSP(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
-        let val: u16 =  registers.PC(Action::Read ).value();
-        let sp: u16 = registers.SP( Action::Read ).value();
-
-        bus.write_byte(sp, val as u8);
-    }
-    
+    //============== finish control flow changes ===================//
     pub fn finish_ret(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let sp: u16 = registers.SP( Action::Read ).value();
         inst.buffer_u8.push( bus.read_byte(sp ).value() );
@@ -533,10 +613,7 @@ impl Instruction {
         registers.PC( Action::Write( inst.buffer_u16 ) );
     }
 
-    pub fn JP_HL(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let hl: u16 = registers.HL( Action::Read ).value();
-        registers.PC( Action::Write( hl ) ); 
-    }
+    //============== Finish pop from stack ===================//
 
     pub fn finish_pop_B(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.SP( Action::Increment(1) );
@@ -566,10 +643,7 @@ impl Instruction {
         registers.SP( Action::Increment(1) );
     }
 
-    pub fn write_b8_in_F(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let val = inst.buffer_u8.pop().unwrap();
-        registers.AF( Action::Write( (val & 0xF0) as u16 )  );
-    }
+    //============== Interrupt managers ===================//
 
     pub fn enable_interrupts(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
         bus.enable_interrupts();
@@ -583,10 +657,7 @@ impl Instruction {
         bus.disable_interrupts();
     }
 
-    pub fn ld_sp_hl(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let hl: u16 = registers.HL( Action::Read ).value();
-        registers.SP(Action::Write(hl) );
-    }
+    //============== Reset instructions ===================//
 
     pub fn rst_0(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let sp: u16 = registers.SP( Action::Read ).value();
@@ -648,6 +719,8 @@ impl Instruction {
         registers.PC( Action::Write(0x38) );
     }
 
+    //============== Finish call to interrupt vector ===================//
+
     pub fn load_40(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.PC(Action::Write(0x40));
         if bus.halt_cpu {
@@ -688,66 +761,7 @@ impl Instruction {
         }
     }
 
-    pub fn unhalt(_inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
-        bus.halt_cpu = false;
-    }
-
-
-
-
-    pub fn add_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let SP: u16 = registers.SP(Action::Read).value();
-
-        let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;
-
-        let result = ((SP as i16).wrapping_add(jump)) as u16;
-
-        if (result & 0xFF) < (SP & 0xFF) {
-            registers.set_flag(CARRY_FLAG);
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
-
-        if (result & 0xF) < (SP & 0xF) {
-            registers.set_flag(HALFCARRY_FLAG);
-        } else {
-            registers.clear_flag(HALFCARRY_FLAG);
-        }
-
-        registers.clear_flag(ZERO_FLAG);
-        registers.clear_flag(NEGATIVE_FLAG);
-
-        registers.SP( Action::Write(result) );
-    }
-
-
-
-    pub fn ldhl_sp_dd(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
-        let SP: u16 = registers.SP(Action::Read).value();
-
-        let jump = (inst.buffer_u8.pop().unwrap() as i8) as i16;
-
-        let result = ((SP as i16).wrapping_add(jump)) as u16;
-
-        if (result & 0xFF) < (SP & 0xFF) {
-            registers.set_flag(CARRY_FLAG);
-        } else {
-            registers.clear_flag(CARRY_FLAG);
-        }
-
-        if (result & 0xF) < (SP & 0xF) {
-            registers.set_flag(HALFCARRY_FLAG);
-        } else {
-            registers.clear_flag(HALFCARRY_FLAG);
-        }
-
-        registers.clear_flag(ZERO_FLAG);
-        registers.clear_flag(NEGATIVE_FLAG);
-
-        registers.HL( Action::Write(result) );
-    }
-
-
+    //============== Rotates, Shift and Swaps with buffer_u8 ===================//
 
     pub fn rlc_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
@@ -797,10 +811,7 @@ impl Instruction {
         inst.buffer_u8.push(val);
     }
 
-    pub fn write_b8_to_b16(inst: &mut Instruction, _registers: &mut Registers, bus: &mut Bus){
-        bus.write_byte(inst.buffer_u16, inst.buffer_u8.pop().unwrap());
-    }
-
+    //============== Macro calls ===================//
 
     //Write register r to (HL)
     //LD (HL),r
@@ -826,6 +837,8 @@ impl Instruction {
         write_A_in_dSP, A
     );
 
+    //Pop a byte from buffer_u8 and write it into register r
+    //LD r,b8
     write_b8_in_r!(
         write_b8_in_B, B,
         write_b8_in_C, C,
@@ -836,6 +849,8 @@ impl Instruction {
         write_b8_in_A, A
     );
 
+    //Read the byte at address rr and push it into the buffer_u8
+    //LD b8,(rr)
     read_bus_with_rr!(
         read_bus_with_HL, HL,
         read_bus_with_BC, BC,
@@ -843,6 +858,8 @@ impl Instruction {
         read_bus_with_SP, SP
     );
 
+    //Direct loads
+    //LD r,r
     LD_r_r!(
         LD_A_A, A, A,   LD_B_A, B, A,   LD_C_A, C, A,   LD_D_A, D, A,
         LD_A_B, A, B,   LD_B_B, B, B,   LD_C_B, C, B,   LD_D_B, D, B,
@@ -861,6 +878,8 @@ impl Instruction {
         LD_E_L, E, L,   LD_H_L, H, L,   LD_L_L, L, L
     );
 
+    //Add and Adc operations with r
+    //ADD/ADC A,r
     ADD_A_r!(
         ADD_A_A, A, false,  ADC_A_A, A, true,
         ADD_A_B, B, false,  ADC_A_B, B, true,
@@ -871,6 +890,8 @@ impl Instruction {
         ADD_A_L, L, false,  ADC_A_L, L, true
     );
 
+    //Sub and Sbc operations with r
+    //SUB/SBC A,r
     SUB_A_r!(
         SUB_A_A, A, false,  SBC_A_A, A, true,
         SUB_A_B, B, false,  SBC_A_B, B, true,
@@ -881,32 +902,7 @@ impl Instruction {
         SUB_A_L, L, false,  SBC_A_L, L, true
     );
 
-    LOGIC_r!(
-        AND_A, AND_u8, A,       OR_A, OR_u8, A,     XOR_A, XOR_u8, A,   CP_A, CP_u8, A,
-        AND_B, AND_u8, B,       OR_B, OR_u8, B,     XOR_B, XOR_u8, B,   CP_B, CP_u8, B,
-        AND_C, AND_u8, C,       OR_C, OR_u8, C,     XOR_C, XOR_u8, C,   CP_C, CP_u8, C,
-        AND_D, AND_u8, D,       OR_D, OR_u8, D,     XOR_D, XOR_u8, D,   CP_D, CP_u8, D,
-        AND_E, AND_u8, E,       OR_E, OR_u8, E,     XOR_E, XOR_u8, E,   CP_E, CP_u8, E,
-        AND_H, AND_u8, H,       OR_H, OR_u8, H,     XOR_H, XOR_u8, H,   CP_H, CP_u8, H,
-        AND_L, AND_u8, L,       OR_L, OR_u8, L,     XOR_L, XOR_u8, L,   CP_L, CP_u8, L
-    );
-
-    LOGIC_with_buffer!(and_with_buffer, AND_u8, or_with_buffer, OR_u8, xor_with_buffer, XOR_u8, cp_with_buffer, CP_u8);
-    
-    write_b16_to_rr!(
-        write_b16_to_BC, BC,
-        write_b16_to_DE, DE,
-        write_b16_to_HL, HL,
-        write_b16_to_SP, SP
-    );
-
-    ADD_HL_rr!(
-        add_bc, BC,
-        add_de, DE,
-        add_hl, HL,
-        add_sp, SP
-    );
-
+    //Increment and decrement operations in register r
     INC_DEC!(
         INC_A, INC, A,  DEC_A, DEC, A,
         INC_B, INC, B,  DEC_B, DEC, B,
@@ -917,9 +913,71 @@ impl Instruction {
         INC_L, INC, L,  DEC_L, DEC, L
     );
 
+    //ADD operation in buffer_u8
+    //ADD A,b8
+    pub fn add_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let value = inst.buffer_u8.pop().unwrap();
+        Instruction::ADD_u8(registers, value, false)
+    }
+
+    //ADC operation in buffer_u8
+    //ADC A,b8
+    pub fn adc_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let value = inst.buffer_u8.pop().unwrap();
+        Instruction::ADD_u8(registers, value, true)
+    }
+
+    //SUB operation in buffer_u8
+    //SUB A,b8
+    pub fn sub_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let value = inst.buffer_u8.pop().unwrap();
+        Instruction::SUB_u8(registers, value, false)
+    }
+
+    //SBC operation in buffer_u8
+    //SBC A,b8
+    pub fn sbc_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let value = inst.buffer_u8.pop().unwrap();
+        Instruction::SUB_u8(registers, value, true)
+    }
+
+    //Logic operations in register r
+    LOGIC_r!(
+        AND_A, AND_u8, A,       OR_A, OR_u8, A,     XOR_A, XOR_u8, A,   CP_A, CP_u8, A,
+        AND_B, AND_u8, B,       OR_B, OR_u8, B,     XOR_B, XOR_u8, B,   CP_B, CP_u8, B,
+        AND_C, AND_u8, C,       OR_C, OR_u8, C,     XOR_C, XOR_u8, C,   CP_C, CP_u8, C,
+        AND_D, AND_u8, D,       OR_D, OR_u8, D,     XOR_D, XOR_u8, D,   CP_D, CP_u8, D,
+        AND_E, AND_u8, E,       OR_E, OR_u8, E,     XOR_E, XOR_u8, E,   CP_E, CP_u8, E,
+        AND_H, AND_u8, H,       OR_H, OR_u8, H,     XOR_H, XOR_u8, H,   CP_H, CP_u8, H,
+        AND_L, AND_u8, L,       OR_L, OR_u8, L,     XOR_L, XOR_u8, L,   CP_L, CP_u8, L
+    );
+
+    //Logic operations in buffer_u8
+    LOGIC_with_buffer!(and_with_buffer, AND_u8, or_with_buffer, OR_u8, xor_with_buffer, XOR_u8, cp_with_buffer, CP_u8);
+    
+    //Write buffer_u16 into register rr
+    //LD rr,b16
+    write_b16_to_rr!(
+        write_b16_to_BC, BC,
+        write_b16_to_DE, DE,
+        write_b16_to_HL, HL,
+        write_b16_to_SP, SP
+    );
+
+    //16 bit add operations
+    //ADD HL,rr
+    ADD_HL_rr!(
+        add_bc, BC,
+        add_de, DE,
+        add_hl, HL,
+        add_sp, SP
+    );
+
+    //16 bit increment/decrement operations
     INC_rr!(INC_BC, BC, INC_DE, DE, INC_HL, HL, INC_SP, SP);
     DEC_rr!(DEC_BC, BC, DEC_DE, DE, DEC_HL, HL, DEC_SP, SP);
 
+    //reset bit n from the first element of b8
     res_buffer!(
         res_0_buffer, 0,
         res_1_buffer, 1,
@@ -931,6 +989,7 @@ impl Instruction {
         res_7_buffer, 7
     );
 
+    //set bit n from the first element of b8
     set_buffer!(
         set_0_buffer, 0,
         set_1_buffer, 1,
@@ -942,6 +1001,7 @@ impl Instruction {
         set_7_buffer, 7
     );
 
+    //Pop a byte from buffer_u8 and test bit n
     bit_buffer!(
         bit_0_buffer, 0,
         bit_1_buffer, 1,
@@ -954,6 +1014,7 @@ impl Instruction {
     );
 }
 
+//Short hand macros for instructions with only 1 or 2 M-cycles
 #[macro_export]
 macro_rules! atomic {
     ( $name:expr,$func:ident ) => {

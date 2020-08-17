@@ -831,7 +831,7 @@ impl Decoder {
                     "LD A,(HL+)",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::write_dHL_to_A);
+                        o.push_back(Instruction::write_dHL_in_A);
                         o.push_back(Instruction::INC_HL);
                         o
                     },
@@ -855,7 +855,7 @@ impl Decoder {
                     "LD A,(HL-)",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::write_dHL_to_A);
+                        o.push_back(Instruction::write_dHL_in_A);
                         o.push_back(Instruction::DEC_HL);
                         o
                     },
@@ -1111,7 +1111,7 @@ impl Decoder {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::nop);
-                        o.push_back(Instruction::write_buffer_to_dHL);
+                        o.push_back(Instruction::write_b8_in_dHL);
                         o
                     },
                     3
@@ -1219,7 +1219,7 @@ impl Decoder {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::sum_ff00_to_b8);
-                        o.push_back(Instruction::write_A_to_b16);
+                        o.push_back(Instruction::write_A_in_b16);
                         o
                     },
                     3
@@ -1247,7 +1247,7 @@ impl Decoder {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::sum_ff00_to_b8);
-                        o.push_back(Instruction::read_b16_write_A);
+                        o.push_back(Instruction::write_dB16_in_A);
                         o
                     },
                     3
@@ -1435,7 +1435,7 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::sum_ff00_to_C);
-                        o.push_back(Instruction::write_A_to_b16);
+                        o.push_back(Instruction::write_A_in_b16);
                         o
                     },
                     2
@@ -1449,7 +1449,7 @@ impl Decoder {
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::load_short);
                         o.push_back(Instruction::nop);
-                        o.push_back(Instruction::write_A_to_b16);
+                        o.push_back(Instruction::write_A_in_b16);
                         o
                     },
                     4
@@ -1461,7 +1461,7 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::sum_ff00_to_C);
-                        o.push_back(Instruction::read_b16_write_A);
+                        o.push_back(Instruction::write_dB16_in_A);
                         o
                     },
                     2
@@ -1475,7 +1475,7 @@ impl Decoder {
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::load_short);
                         o.push_back(Instruction::nop);
-                        o.push_back(Instruction::read_b16_write_A);
+                        o.push_back(Instruction::write_dB16_in_A);
                         o
                     },
                     4
@@ -2144,7 +2144,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::rlc_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2171,7 +2171,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::rrc_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2198,7 +2198,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::rl_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2225,7 +2225,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::rr_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2252,7 +2252,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::sla_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2279,7 +2279,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::sra_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2306,7 +2306,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::swap_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2333,7 +2333,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::srl_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2368,7 +2368,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_0_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2395,7 +2395,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_1_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2422,7 +2422,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_2_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2449,7 +2449,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_3_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2476,7 +2476,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_4_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2503,7 +2503,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_5_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2530,7 +2530,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_6_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2557,7 +2557,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::res_7_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2592,7 +2592,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_0_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2619,7 +2619,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_1_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2646,7 +2646,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_2_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2673,7 +2673,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_3_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2700,7 +2700,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_4_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2727,7 +2727,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_5_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2754,7 +2754,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_6_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },
@@ -2781,7 +2781,7 @@ impl Decoder {
                                 o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::set_7_buffer);
                                 o.push_back(Instruction::nop);
-                                o.push_back(Instruction::write_b8_to_b16);
+                                o.push_back(Instruction::write_b8_in_b16);
         
                                 o
                             },

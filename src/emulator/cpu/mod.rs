@@ -27,7 +27,7 @@ impl Default for CPU {
 }
 
 impl CPU {
-    pub fn tick(&mut self, bus: &mut Bus){
+    pub fn run(&mut self, bus: &mut Bus){
         //instruction still running
 
         self.check_interrupt(bus);

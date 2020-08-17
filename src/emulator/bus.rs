@@ -112,21 +112,6 @@ impl Bus {
 
     }
 
-    // pub fn write_short(&mut self, addr: u16, short: u16) {
-    //     let b1 = Bus::classify(addr);
-    //     let b2 = Bus::classify(addr+1);
-
-    //     if b1 == b2 {
-
-    //         self.write_byte(addr, short as u8);
-    //         self.write_byte(addr + 1, (short >> 8) as u8 );
-
-    //     } else {
-    //         panic!("Tried to write short along different modules")
-    //     }
-    // }
-
-
     fn classify(address: u16) -> Module{
         match address {
             0      ..= 0x7FFF => Module::Cartrigbe,    
@@ -146,10 +131,6 @@ impl Bus {
         self.cartrigbe.insert(file_name);
     }
 
-    // pub fn to_short(bytes: [u8; 2]) -> u16 {
-    //     bytes[0] as u16 | (bytes[1] as u16) << 8 //>
-    // }
-
     pub fn enable_interrupts(&mut self){
         self.interrupts.ei_key = EI::Requested;
     }
@@ -158,7 +139,7 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn tick(&mut self, screen: &mut Vec<u32>) {
+    pub fn run(&mut self, screen: &mut Vec<u32>) {
         self.gpu.step(&mut self.interrupts, screen);
         self.timer.step(4, &mut self.interrupts);
     }
