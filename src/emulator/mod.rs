@@ -38,7 +38,7 @@ macro_rules! jp_input {
 impl Gameboy {
     pub fn tick(&mut self){
         self.cpu.run(&mut self.bus);
-        self.bus.run(&mut self.screen)
+        self.bus.run(&mut self.screen);
     }
 
     pub fn insert(&mut self, file_name: String){

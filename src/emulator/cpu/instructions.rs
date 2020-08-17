@@ -489,7 +489,11 @@ impl Instruction {
         let val: u16 =  registers.PC(Action::Read ).value();
         let sp: u16 = registers.SP( Action::Read ).value();
 
-        bus.write_byte(sp, val as u8);
+        bus.write_byte(sp, (val >> 8) as u8);
+
+        Self::DEC_SP(_inst, registers, bus);
+
+        bus.write_byte(sp.wrapping_sub(1), val as u8);
     }
 
     pub fn write_dB16_in_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){

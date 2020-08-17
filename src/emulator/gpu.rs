@@ -1,14 +1,14 @@
 #![allow(non_snake_case)]
 
-use super::interrupt::{*};
-use super::bit_utils::{*};
-use super::cpu::registers::{Response};
+use super::interrupt::*;
+use super::bit_utils::*;
+use super::cpu::registers::Response;
 
-const OAM_SEARCH: usize = 19;
+const OAM_SEARCH: usize = 20;
 const TRANSFER_CYCLES: usize = 63;
-const HBLANK_CYCLES: usize = 115;
-const FRAME_CYCLES: usize = 115 * 145;
-const VBLANK_CYCLES: usize = FRAME_CYCLES + 115 * 10;
+const HBLANK_CYCLES: usize = 113;
+const FRAME_CYCLES: usize = 114 * 144;
+const VBLANK_CYCLES: usize = FRAME_CYCLES + 114 * 10;
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Mode {
@@ -74,7 +74,7 @@ pub struct GPU {
     pub spt_data: u8,       //0xFF6B     (R/W) (GB Color only)
     vram: [u8;0x2000],
     oam: [u8; 0xA0],
-    pub display: Vec<u32>
+    pub display: Vec<u32>,
 }
 
 impl Default for GPU {
@@ -104,7 +104,7 @@ impl Default for GPU {
             spt_data: 0,       //0xFF6B     (R/W) (GB Color only)
             vram: [0; 0x2000],
             oam: [0; 0xA0],
-            display: vec![0; 160*146]
+            display: vec![0; 160*146],
         }
     }
 }
@@ -124,12 +124,16 @@ impl GPU {
             //sync the internal cycles
             self.scanline_cycles += 1;
             self.frame_cycles += 1;
-            
+
+            if self.lcd_y == 143 {
+                print!("");
+            }
+
             //flag for interrupt request
             let mut interrupt_status = false;
             
             //if frame_cycles is bigger than 65664 it's VBLANK period
-            if self.frame_cycles >= FRAME_CYCLES {
+            if self.frame_cycles > FRAME_CYCLES {
                 //cur_mode is not equal to VBlank so change it
                 if cur_mode != Mode::VBlank {
                     self.set_mode(Mode::VBlank);

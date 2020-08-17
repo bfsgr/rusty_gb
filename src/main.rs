@@ -19,7 +19,8 @@ fn create_window() -> Window {
             scale: minifb::Scale::X4,
             scale_mode: minifb::ScaleMode::AspectRatioStretch,
             title: true,
-            topmost: false
+            topmost: false,
+            transparency: false,
         },
     )
     .unwrap_or_else(|e| {
@@ -81,6 +82,9 @@ fn main(){
         if elapsed < frame {
             thread::sleep(frame - elapsed);
         }
+
+        // let last_line = &system.screen[WIDTH*HEIGHT-WIDTH*2..WIDTH*HEIGHT];
+
 
         window.update_with_buffer(&system.screen, WIDTH, HEIGHT).unwrap();
     }

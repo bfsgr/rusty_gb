@@ -28,10 +28,7 @@ impl Default for CPU {
 
 impl CPU {
     pub fn run(&mut self, bus: &mut Bus){
-        //instruction still running
-
         self.check_interrupt(bus);
-
         if !bus.halt_cpu {
             if self.instruction.cycles > 0 {
                 self.instruction.tick(&mut self.registers, bus);
@@ -49,6 +46,7 @@ impl CPU {
                 self.instruction.tick(&mut self.registers, bus);
             }
         }
+        
     }
 
     fn fetch(&mut self, bus: &mut Bus) -> (u8, bool) {
@@ -79,7 +77,6 @@ impl CPU {
         }
 
         if bus.interrupts.master || bus.halt_cpu {
-            
 
             let vec = bus.interrupts.get_vec();
 
@@ -99,8 +96,8 @@ impl CPU {
                         "CALL 0x40",
                         {
                             let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                            o.push_back(Instruction::DEC_SP);
-                            o.push_back(Instruction::write_P_in_dSP);
+                            o.push_back(Instruction::nop);
+                            o.push_back(Instruction::nop);
                             o.push_back(Instruction::DEC_SP);
                             o.push_back(Instruction::write_PC_in_dSP);
                             o.push_back(Instruction::load_40);
@@ -110,12 +107,13 @@ impl CPU {
                     )
                 },
                 InterruptVector::LCDC => {
+                    bus.interrupts.requests.reset_bit(1);
                     self.instruction = Instruction::new(
                         "CALL 0x48",
                         {
                             let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                            o.push_back(Instruction::DEC_SP);
-                            o.push_back(Instruction::write_P_in_dSP);
+                            o.push_back(Instruction::nop);
+                            o.push_back(Instruction::nop);
                             o.push_back(Instruction::DEC_SP);
                             o.push_back(Instruction::write_PC_in_dSP);
                             o.push_back(Instruction::load_48);
@@ -130,8 +128,8 @@ impl CPU {
                         "CALL 0x50",
                         {
                             let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                            o.push_back(Instruction::DEC_SP);
-                            o.push_back(Instruction::write_P_in_dSP);
+                            o.push_back(Instruction::nop);
+                            o.push_back(Instruction::nop);
                             o.push_back(Instruction::DEC_SP);
                             o.push_back(Instruction::write_PC_in_dSP);
                             o.push_back(Instruction::load_50);
@@ -146,8 +144,8 @@ impl CPU {
                         "CALL 0x58",
                         {
                             let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                            o.push_back(Instruction::DEC_SP);
-                            o.push_back(Instruction::write_P_in_dSP);
+                            o.push_back(Instruction::nop);
+                            o.push_back(Instruction::nop);
                             o.push_back(Instruction::DEC_SP);
                             o.push_back(Instruction::write_PC_in_dSP);
                             o.push_back(Instruction::load_58);
@@ -162,8 +160,8 @@ impl CPU {
                         "CALL 0x60",
                         {
                             let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                            o.push_back(Instruction::DEC_SP);
-                            o.push_back(Instruction::write_P_in_dSP);
+                            o.push_back(Instruction::nop);
+                            o.push_back(Instruction::nop);
                             o.push_back(Instruction::DEC_SP);
                             o.push_back(Instruction::write_PC_in_dSP);
                             o.push_back(Instruction::load_60);
