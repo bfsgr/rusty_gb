@@ -21,7 +21,7 @@ impl Default for CPU {
     fn default() -> Self {
         Self{
             registers: Registers::default(),
-            instruction: Instruction::holder()
+            instruction: Instruction::new("START", vec![].into_iter().collect(), 0)
         }
     }
 }

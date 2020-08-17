@@ -46,7 +46,7 @@ macro_rules! read_bus_with_rr {
     }
 }
 
-macro_rules! write_r_with_buffer {
+macro_rules! write_b8_in_r {
     ( $( $name:ident,$r:ident ),* ) => {
         $( 
             pub fn $name(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
@@ -126,7 +126,7 @@ macro_rules! LOGIC_with_buffer {
     }
 }
 
-macro_rules! write_buffer_to_rr {
+macro_rules! write_b16_to_rr {
     ( $( $name:ident, $op:ident ),* ) => {
         $( 
             pub fn $name(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
@@ -216,23 +216,11 @@ macro_rules! bit_buffer {
 
 
 impl Instruction {
-
     pub fn tick(&mut self, registers: &mut Registers, bus: &mut Bus){
         self.cycles -= 1;
         let func = self.operations.pop_front().unwrap();
 
         func(self, registers, bus);
-    }
-
-    pub fn holder() -> Self {
-        Self{
-            disassembly: "HOLDER",
-            operations: vec![].into_iter().collect(),
-            buffer_u16: 0,
-            buffer_u8: vec![],
-            cycles: 0,
-            flag: false
-        }
     }
 
     pub fn new(
@@ -267,71 +255,6 @@ impl Instruction {
     }
     pub fn stop(_inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){}
     
-    write_r_in_dHL!(
-        write_B_in_dHL, B,
-        write_C_in_dHL, C,
-        write_D_in_dHL, D,
-        write_E_in_dHL, E,
-        write_H_in_dHL, H,
-        write_L_in_dHL, L,
-        write_A_in_dHL, A
-    );
-
-    write_r_in_dSP!(
-        write_B_in_dSP, B,
-        write_C_in_dSP, C,
-        write_D_in_dSP, D,
-        write_E_in_dSP, E,
-        write_H_in_dSP, H,
-        write_L_in_dSP, L,
-        write_A_in_dSP, A
-    );
-
-    write_r_with_buffer!(
-        write_B_with_buffer_u8, B,
-        write_C_with_buffer_u8, C,
-        write_D_with_buffer_u8, D,
-        write_E_with_buffer_u8, E,
-        write_H_with_buffer_u8, H,
-        write_L_with_buffer_u8, L,
-        write_A_with_buffer_u8, A
-    );
-
-    read_bus_with_rr!(
-        read_bus_with_HL, HL,
-        read_bus_with_BC, BC,
-        read_bus_with_DE, DE,
-        read_bus_with_SP, SP
-    );
-
-    LD_r_r!(
-        LD_A_A, A, A,   LD_B_A, B, A,   LD_C_A, C, A,   LD_D_A, D, A,
-        LD_A_B, A, B,   LD_B_B, B, B,   LD_C_B, C, B,   LD_D_B, D, B,
-        LD_A_C, A, C,   LD_B_C, B, C,   LD_C_C, C, C,   LD_D_C, D, C,
-        LD_A_D, A, D,   LD_B_D, B, D,   LD_C_D, C, D,   LD_D_D, D, D,
-        LD_A_E, A, E,   LD_B_E, B, E,   LD_C_E, C, E,   LD_D_E, D, E,
-        LD_A_H, A, H,   LD_B_H, B, H,   LD_C_H, C, H,   LD_D_H, D, H,
-        LD_A_L, A, L,   LD_B_L, B, L,   LD_C_L, C, L,   LD_D_L, D, L,
-
-        LD_E_A, E, A,   LD_H_A, H, A,   LD_L_A, L, A,
-        LD_E_B, E, B,   LD_H_B, H, B,   LD_L_B, L, B,
-        LD_E_C, E, C,   LD_H_C, H, C,   LD_L_C, L, C,
-        LD_E_D, E, D,   LD_H_D, H, D,   LD_L_D, L, D,
-        LD_E_E, E, E,   LD_H_E, H, E,   LD_L_E, L, E,
-        LD_E_H, E, H,   LD_H_H, H, H,   LD_L_H, L, H,
-        LD_E_L, E, L,   LD_H_L, H, L,   LD_L_L, L, L
-    );
-
-    ADD_A_r!(
-        ADD_A_A, A, false,  ADC_A_A, A, true,
-        ADD_A_B, B, false,  ADC_A_B, B, true,
-        ADD_A_C, C, false,  ADC_A_C, C, true,
-        ADD_A_D, D, false,  ADC_A_D, D, true,
-        ADD_A_E, E, false,  ADC_A_E, E, true,
-        ADD_A_H, H, false,  ADC_A_H, H, true,
-        ADD_A_L, L, false,  ADC_A_L, L, true
-    );
-
     pub fn add_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let value = inst.buffer_u8.pop().unwrap();
         Instruction::ADD_u8(registers, value, false)
@@ -342,16 +265,6 @@ impl Instruction {
         Instruction::ADD_u8(registers, value, true)
     }
 
-    SUB_A_r!(
-        SUB_A_A, A, false,  SBC_A_A, A, true,
-        SUB_A_B, B, false,  SBC_A_B, B, true,
-        SUB_A_C, C, false,  SBC_A_C, C, true,
-        SUB_A_D, D, false,  SBC_A_D, D, true,
-        SUB_A_E, E, false,  SBC_A_E, E, true,
-        SUB_A_H, H, false,  SBC_A_H, H, true,
-        SUB_A_L, L, false,  SBC_A_L, L, true
-    );
-
     pub fn sub_with_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let value = inst.buffer_u8.pop().unwrap();
         Instruction::SUB_u8(registers, value, false)
@@ -361,18 +274,6 @@ impl Instruction {
         let value = inst.buffer_u8.pop().unwrap();
         Instruction::SUB_u8(registers, value, true)
     }
-
-    LOGIC_r!(
-        AND_A, AND_u8, A,       OR_A, OR_u8, A,     XOR_A, XOR_u8, A,   CP_A, CP_u8, A,
-        AND_B, AND_u8, B,       OR_B, OR_u8, B,     XOR_B, XOR_u8, B,   CP_B, CP_u8, B,
-        AND_C, AND_u8, C,       OR_C, OR_u8, C,     XOR_C, XOR_u8, C,   CP_C, CP_u8, C,
-        AND_D, AND_u8, D,       OR_D, OR_u8, D,     XOR_D, XOR_u8, D,   CP_D, CP_u8, D,
-        AND_E, AND_u8, E,       OR_E, OR_u8, E,     XOR_E, XOR_u8, E,   CP_E, CP_u8, E,
-        AND_H, AND_u8, H,       OR_H, OR_u8, H,     XOR_H, XOR_u8, H,   CP_H, CP_u8, H,
-        AND_L, AND_u8, L,       OR_L, OR_u8, L,     XOR_L, XOR_u8, L,   CP_L, CP_u8, L
-    );
-
-    LOGIC_with_buffer!(and_with_buffer, AND_u8, or_with_buffer, OR_u8, xor_with_buffer, XOR_u8, cp_with_buffer, CP_u8);
 
     pub fn load_immediate(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let pc: u16 = registers.PC(Action::Read ).value();
@@ -458,20 +359,6 @@ impl Instruction {
             inst.flag = false;
         }
     }
-    
-    write_buffer_to_rr!(
-        write_buffer_to_BC, BC,
-        write_buffer_to_DE, DE,
-        write_buffer_to_HL, HL,
-        write_buffer_to_SP, SP
-    );
-
-    ADD_HL_rr!(
-        add_bc, BC,
-        add_de, DE,
-        add_hl, HL,
-        add_sp, SP
-    );
 
     pub fn ld_dBC_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let a: u8 = registers.A( Action::Read ).value();
@@ -487,24 +374,11 @@ impl Instruction {
         bus.write_byte(de, a);
     }
     
-    INC_rr!(INC_BC, BC, INC_DE, DE, INC_HL, HL, INC_SP, SP);
-    DEC_rr!(DEC_BC, BC, DEC_DE, DE, DEC_HL, HL, DEC_SP, SP);
-    
     pub fn write_dHL_to_A(_inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let hl: u16 = registers.HL( Action::Read ).value();
         let val: u8 = bus.read_byte(hl).value();
         registers.A( Action::Write(val as u16 ));
     }
-
-    INC_DEC!(
-        INC_A, INC, A,  DEC_A, DEC, A,
-        INC_B, INC, B,  DEC_B, DEC, B,
-        INC_C, INC, C,  DEC_C, DEC, C,
-        INC_D, INC, D,  DEC_D, DEC, D,
-        INC_E, INC, E,  DEC_E, DEC, E,
-        INC_H, INC, H,  DEC_H, DEC, H,
-        INC_L, INC, L,  DEC_L, DEC, L
-    );
 
     pub fn inc_buffer_u8(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
@@ -667,32 +541,32 @@ impl Instruction {
     pub fn finish_pop_B(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
-        Self::write_B_with_buffer_u8(inst, registers, bus);
+        Self::write_b8_in_B(inst, registers, bus);
         registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_D(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
-        Self::write_D_with_buffer_u8(inst, registers, bus);
+        Self::write_b8_in_D(inst, registers, bus);
         registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_H(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
-        Self::write_H_with_buffer_u8(inst, registers, bus);
+        Self::write_b8_in_H(inst, registers, bus);
         registers.SP( Action::Increment(1) );
     }
 
     pub fn finish_pop_A(inst: &mut Instruction, registers: &mut Registers, bus: &mut Bus){
         registers.SP( Action::Increment(1) );
         Self::read_bus_with_SP(inst, registers, bus);
-        Self::write_A_with_buffer_u8(inst, registers, bus);
+        Self::write_b8_in_A(inst, registers, bus);
         registers.SP( Action::Increment(1) );
     }
 
-    pub fn write_F_with_buffer_u8(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+    pub fn write_b8_in_F(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let val = inst.buffer_u8.pop().unwrap();
         registers.AF( Action::Write( (val & 0xF0) as u16 )  );
     }
@@ -873,38 +747,7 @@ impl Instruction {
         registers.HL( Action::Write(result) );
     }
 
-    res_buffer!(
-        res_0_buffer, 0,
-        res_1_buffer, 1,
-        res_2_buffer, 2,
-        res_3_buffer, 3,
-        res_4_buffer, 4,
-        res_5_buffer, 5,
-        res_6_buffer, 6,
-        res_7_buffer, 7
-    );
 
-    set_buffer!(
-        set_0_buffer, 0,
-        set_1_buffer, 1,
-        set_2_buffer, 2,
-        set_3_buffer, 3,
-        set_4_buffer, 4,
-        set_5_buffer, 5,
-        set_6_buffer, 6,
-        set_7_buffer, 7
-    );
-
-    bit_buffer!(
-        bit_0_buffer, 0,
-        bit_1_buffer, 1,
-        bit_2_buffer, 2,
-        bit_3_buffer, 3,
-        bit_4_buffer, 4,
-        bit_5_buffer, 5,
-        bit_6_buffer, 6,
-        bit_7_buffer, 7
-    );
 
     pub fn rlc_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
@@ -958,6 +801,157 @@ impl Instruction {
         bus.write_byte(inst.buffer_u16, inst.buffer_u8.pop().unwrap());
     }
 
+
+    //Write register r to (HL)
+    //LD (HL),r
+    write_r_in_dHL!(
+        write_B_in_dHL, B,
+        write_C_in_dHL, C,
+        write_D_in_dHL, D,
+        write_E_in_dHL, E,
+        write_H_in_dHL, H,
+        write_L_in_dHL, L,
+        write_A_in_dHL, A
+    );
+    
+    //Write register r to (SP)
+    //LD (SP),r
+    write_r_in_dSP!(
+        write_B_in_dSP, B,
+        write_C_in_dSP, C,
+        write_D_in_dSP, D,
+        write_E_in_dSP, E,
+        write_H_in_dSP, H,
+        write_L_in_dSP, L,
+        write_A_in_dSP, A
+    );
+
+    write_b8_in_r!(
+        write_b8_in_B, B,
+        write_b8_in_C, C,
+        write_b8_in_D, D,
+        write_b8_in_E, E,
+        write_b8_in_H, H,
+        write_b8_in_L, L,
+        write_b8_in_A, A
+    );
+
+    read_bus_with_rr!(
+        read_bus_with_HL, HL,
+        read_bus_with_BC, BC,
+        read_bus_with_DE, DE,
+        read_bus_with_SP, SP
+    );
+
+    LD_r_r!(
+        LD_A_A, A, A,   LD_B_A, B, A,   LD_C_A, C, A,   LD_D_A, D, A,
+        LD_A_B, A, B,   LD_B_B, B, B,   LD_C_B, C, B,   LD_D_B, D, B,
+        LD_A_C, A, C,   LD_B_C, B, C,   LD_C_C, C, C,   LD_D_C, D, C,
+        LD_A_D, A, D,   LD_B_D, B, D,   LD_C_D, C, D,   LD_D_D, D, D,
+        LD_A_E, A, E,   LD_B_E, B, E,   LD_C_E, C, E,   LD_D_E, D, E,
+        LD_A_H, A, H,   LD_B_H, B, H,   LD_C_H, C, H,   LD_D_H, D, H,
+        LD_A_L, A, L,   LD_B_L, B, L,   LD_C_L, C, L,   LD_D_L, D, L,
+
+        LD_E_A, E, A,   LD_H_A, H, A,   LD_L_A, L, A,
+        LD_E_B, E, B,   LD_H_B, H, B,   LD_L_B, L, B,
+        LD_E_C, E, C,   LD_H_C, H, C,   LD_L_C, L, C,
+        LD_E_D, E, D,   LD_H_D, H, D,   LD_L_D, L, D,
+        LD_E_E, E, E,   LD_H_E, H, E,   LD_L_E, L, E,
+        LD_E_H, E, H,   LD_H_H, H, H,   LD_L_H, L, H,
+        LD_E_L, E, L,   LD_H_L, H, L,   LD_L_L, L, L
+    );
+
+    ADD_A_r!(
+        ADD_A_A, A, false,  ADC_A_A, A, true,
+        ADD_A_B, B, false,  ADC_A_B, B, true,
+        ADD_A_C, C, false,  ADC_A_C, C, true,
+        ADD_A_D, D, false,  ADC_A_D, D, true,
+        ADD_A_E, E, false,  ADC_A_E, E, true,
+        ADD_A_H, H, false,  ADC_A_H, H, true,
+        ADD_A_L, L, false,  ADC_A_L, L, true
+    );
+
+    SUB_A_r!(
+        SUB_A_A, A, false,  SBC_A_A, A, true,
+        SUB_A_B, B, false,  SBC_A_B, B, true,
+        SUB_A_C, C, false,  SBC_A_C, C, true,
+        SUB_A_D, D, false,  SBC_A_D, D, true,
+        SUB_A_E, E, false,  SBC_A_E, E, true,
+        SUB_A_H, H, false,  SBC_A_H, H, true,
+        SUB_A_L, L, false,  SBC_A_L, L, true
+    );
+
+    LOGIC_r!(
+        AND_A, AND_u8, A,       OR_A, OR_u8, A,     XOR_A, XOR_u8, A,   CP_A, CP_u8, A,
+        AND_B, AND_u8, B,       OR_B, OR_u8, B,     XOR_B, XOR_u8, B,   CP_B, CP_u8, B,
+        AND_C, AND_u8, C,       OR_C, OR_u8, C,     XOR_C, XOR_u8, C,   CP_C, CP_u8, C,
+        AND_D, AND_u8, D,       OR_D, OR_u8, D,     XOR_D, XOR_u8, D,   CP_D, CP_u8, D,
+        AND_E, AND_u8, E,       OR_E, OR_u8, E,     XOR_E, XOR_u8, E,   CP_E, CP_u8, E,
+        AND_H, AND_u8, H,       OR_H, OR_u8, H,     XOR_H, XOR_u8, H,   CP_H, CP_u8, H,
+        AND_L, AND_u8, L,       OR_L, OR_u8, L,     XOR_L, XOR_u8, L,   CP_L, CP_u8, L
+    );
+
+    LOGIC_with_buffer!(and_with_buffer, AND_u8, or_with_buffer, OR_u8, xor_with_buffer, XOR_u8, cp_with_buffer, CP_u8);
+    
+    write_b16_to_rr!(
+        write_b16_to_BC, BC,
+        write_b16_to_DE, DE,
+        write_b16_to_HL, HL,
+        write_b16_to_SP, SP
+    );
+
+    ADD_HL_rr!(
+        add_bc, BC,
+        add_de, DE,
+        add_hl, HL,
+        add_sp, SP
+    );
+
+    INC_DEC!(
+        INC_A, INC, A,  DEC_A, DEC, A,
+        INC_B, INC, B,  DEC_B, DEC, B,
+        INC_C, INC, C,  DEC_C, DEC, C,
+        INC_D, INC, D,  DEC_D, DEC, D,
+        INC_E, INC, E,  DEC_E, DEC, E,
+        INC_H, INC, H,  DEC_H, DEC, H,
+        INC_L, INC, L,  DEC_L, DEC, L
+    );
+
+    INC_rr!(INC_BC, BC, INC_DE, DE, INC_HL, HL, INC_SP, SP);
+    DEC_rr!(DEC_BC, BC, DEC_DE, DE, DEC_HL, HL, DEC_SP, SP);
+
+    res_buffer!(
+        res_0_buffer, 0,
+        res_1_buffer, 1,
+        res_2_buffer, 2,
+        res_3_buffer, 3,
+        res_4_buffer, 4,
+        res_5_buffer, 5,
+        res_6_buffer, 6,
+        res_7_buffer, 7
+    );
+
+    set_buffer!(
+        set_0_buffer, 0,
+        set_1_buffer, 1,
+        set_2_buffer, 2,
+        set_3_buffer, 3,
+        set_4_buffer, 4,
+        set_5_buffer, 5,
+        set_6_buffer, 6,
+        set_7_buffer, 7
+    );
+
+    bit_buffer!(
+        bit_0_buffer, 0,
+        bit_1_buffer, 1,
+        bit_2_buffer, 2,
+        bit_3_buffer, 3,
+        bit_4_buffer, 4,
+        bit_5_buffer, 5,
+        bit_6_buffer, 6,
+        bit_7_buffer, 7
+    );
 }
 
 #[macro_export]
