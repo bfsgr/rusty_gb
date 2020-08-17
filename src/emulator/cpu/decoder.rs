@@ -987,10 +987,11 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::read_bus_with_HL);
+                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::inc_buffer_u8);
                         o
                     },
-                    2
+                    3
                 )) 
             },
             7 => Ok(atomic!("INC A", INC_A)),
@@ -1014,10 +1015,11 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::read_bus_with_HL);
+                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::dec_buffer_u8);
                         o
                     },
-                    2
+                    3
                 )) 
             },
             7 => Ok(atomic!("DEC A", DEC_A)),
