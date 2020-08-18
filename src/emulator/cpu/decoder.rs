@@ -214,8 +214,8 @@ impl Decoder {
                             "LD (HL), B",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_B_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -226,8 +226,8 @@ impl Decoder {
                             "LD (HL), C",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_C_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -238,8 +238,8 @@ impl Decoder {
                             "LD (HL), D",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_D_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -250,8 +250,8 @@ impl Decoder {
                             "LD (HL), E",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_E_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -262,8 +262,8 @@ impl Decoder {
                             "LD (HL), H",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_H_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -274,8 +274,8 @@ impl Decoder {
                             "LD (HL), L",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_L_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -297,8 +297,8 @@ impl Decoder {
                             "LD (HL), A",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::nop);
                                 o.push_back(Instruction::write_A_in_dHL);
+                                o.push_back(Instruction::nop);
                                 o
                             },
                             2
@@ -771,8 +771,8 @@ impl Decoder {
                     "LD (BC),A",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::ld_dBC_A);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     2
@@ -795,8 +795,8 @@ impl Decoder {
                     "LD (DE),A",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::ld_dDE_A);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     2
@@ -1110,8 +1110,8 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
-                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::write_b8_in_dHL);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     3
@@ -1218,8 +1218,8 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
-                        o.push_back(Instruction::sum_ff00_to_b8);
-                        o.push_back(Instruction::write_A_in_b16);
+                        o.push_back(Instruction::sum_ff00_to_b8_write_A_in_b16);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     3
@@ -1246,8 +1246,8 @@ impl Decoder {
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
-                        o.push_back(Instruction::sum_ff00_to_b8);
-                        o.push_back(Instruction::write_dB16_in_A);
+                        o.push_back(Instruction::sum_ff00_to_b8_write_dB16_in_A);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     3
@@ -1434,8 +1434,8 @@ impl Decoder {
                     "LD (FF00+C),A",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::sum_ff00_to_C);
-                        o.push_back(Instruction::write_A_in_b16);
+                        o.push_back(Instruction::sum_ff00_to_C_write_A_in_b16);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     2
@@ -1448,8 +1448,8 @@ impl Decoder {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::load_short);
-                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::write_A_in_b16);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     4
@@ -1460,8 +1460,8 @@ impl Decoder {
                     "LD A,(FF00+C)",
                     {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                        o.push_back(Instruction::sum_ff00_to_C);
-                        o.push_back(Instruction::write_dB16_in_A);
+                        o.push_back(Instruction::sum_ff00_to_C_write_dB16_in_A);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     2
@@ -1474,8 +1474,8 @@ impl Decoder {
                         let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
                         o.push_back(Instruction::load_immediate);
                         o.push_back(Instruction::load_short);
-                        o.push_back(Instruction::nop);
                         o.push_back(Instruction::write_dB16_in_A);
+                        o.push_back(Instruction::nop);
                         o
                     },
                     4
@@ -1925,8 +1925,8 @@ impl Decoder {
                             "BIT 0,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_0_buffer);
         
                                 o
@@ -1951,8 +1951,8 @@ impl Decoder {
                             "BIT 1,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_1_buffer);
         
                                 o
@@ -1977,8 +1977,8 @@ impl Decoder {
                             "BIT 2,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_2_buffer);
         
                                 o
@@ -2003,8 +2003,8 @@ impl Decoder {
                             "BIT 3,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_3_buffer);
         
                                 o
@@ -2029,8 +2029,8 @@ impl Decoder {
                             "BIT 4,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_4_buffer);
         
                                 o
@@ -2055,8 +2055,8 @@ impl Decoder {
                             "BIT 5,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_5_buffer);
         
                                 o
@@ -2081,8 +2081,8 @@ impl Decoder {
                             "BIT 6,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_6_buffer);
         
                                 o
@@ -2107,8 +2107,8 @@ impl Decoder {
                             "BIT 7,(HL)",
                             {
                                 let mut o: VecDeque<fn(&mut Instruction, &mut Registers, &mut Bus)> = VecDeque::new();
-                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::nop);
+                                o.push_back(Instruction::read_bus_with_HL);
                                 o.push_back(Instruction::bit_7_buffer);
         
                                 o

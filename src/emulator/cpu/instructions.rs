@@ -527,7 +527,7 @@ impl Instruction {
 
         bus.write_byte(de, a);
     }
-    
+
     pub fn ld_sp_hl(_inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let hl: u16 = registers.HL( Action::Read ).value();
         registers.SP(Action::Write(hl) );
@@ -587,14 +587,28 @@ impl Instruction {
 
     //============== Sum to I/O positions ===================//
 
-    pub fn sum_ff00_to_C(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+    pub fn sum_ff00_to_C_write_dB16_in_A(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let c: u8 = registers.C( Action::Read ).value();
         inst.buffer_u16 = c as u16 + 0xFF00;
+        Instruction::write_dB16_in_A(inst, registers, _bus);
     }
 
-    pub fn sum_ff00_to_b8(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
+    pub fn sum_ff00_to_C_write_A_in_b16(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
+        let c: u8 = registers.C( Action::Read ).value();
+        inst.buffer_u16 = c as u16 + 0xFF00;
+        Instruction::write_A_in_b16(inst, registers, _bus);
+    }
+
+    pub fn sum_ff00_to_b8_write_A_in_b16(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
         let val: u8 = inst.buffer_u8.pop().unwrap();
         inst.buffer_u16 = val as u16 + 0xFF00;
+        Instruction::write_A_in_b16(inst, _registers, _bus);
+    }
+
+    pub fn sum_ff00_to_b8_write_dB16_in_A(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
+        let val: u8 = inst.buffer_u8.pop().unwrap();
+        inst.buffer_u16 = val as u16 + 0xFF00;
+        Instruction::write_dB16_in_A(inst, _registers, _bus);
     }
     
     //============== finish control flow changes ===================//

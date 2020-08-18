@@ -6,7 +6,7 @@ use super::cpu::registers::Response;
 
 const OAM_SEARCH: usize = 20;
 const TRANSFER_CYCLES: usize = 63;
-const HBLANK_CYCLES: usize = 113;
+const HBLANK_CYCLES: usize = 114;
 const FRAME_CYCLES: usize = 114 * 144;
 const VBLANK_CYCLES: usize = FRAME_CYCLES + 114 * 10;
 
@@ -115,9 +115,7 @@ enum Region {
 }
 
 impl GPU {
-
-    
-    pub fn step(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
+    pub fn _step0(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         if self.enabled() {
 
             let mut interrupt_status = false;
@@ -189,7 +187,7 @@ impl GPU {
 
     }
     
-        pub fn step0(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
+        pub fn step(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -262,7 +260,7 @@ impl GPU {
                 interrupt_handler.request(Interrupt::LCDC);
             }
 
-            if self.scanline_cycles > HBLANK_CYCLES {
+            if self.scanline_cycles >= HBLANK_CYCLES {
                 self.lcd_y += 1;
                 self.scanline_cycles = 0;
                 self.line_compare(interrupt_handler);
