@@ -81,7 +81,7 @@ impl Default for GPU {
     fn default() -> GPU{
         GPU {
             mode: Mode::Oam,
-            scanline_cycles: 0,
+            scanline_cycles: 20,
             frame_cycles: 0,
             skip_frame: true,
             sprites: [Sprite::default(); 40],
@@ -115,7 +115,81 @@ enum Region {
 }
 
 impl GPU {
+
+    
     pub fn step(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
+        if self.enabled() {
+
+            let mut interrupt_status = false;
+
+            match self.mode {
+                Mode::Oam => {
+                    self.scanline_cycles -= 1;
+                    
+                    //mode finished
+                    if self.scanline_cycles == 0 {
+                        self.set_mode(Mode::Transfer);
+                        self.scanline_cycles = 43;
+                    }
+                },
+                Mode::Transfer => {
+                    self.scanline_cycles -= 1;
+                    
+                    if self.scanline_cycles == 0 {
+                        self.set_mode(Mode::HBlank);
+                        self.scanline_cycles = 51;
+                        interrupt_status = self.STAT.test_bit(3);
+                        if !self.skip_frame {
+                            self.draw();
+                        }
+                    }
+                },
+                Mode::HBlank => {
+                    self.scanline_cycles -= 1;
+
+                    if self.scanline_cycles == 0 && self.lcd_y < 144{
+                        self.scanline_cycles = 20;
+                        self.set_mode(Mode::Oam);
+                        self.line_compare(interrupt_handler);
+                        self.lcd_y += 1;
+                        interrupt_status = self.STAT.test_bit(5);
+
+                    } else if self.scanline_cycles == 0 && self.lcd_y < 154 {
+                        self.scanline_cycles = 114;
+                        self.set_mode(Mode::VBlank);
+                        interrupt_handler.request(Interrupt::VBlank);
+                        *screen = self.display.clone();
+                        interrupt_status = self.STAT.test_bit(4);
+                    }
+
+                },
+                Mode::VBlank => {
+                    self.scanline_cycles -= 1;
+
+                    if self.scanline_cycles == 0 && self.lcd_y < 154 {
+                        self.lcd_y += 1;
+                        self.scanline_cycles = 114;
+                        self.line_compare(interrupt_handler);
+                    } else if self.scanline_cycles == 0 && self.lcd_y == 154 {
+                        self.lcd_y = 0;
+                        self.scanline_cycles = 20;
+                        self.skip_frame = false;
+                        self.set_mode(Mode::Oam);
+                        self.line_compare(interrupt_handler);
+                    }
+                }
+            }
+
+            if interrupt_status {
+                interrupt_handler.request(Interrupt::LCDC);
+            }
+
+        }
+
+
+    }
+    
+        pub fn step0(&mut self, interrupt_handler: &mut InterruptHandler, screen: &mut Vec<u32>){
         //check if display is enabled
         if self.enabled() {
             //save the current mode
@@ -612,12 +686,14 @@ impl GPU {
                 self.STAT.reset_bit(2)
             }
             self.skip_frame = true;
+            self.set_mode(Mode::Oam);
+            self.scanline_cycles = 20;
         }
         self.LCDC = byte
     }
 
     pub fn write_stat(&mut self, byte: u8) {
-        //only keep bytes 3-6
+        //only keep bits 3-6
         let data = (byte & 0xF8) | 0x80;
         self.STAT = data;
     }
