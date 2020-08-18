@@ -185,6 +185,7 @@ macro_rules! res_buffer {
         $( 
             pub fn $name(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
                 inst.buffer_u8[0].reset_bit($bit);
+                Instruction::write_b8_in_b16(inst,_registers,_bus);
             }
         )*
     }
@@ -772,48 +773,57 @@ impl Instruction {
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::RL(registers, val, false, true);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn rl_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::RL(registers, val, true, true);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn rrc_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::RR(registers, val, false, true);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn rr_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::RR(registers, val, true, true);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn sla_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::SL(val, registers);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn sra_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::SR(val, true,  registers);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
+        
     }
 
     pub fn srl_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::SR(val, false,  registers);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     pub fn swap_buffer(inst: &mut Instruction, registers: &mut Registers, _bus: &mut Bus){
         let mut val = inst.buffer_u8.pop().unwrap();
         val = Instruction::SWAP(val, registers);
         inst.buffer_u8.push(val);
+        Instruction::write_b8_in_b16(inst, registers, _bus);
     }
 
     //============== Macro calls ===================//
