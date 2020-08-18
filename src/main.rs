@@ -6,7 +6,7 @@ use std::thread;
 
 const WIDTH: usize = 160;
 const HEIGHT: usize = 144;
-const MAXCYCLES: u32 = 66576;
+const MAXCYCLES: u16 = 17556;
 
 fn create_window() -> Window {
     let win = Window::new(
@@ -82,9 +82,6 @@ fn main(){
         if elapsed < frame {
             thread::sleep(frame - elapsed);
         }
-
-        // let last_line = &system.screen[WIDTH*HEIGHT-WIDTH*2..WIDTH*HEIGHT];
-
 
         window.update_with_buffer(&system.screen, WIDTH, HEIGHT).unwrap();
     }

@@ -28,7 +28,7 @@ impl Default for CPU {
 
 impl CPU {
     pub fn run(&mut self, bus: &mut Bus){
-        self.check_interrupt(bus);
+        
         if !bus.halt_cpu {
             if self.instruction.cycles > 0 {
                 self.instruction.tick(&mut self.registers, bus);
@@ -46,6 +46,7 @@ impl CPU {
                 self.instruction.tick(&mut self.registers, bus);
             }
         }
+        self.check_interrupt(bus);
         
     }
 
