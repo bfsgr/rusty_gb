@@ -195,6 +195,7 @@ macro_rules! set_buffer {
         $( 
             pub fn $name(inst: &mut Instruction, _registers: &mut Registers, _bus: &mut Bus){
                 inst.buffer_u8[0].set_bit($bit);
+                Instruction::write_b8_in_b16(inst,_registers,_bus);
             }
         )*
     }
