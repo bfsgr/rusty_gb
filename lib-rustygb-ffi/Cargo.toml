@@ -4,11 +4,15 @@ version = "1.3.0"
 authors = ["bfsgr <bfsgr.code@protonmail.com>"]
 edition = "2018"
 license = "BSD-3-Clause"
+build = "build.rs"
 
 [lib]
-name = "rustygb_c"
-crate-type = ["cdylib"]
+name = "rustygb_ffi"
+crate-type = ["staticlib"]
 
 [dependencies]
 librustygb = {path = "../lib-rustygb"}
 libc = "0.2"
+
+[build-dependencies]
+cbindgen = "0.18"

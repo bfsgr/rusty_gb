@@ -9,3 +9,4 @@ cpu_instrs.asm
 trace.log
 test_roms
 *.sav
+lib-rustygb-ffi/*.h
