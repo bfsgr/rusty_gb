@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(overlapping_range_endpoints)]
 
 use super::bit_utils::*;
 use super::cpu::registers::Response;
