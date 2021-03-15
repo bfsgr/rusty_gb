@@ -6,7 +6,7 @@ mod cartridge;
 mod io_constants;
 mod bit_utils;
 mod memory;
-mod gpu;
+mod ppu;
 mod timer;
 use interrupt::Interrupt;
 use bus::Bus;

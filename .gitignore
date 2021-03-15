@@ -1,5 +1,6 @@
 /target
 .vscode
+Documentação/
 memorydump.bin
 log.txt
 cpu_instrs.gb

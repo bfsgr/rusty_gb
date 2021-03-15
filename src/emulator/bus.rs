@@ -1,6 +1,6 @@
 use super::io_constants::{*};
 
-use super::gpu::{*};
+use super::ppu::{*};
 use super::memory::{*};
 use super::timer::{*};
 use super::cartridge::{*};
@@ -12,7 +12,7 @@ pub use super::interrupt::{*};
 #[derive(Default)]
 pub struct Bus {
     memory: Memory,
-    pub gpu: GPU,
+    pub ppu: PPU,
     cartrigbe: Cartridge,
     pub interrupts: InterruptHandler,
     timer: Timer,
@@ -40,7 +40,7 @@ impl Bus {
         match into {
             Module::Cartrigbe => { self.cartrigbe.write_byte(addr, byte); },
 
-            Module::GPU => { self.gpu.write_byte(addr, byte); },
+            Module::GPU => { self.ppu.write_byte(addr, byte); },
 
             Module::Memory => { self.memory.write_byte(addr, byte); },
 
@@ -48,21 +48,13 @@ impl Bus {
 
             Module::IO => {
                 match addr {
-                    LCDC => self.gpu.write_lcdc(byte),
-                    STAT => self.gpu.write_stat(byte),
-                    SCY => self.gpu.scroll_y = byte,
-                    SCX => self.gpu.scroll_x = byte,
-                    LY => self.gpu.lcd_y = byte,
-                    LYC => self.gpu.lycompare = byte,
+                    LCDC => self.ppu.write_lcdc(byte),
+                    STAT => self.ppu.write_stat(byte),
                     OAM_DMA => {
-                        self.gpu.OAM_DMA = byte;
+                        self.ppu.write_register(addr, byte);
                         self.perform_dma();
-                    }
-                    BGP => self.gpu.bg_palette = byte,
-                    OBP0 => self.gpu.ob_palette0 = byte,
-                    OBP1 => self.gpu.ob_palette1 = byte,
-                    WY => self.gpu.window_y = byte,
-                    WX => self.gpu.window_x = byte,
+                    },
+                    SCY ..= WX  => self.ppu.write_register(addr, byte),
                     BROM => self.cartrigbe.bios_control(byte),
                     JOYP => self.joypad.write(byte),
                     
@@ -82,23 +74,14 @@ impl Bus {
 
         match from {
             Module::Cartrigbe => self.cartrigbe.read_byte(addr),
-            Module::GPU => self.gpu.read_byte(addr),
+            Module::GPU => self.ppu.read_byte(addr),
             Module::Memory => self.memory.read_byte(addr),
             Module::Interrupt => Response::Byte(self.interrupts.enable),
             Module::IO => {
                 match addr {
-                    LCDC => { Response::Byte( self.gpu.LCDC ) },
-                    STAT => { Response::Byte( self.gpu.read_stat() ) },
-                    SCY => { Response::Byte( self.gpu.scroll_y ) },
-                    SCX => { Response::Byte( self.gpu.scroll_x ) },
-                    LY => { Response::Byte( self.gpu.lcd_y ) },
-                    LYC => { Response::Byte( self.gpu.lycompare ) },
-                    OAM_DMA => { Response::Byte( self.gpu.OAM_DMA ) },
-                    BGP => { Response::Byte( self.gpu.bg_palette ) },
-                    OBP0 => { Response::Byte( self.gpu.ob_palette0 ) },
-                    OBP1 => { Response::Byte( self.gpu.ob_palette1 ) },
-                    WY => { Response::Byte( self.gpu.window_y ) },
-                    WX => { Response::Byte( self.gpu.window_x ) },
+                    LCDC => { Response::Byte( self.ppu.lcdc ) },
+                    STAT => { Response::Byte( self.ppu.read_stat() ) },
+                    SCY ..= WX => { Response::Byte( self.ppu.read_register(addr) ) },
                     JOYP => { Response::Byte( self.joypad.read() ) }
                     
                     IF => { Response::Byte( self.interrupts.requests | 0xE0 ) },
@@ -139,17 +122,22 @@ impl Bus {
         self.interrupts.master = false;
     }
 
-    pub fn run(&mut self, screen: &mut Vec<u32>) {
-        self.gpu.step(&mut self.interrupts, screen);
+    pub fn run(&mut self, _screen: &mut Vec<u32>) {
+        
+        //update the screen 4 times
+        for _ in 0..4 {
+            // self.gpu.step(&mut self.interrupts, screen);
+        }
+        
         self.timer.step(4, &mut self.interrupts);
     }
     //maybe not an optimal solution, performs the dma all at once. The rom will wait 160 cycles either way
     fn perform_dma(&mut self) {
         //Max transfer start is 0xF100
-        if self.gpu.OAM_DMA <= 0xF1 {
+        if self.ppu.read_register(OAM_DMA) <= 0xF1 {
 
-            let start = (self.gpu.OAM_DMA as u16) << 8; //>
-            let end = (self.gpu.OAM_DMA as u16) << 8 | 0x9F; //>
+            let start = (self.ppu.read_register(OAM_DMA) as u16) << 8; //>
+            let end = (self.ppu.read_register(OAM_DMA) as u16) << 8 | 0x9F; //>
 
             let mut oam_start = 0xFE00;
 
