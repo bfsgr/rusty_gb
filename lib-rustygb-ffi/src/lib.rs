@@ -17,3 +17,8 @@ pub unsafe extern "C" fn insert(sys: *mut libc::c_void, filename: *const libc::c
 
     sys.insert(CStr::from_ptr(filename).to_str().unwrap().to_string())
 }
+
+#[no_mangle]
+pub extern "C" fn drop_emulator(data: *mut c_void) {
+    drop(data);
+}
