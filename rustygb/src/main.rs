@@ -1,5 +1,5 @@
-use librustygb::Gameboy;
 use minifb::{Key, Window, WindowOptions};
+use rustygb::Gameboy;
 use std::thread;
 use std::time::{Duration, Instant};
 

@@ -136,7 +136,6 @@ impl Gameboy {
             return 4;
         }
     }
-
     pub fn insert(&mut self, file_name: String) {
         self.bus.insert_cartrigbe(file_name);
     }
